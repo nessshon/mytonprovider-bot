@@ -1,0 +1,94 @@
+message:
+
+  main:
+    menu: |
+      Привет, <b>{{ user.full_name }}</b>! Добро пожаловать в бота.<br><br>
+
+      Вы можете выбрать провайдера из списка всех провайдеров через кнопку <b>«🗂️ Все провайдеры»</b> 
+      или отправьте публичный ключ вручную, чтобы найти нужного провайдера.
+    not_found: "Провайдер не найден. Убедитесь, что вы указали корректный ADNL-адрес."
+    invalid_input: "Неверный формат ввода. Пожалуйста, введите корректный ADNL-адрес."
+
+  alert_settings:
+    menu: "Выберите тип уведомлений, которые вы хотите получать:"
+
+  language:
+    menu: "Выберите язык интерфейса:"
+
+  help:
+    menu: "Этот бот поможет вам отслеживать статусы провайдеров и управлять своими подписками."
+
+  provider:
+    menu: |
+      🔐 <b>Provider</b>: {{ provider.short_pubkey }}<br>
+      {{ provider.status_emoji_display }} <i>{{ provider.status_text_display }}</i><br>
+      📈 Uptime: {{ provider.uptime|round(2) }}%<br>
+      🕒 Working Time: {{ provider.working_time_display }}<br>
+      📊 Rating: {{ provider.rating|round(2) }}<br><br>
+
+      📦 <b>Storage</b>:<br>
+      • Max Bag Size: {{ (provider.max_bag_size_bytes / 1073741824)|round(2) }} GB<br>
+      • Min Span: {{ provider.min_span_display }}<br>
+      • Max Span: {{ provider.max_span_display }}<br><br>
+
+      💰 <b>Price</b>: {{ provider.price_display }} TON<br>
+      📅 Registered: {{ provider.reg_time | datetimeformat }}<br><br>
+
+      📡 Sending Telemetry: {% if provider.is_send_telemetry %}✅ Yes{% else %}❌ No{% endif %}
+
+button:
+
+  common:
+    to_main: "🏠 На главную"
+
+  main_menu:
+    my_providers: "⭐️ Мои провайдеры"
+    list_providers: "🗂️ Все провайдеры"
+    statuses: "📈 Статусы провайдеров"
+    language: "🌐 Язык"
+    help: "ℹ️ О боте"
+
+  alert_state:
+    enabled: "🔕 Отключить уведомления"
+    disabled: "🔔 Включить уведомления"
+
+  alert_settings:
+    text: "⚙️ Настройка уведомлений"
+    options:
+      service_restarted: "Перезапуск службы"
+      monthly_report: "Ежемесячный отчёт"
+      cpu_high: "Высокая нагрузка на CPU"
+      ram_high: "Высокая нагрузка на RAM"
+      network_high: "Высокая сетевая нагрузка"
+      disk_load_high: "Высокая нагрузка на диск"
+      disk_space_low: "Недостаточно свободного места"
+
+    state:
+      enabled: "🟢 "
+      disabled: "🔘 "
+
+    enable_all: "▶️ Включить всё"
+    disable_all: "⏸️ Отключить всё"
+
+  provider:
+    subscribe: "⭐️ Подписаться"
+    unsubscribe: "✖️ Отписаться"
+
+language_name:
+  ru: "Русский"
+  en: "Английский"
+  zh_TW: "Китайский (традиц.)"
+
+inline:
+
+  list_providers:
+    title: "{{ provider.status_emoji_display }} {{ provider.short_pubkey }}"
+    desc: |
+      rating: {{ provider.rating|round(2) }} • price: {{ provider.price_display }} TON
+      working: {{ provider.working_time_display }} • uptime: {{ provider.uptime|round(2) }}%
+
+  my_providers:
+    title: "📦 {{ provider.short_pubkey }} • {{ provider.status_text_display }}"
+    desc: |
+      rating: {{ provider.rating|round(2) }} • price: {{ provider.price_display }} TON
+      working: {{ provider.working_time_display }} • uptime: {{ provider.uptime|round(2) }}%

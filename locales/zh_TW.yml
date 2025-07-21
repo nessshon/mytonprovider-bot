@@ -1,0 +1,95 @@
+message:
+
+  main:
+    menu: |
+      您好，<b>{{ user.full_name }}</b>！歡迎使用此機器人。<br><br>
+
+      您可以點擊 <b>「🗂️ 所有提供者」</b> 按鈕，從清單中選擇提供者，  
+      或者手動傳送公開金鑰來查找特定的提供者。
+
+    not_found: "找不到提供者。請確認您輸入的是有效的 ADNL 位址。"
+    invalid_input: "輸入格式錯誤。請輸入正確的 ADNL 位址。"
+
+  alert_settings:
+    menu: "請選擇您想接收的通知類型："
+
+  language:
+    menu: "請選擇介面語言："
+
+  help:
+    menu: "本機器人可幫助您追蹤提供者狀態並管理您的訂閱。"
+
+  provider:
+    menu: |
+      🔐 <b>提供者</b>：{{ provider.short_pubkey }}<br>
+      {{ provider.status_emoji_display }} <i>{{ provider.status_text_display }}</i><br>
+      📈 正常運作時間：{{ provider.uptime|round(2) }}%<br>
+      🕒 總工作時間：{{ provider.working_time_display }}<br>
+      📊 評分：{{ provider.rating|round(2) }}<br><br>
+
+      📦 <b>儲存空間</b>：<br>
+      • 最大袋子大小：{{ (provider.max_bag_size_bytes / 1073741824)|round(2) }} GB<br>
+      • 最小保留時間：{{ provider.min_span_display }}<br>
+      • 最大保留時間：{{ provider.max_span_display }}<br><br>
+
+      💰 <b>價格</b>：{{ provider.price_display }} TON<br>
+      📅 註冊時間：{{ provider.reg_time | datetimeformat }}<br><br>
+
+      📡 傳送遙測資料：{% if provider.is_send_telemetry %}✅ 是{% else %}❌ 否{% endif %}
+
+button:
+
+  common:
+    to_main: "🏠 回主選單"
+
+  main_menu:
+    my_providers: "⭐️ 我的提供者"
+    list_providers: "🗂️ 所有提供者"
+    statuses: "📈 提供者狀態"
+    language: "🌐 語言"
+    help: "ℹ️ 關於本機器人"
+
+  alert_state:
+    enabled: "🔕 關閉通知"
+    disabled: "🔔 開啟通知"
+
+  alert_settings:
+    text: "⚙️ 通知設定"
+    options:
+      service_restarted: "服務已重新啟動"
+      monthly_report: "每月報告"
+      cpu_high: "CPU 使用率過高"
+      ram_high: "RAM 使用率過高"
+      network_high: "網路負載過高"
+      disk_load_high: "磁碟負載過高"
+      disk_space_low: "磁碟空間不足"
+
+    state:
+      enabled: "🟢 "
+      disabled: "🔘 "
+
+    enable_all: "▶️ 全部啟用"
+    disable_all: "⏸️ 全部停用"
+
+  provider:
+    subscribe: "⭐️ 訂閱"
+    unsubscribe: "✖️ 取消訂閱"
+
+language_name:
+  ru: "俄文"
+  en: "英文"
+  zh_TW: "中文（繁體）"
+
+inline:
+
+  list_providers:
+    title: "{{ provider.status_emoji_display }} {{ provider.short_pubkey }}"
+    desc: |
+      評分：{{ provider.rating|round(2) }} • 價格：{{ provider.price_display }} TON
+      工作：{{ provider.working_time_display }} • 正常運作時間：{{ provider.uptime|round(2) }}%
+
+  my_providers:
+    title: "📦 {{ provider.short_pubkey }} • {{ provider.status_text_display }}"
+    desc: |
+      評分：{{ provider.rating|round(2) }} • 價格：{{ provider.price_display }} TON
+      工作：{{ provider.working_time_display }} • 正常運作時間：{{ provider.uptime|round(2) }}%

@@ -1,0 +1,98 @@
+from contextlib import suppress
+
+from aiogram.exceptions import TelegramBadRequest
+from aiogram.types import (
+    Message,
+    InlineQuery,
+    InlineQueryResultArticle,
+    InputTextMessageContent,
+)
+from aiogram_dialog import DialogManager, ShowMode
+
+from ..dialogs import states
+from ...database import UnitOfWork
+from ...database.models import ProviderModel
+from ...utils.i18n import Localizer
+
+
+async def providers_inline(
+    query: InlineQuery,
+    uow: UnitOfWork,
+    localizer: Localizer,
+) -> None:
+    offset, limit = int(query.offset or 0), 20
+    query_type = (query.query or "").strip().lower()
+
+    user_id, filters = query.from_user.id, {}
+    list_type = "my_providers" if query_type.startswith("my") else "list_providers"
+
+    if list_type == "my_providers":
+        user = await uow.user.get(user_id=user_id)
+        filters["pubkey"] = (
+            [s.provider_pubkey for s in await uow.subscription.list(user_id=user.id)]
+            if user
+            else []
+        )
+
+    total = await uow.provider.count(**filters)
+    providers = await uow.provider.list(
+        offset=offset,
+        limit=limit,
+        order_by=[ProviderModel.rating.desc()],
+        **filters,
+    )
+
+    results = [
+        InlineQueryResultArticle(
+            id=provider.pubkey,
+            title=await localizer(f"inline.{list_type}.title", provider=provider),
+            description=await localizer(f"inline.{list_type}.desc", provider=provider),
+            thumbnail_url="https://mytonprovider.org/logo_48x48.png",
+            thumbnail_width=48,
+            thumbnail_height=48,
+            input_message_content=InputTextMessageContent(
+                message_text=provider.pubkey,
+            ),
+        )
+        for provider in providers
+    ]
+
+    next_offset = str(offset + limit) if offset + limit < total else ""
+    await query.answer(results, cache_time=1, is_personal=True, next_offset=next_offset)
+
+
+async def defaul_message(
+    message: Message, dialog_manager: DialogManager, uow: UnitOfWork
+) -> None:
+    pubkey = message.text.strip()
+
+    if not is_valid_pubkey(pubkey):
+        await dialog_manager.start(
+            state=states.MainMenu.INVALID_INPUT,
+            show_mode=ShowMode.DELETE_AND_SEND,
+        )
+        with suppress(TelegramBadRequest):
+            await message.delete()
+        return
+
+    if await uow.provider.exists(pubkey=pubkey):
+        await dialog_manager.start(
+            state=states.ProviderMenu.MAIN,
+            data={"provider_pubkey": pubkey},
+            show_mode=ShowMode.DELETE_AND_SEND,
+        )
+    else:
+        await dialog_manager.start(
+            state=states.MainMenu.NOT_FOUND,
+            show_mode=ShowMode.DELETE_AND_SEND,
+        )
+
+
+def is_valid_pubkey(pubkey: str) -> bool:
+    if len(pubkey) != 64:
+        return False
+    try:
+        bytes.fromhex(pubkey)
+        return True
+    except ValueError:
+        return False

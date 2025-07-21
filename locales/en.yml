@@ -1,0 +1,95 @@
+message:
+
+  main:
+    menu: |
+      Hello, <b>{{ user.full_name }}</b>! Welcome to the bot.<br><br>
+
+      You can select a provider from the full list using the <b>“🗂️ All Providers”</b> button,  
+      or send the public key manually to find a specific provider.
+
+    not_found: "Provider not found. Please make sure you've entered a valid ADNL address."
+    invalid_input: "Invalid input format. Please enter a valid ADNL address."
+
+  alert_settings:
+    menu: "Choose the types of alerts you want to receive:"
+
+  language:
+    menu: "Choose your interface language:"
+
+  help:
+    menu: "This bot helps you track provider statuses and manage your subscriptions."
+
+  provider:
+    menu: |
+      🔐 <b>Provider</b>: {{ provider.short_pubkey }}<br>
+      {{ provider.status_emoji_display }} <i>{{ provider.status_text_display }}</i><br>
+      📈 Uptime: {{ provider.uptime|round(2) }}%<br>
+      🕒 Working Time: {{ provider.working_time_display }}<br>
+      📊 Rating: {{ provider.rating|round(2) }}<br><br>
+
+      📦 <b>Storage</b>:<br>
+      • Max Bag Size: {{ (provider.max_bag_size_bytes / 1073741824)|round(2) }} GB<br>
+      • Min Span: {{ provider.min_span_display }}<br>
+      • Max Span: {{ provider.max_span_display }}<br><br>
+
+      💰 <b>Price</b>: {{ provider.price_display }} TON<br>
+      📅 Registered: {{ provider.reg_time | datetimeformat }}<br><br>
+
+      📡 Sending Telemetry: {% if provider.is_send_telemetry %}✅ Yes{% else %}❌ No{% endif %}
+
+button:
+
+  common:
+    to_main: "🏠 Back to main"
+
+  main_menu:
+    my_providers: "⭐️ My Providers"
+    list_providers: "🗂️ All Providers"
+    statuses: "📈 Provider Statuses"
+    language: "🌐 Language"
+    help: "ℹ️ About the Bot"
+
+  alert_state:
+    enabled: "🔕 Disable Alerts"
+    disabled: "🔔 Enable Alerts"
+
+  alert_settings:
+    text: "⚙️ Alert Settings"
+    options:
+      service_restarted: "Service Restarted"
+      monthly_report: "Monthly Report"
+      cpu_high: "High CPU Usage"
+      ram_high: "High RAM Usage"
+      network_high: "High Network Load"
+      disk_load_high: "High Disk Load"
+      disk_space_low: "Low Disk Space"
+
+    state:
+      enabled: "🟢 "
+      disabled: "🔘 "
+
+    enable_all: "▶️ Enable All"
+    disable_all: "⏸️ Disable All"
+
+  provider:
+    subscribe: "⭐️ Subscribe"
+    unsubscribe: "✖️ Unsubscribe"
+
+language_name:
+  ru: "Russian"
+  en: "English"
+  zh_TW: "Chinese (Traditional)"
+
+inline:
+
+  list_providers:
+    title: "{{ provider.status_emoji_display }} {{ provider.short_pubkey }}"
+    desc: |
+      rating: {{ provider.rating|round(2) }} • price: {{ provider.price_display }} TON
+      working: {{ provider.working_time_display }} • uptime: {{ provider.uptime|round(2) }}%
+
+  my_providers:
+    title: "📦 {{ provider.short_pubkey }} • {{ provider.status_text_display }}"
+    desc: |
+      rating: {{ provider.rating|round(2) }} • price: {{ provider.price_display }} TON
+      working: {{ provider.working_time_display }} • uptime: {{ provider.uptime|round(2) }}%
