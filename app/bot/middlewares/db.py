@@ -3,7 +3,7 @@ from datetime import datetime
 
 from aiogram import BaseMiddleware
 from aiogram.types import TelegramObject, User
-from sqlalchemy.orm import selectinload, joinedload
+from sqlalchemy.orm import selectinload
 
 from ...config import TIMEZONE
 from ...context import Context
@@ -34,7 +34,7 @@ class DbSessionMiddleware(BaseMiddleware):
                     user_id=user.id,
                     options=[
                         selectinload(UserModel.subscriptions),
-                        joinedload(UserModel.alert_settings),
+                        selectinload(UserModel.alert_settings),
                     ],
                 )
                 if existing is None:
@@ -52,13 +52,10 @@ class DbSessionMiddleware(BaseMiddleware):
                     )
                     user_model = await uow.user.create(user_model)
                 else:
-                    user_model = await uow.user.update(
-                        filters={"id": existing.id},
-                        values={
-                            "full_name": user.full_name,
-                            "username": user.username,
-                        },
-                    )
+                    existing.full_name = user.full_name
+                    existing.username = user.username
+                    user_model = existing
+                    await uow.session.flush()
 
                 data["user_model"] = user_model
 
