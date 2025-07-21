@@ -2,27 +2,50 @@ message:
 
   main:
     menu: |
-      Hello, <b>{{ user.full_name }}</b>! Welcome to the bot.<br><br>
+      👋 <b>Hello, {{ user.full_name }}</b>! Welcome to the bot.<br><br>
 
-      You can select a provider from the full list using the <b>“🗂️ All Providers”</b> button,  
-      or send the public key manually to find a specific provider.
+      🤖 <b>Track your provider in real-time</b> –  
+      telemetry, statuses, urgent alerts, and more.<br><br>
 
-    not_found: "Provider not found. Please make sure you've entered a valid ADNL address."
-    invalid_input: "Invalid input format. Please enter a valid ADNL address."
+      🔎 <b>How to find a provider:</b>
+      <ul>
+        <li>Click the button «🗂️ All Providers»</li>
+        <li>Send the public key as a message</li>
+      </ul>
+
+    not_found: |
+      ⚠️ <b>Provider not found</b><br><br>
+
+      Please make sure you've entered a valid public key.
+
+    invalid_input: |
+      ❗️ <b>Invalid public key format</b><br><br>
+
+      Please check your input and try again.
 
   alert_settings:
-    menu: "Choose the types of alerts you want to receive:"
+    menu: |
+      🔔 <b>Notification Settings</b><br><br>
+
+      Select the events you’d like to be notified about.
 
   language:
-    menu: "Choose your interface language:"
+    menu: |
+      🌐 <b>Language Selection</b><br><br>
+
+      Choose your preferred interface language.
 
   help:
-    menu: "This bot helps you track provider statuses and manage your subscriptions."
+    menu: |
+      ℹ️ <b>About the Bot</b><br><br>
+
+      This bot helps you track provider statuses,
+      receive alerts, and manage your subscriptions.
 
   provider:
     menu: |
       🔐 <b>Provider</b>: {{ provider.short_pubkey }}<br>
-      {{ provider.status_emoji_display }} <i>{{ provider.status_text_display }}</i><br>
+      {{ provider.status_emoji_display }} {{ provider.status_text_display }}<br>
       📈 Uptime: {{ provider.uptime|round(2) }}%<br>
       🕒 Working Time: {{ provider.working_time_display }}<br>
       📊 Rating: {{ provider.rating|round(2) }}<br><br>
@@ -35,26 +58,31 @@ message:
       💰 <b>Price</b>: {{ provider.price_display }} TON<br>
       📅 Registered: {{ provider.reg_time | datetimeformat }}<br><br>
 
-      📡 Sending Telemetry: {% if provider.is_send_telemetry %}✅ Yes{% else %}❌ No{% endif %}
+      📡 Telemetry Enabled: {% if provider.is_send_telemetry %}✅ Yes{% else %}❗️ No{% endif %}
 
 button:
 
   common:
-    to_main: "🏠 Back to main"
+    to_main: "🏠 Back to Main"
 
   main_menu:
     my_providers: "⭐️ My Providers"
     list_providers: "🗂️ All Providers"
     statuses: "📈 Provider Statuses"
     language: "🌐 Language"
-    help: "ℹ️ About the Bot"
+    help: "ℹ️ About"
+
+  help_menu:
+    open_website: "🌐 Project Website"
+    open_chat: "💬 Community Chat"
+    become_provider: "🚀 Become a Provider"
 
   alert_state:
     enabled: "🔕 Disable Alerts"
     disabled: "🔔 Enable Alerts"
 
   alert_settings:
-    text: "⚙️ Alert Settings"
+    text: "⚙️ Notification Settings"
     options:
       service_restarted: "Service Restarted"
       monthly_report: "Monthly Report"
@@ -76,9 +104,9 @@ button:
     unsubscribe: "✖️ Unsubscribe"
 
 language_name:
-  ru: "Russian"
-  en: "English"
-  zh_TW: "Chinese (Traditional)"
+  ru: "🇷🇺 Russian"
+  en: "🇬🇧 English"
+  zh_TW: "🇹🇼 Chinese (Trad.)"
 
 inline:
 
@@ -89,7 +117,7 @@ inline:
       working: {{ provider.working_time_display }} • uptime: {{ provider.uptime|round(2) }}%
 
   my_providers:
-    title: "📦 {{ provider.short_pubkey }} • {{ provider.status_text_display }}"
+    title: "{{ provider.status_emoji_display }} {{ provider.short_pubkey }}"
     desc: |
       rating: {{ provider.rating|round(2) }} • price: {{ provider.price_display }} TON
       working: {{ provider.working_time_display }} • uptime: {{ provider.uptime|round(2) }}%

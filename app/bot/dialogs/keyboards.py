@@ -5,7 +5,7 @@ from aiogram_dialog.widgets.text import Case, Multi, Const
 
 from . import states, on_clicks
 from ..widgets import I18NJinja
-from ...config import SUPPORTED_LOCALES
+from ...config import SUPPORTED_LOCALES, ExternalLinks
 from ...scheduler.user_alerts.types import UserAlertTypes
 
 to_main = kbd.Start(
@@ -118,4 +118,21 @@ language_menu = kbd.Group(
     width=1,
 )
 
-help_menu = to_main
+help_menu = kbd.Group(
+    kbd.Url(
+        id="open_website",
+        text=I18NJinja("button.help_menu.open_website"),
+        url=Const(ExternalLinks.WEBSITE),
+    ),
+    kbd.Url(
+        id="open_chat",
+        text=I18NJinja("button.help_menu.open_chat"),
+        url=Const(ExternalLinks.CHAT),
+    ),
+    kbd.Url(
+        id="become_provider",
+        text=I18NJinja("button.help_menu.become_provider"),
+        url=Const(ExternalLinks.BECOME_PROVIDER),
+    ),
+    to_main,
+)
