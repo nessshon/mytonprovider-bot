@@ -3,11 +3,11 @@ from datetime import datetime
 
 from aiogram import BaseMiddleware
 from aiogram.types import TelegramObject, User
-from sqlalchemy.orm import selectinload
+from sqlalchemy import select, exists
 
 from ...config import TIMEZONE
 from ...context import Context
-from ...database.models import UserModel, AlertSettingModel
+from ...database.models import UserModel, AlertSettingModel, SubscriptionModel
 from ...database.unitofwork import UnitOfWork
 from ...scheduler.user_alerts.types import UserAlertTypes
 
@@ -29,14 +29,11 @@ class DbSessionMiddleware(BaseMiddleware):
         uow = UnitOfWork(ctx.db.session_factory)
 
         async with uow:
+            user_model: t.Optional[UserModel] = None
+            has_subscriptions = False
+
             if user and not user.is_bot:
-                existing = await uow.user.get(
-                    user_id=user.id,
-                    options=[
-                        selectinload(UserModel.subscriptions),
-                        selectinload(UserModel.alert_settings),
-                    ],
-                )
+                existing = await uow.user.get(user_id=user.id)
                 if existing is None:
                     user_model = UserModel(
                         user_id=user.id,
@@ -57,7 +54,12 @@ class DbSessionMiddleware(BaseMiddleware):
                     user_model = existing
                     await uow.session.flush()
 
-                data["user_model"] = user_model
+                has_subscriptions = await uow.session.scalar(
+                    select(exists().where(SubscriptionModel.user_id == user_model.id))
+                )
 
+            data["user_model"] = user_model
+            data["has_subscriptions"] = has_subscriptions
             data["uow"] = uow
+
             return await handler(event, data)

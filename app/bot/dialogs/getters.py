@@ -4,7 +4,7 @@ from ...database import UnitOfWork
 from ...database.models import UserModel
 
 
-async def main_menu(dialog_manager: DialogManager, **data):
+async def main_menu(dialog_manager: DialogManager, **_):
     user_model: UserModel = dialog_manager.middleware_data["user_model"]
     enabled_alerts = user_model.alert_settings.enabled
 
@@ -12,11 +12,11 @@ async def main_menu(dialog_manager: DialogManager, **data):
         "user": dialog_manager.event.from_user,
         "user_model": user_model,
         "toggle_alerts": "enabled" if enabled_alerts else "disabled",
-        "has_subscriptions": bool(user_model.subscriptions),
+        "has_subscriptions": dialog_manager.middleware_data["has_subscriptions"],
     }
 
 
-async def provider_menu(dialog_manager: DialogManager, **kwargs):
+async def provider_menu(dialog_manager: DialogManager, **_):
     user = dialog_manager.middleware_data["user_model"]
     uow: UnitOfWork = dialog_manager.middleware_data["uow"]
     pubkey = dialog_manager.start_data.get("provider_pubkey")
@@ -32,7 +32,7 @@ async def provider_menu(dialog_manager: DialogManager, **kwargs):
     }
 
 
-async def alert_settings_menu(dialog_manager: DialogManager, **kwargs):
+async def alert_settings_menu(dialog_manager: DialogManager, **_):
     user_model: UserModel = dialog_manager.middleware_data["user_model"]
 
     return {"user_model": user_model}
