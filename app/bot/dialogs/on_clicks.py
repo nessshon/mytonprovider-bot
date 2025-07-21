@@ -44,18 +44,12 @@ async def toggle_alerts(
     manager: DialogManager,
 ) -> None:
     uow: UnitOfWork = manager.middleware_data["uow"]
-    user_model = manager.middleware_data["user_model"]
+    user_model: UserModel = manager.middleware_data["user_model"]
 
     enabled = user_model.alert_settings.enabled
-    new_enabled = not enabled
+    user_model.alert_settings.enabled = not enabled
 
-    await uow.alert_setting.update(
-        filters={"user_id": user_model.id},
-        values={"enabled": new_enabled},
-    )
-
-    user_model.alert_settings.enabled = new_enabled
-    manager.middleware_data["user_model"] = user_model
+    await uow.session.flush()
     await manager.show()
 
 
@@ -83,11 +77,7 @@ async def toggle_alert_type(
             current_types.add(alert_type)
         user_model.alert_settings.types = list(current_types)
 
-    await uow.alert_setting.update(
-        filters={"user_id": user_model.id},
-        values={"types": user_model.alert_settings.types},
-    )
-    manager.middleware_data["user_model"] = user_model
+    await uow.session.flush()
     await manager.show()
 
 
@@ -99,17 +89,14 @@ async def select_language(
 ) -> None:
     ctx: Context = manager.middleware_data["ctx"]
     uow: UnitOfWork = manager.middleware_data["uow"]
+    user_model = manager.middleware_data["user_model"]
 
+    user_model.language_code = item_id
     locale_data = ctx.i18n.locales_data.get(item_id)
-    user_model = await uow.user.update(
-        filters={"id": manager.middleware_data["user_model"].id},
-        values={"language_code": item_id},
-    )
-
-    manager.middleware_data["user_model"] = user_model
     manager.middleware_data["localizer"] = Localizer(
         jinja_env=ctx.i18n.jinja_env,
         locale_data=locale_data,
     )
 
+    await uow.session.flush()
     await manager.start(states.MainMenu.MAIN)
