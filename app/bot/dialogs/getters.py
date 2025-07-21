@@ -24,8 +24,7 @@ async def provider_menu(dialog_manager: DialogManager, **kwargs):
     is_subscribed = await uow.subscription.exists(
         user_id=user.id, provider_pubkey=pubkey
     )
-    print(provider)
-    print(provider.telemetry)
+
     return {
         "is_subscribed": is_subscribed,
         "provider": provider,

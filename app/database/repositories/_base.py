@@ -6,6 +6,7 @@ from typing import TypeVar
 
 from sqlalchemy import delete, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Load
 
 from ..models import BaseModel
 
@@ -18,14 +19,23 @@ class AbstractRepository(abc.ABC, t.Generic[_TBaseModel]):
     async def create(self, **kwargs: t.Any) -> _TBaseModel: ...
 
     @abc.abstractmethod
-    async def get(self, **filters: t.Any) -> t.Optional[_TBaseModel]: ...
+    async def get(
+        self,
+        *,
+        options: t.Optional[list[Load]] = None,
+        **filters: t.Any,
+    ) -> t.Optional[_TBaseModel]: ...
 
     @abc.abstractmethod
     async def list(
         self,
+        *,
+        offset: int = 0,
+        limit: int = 20,
         order_by: t.Optional[t.Any] = None,
+        options: t.Optional[list[Load]] = None,
         **filters: t.Any,
-    ) -> t.List[_TBaseModel]: ...
+    ) -> list[_TBaseModel]: ...
 
     @abc.abstractmethod
     async def update(
@@ -73,9 +83,17 @@ class BaseRepository(AbstractRepository[_TBaseModel]):
         await self.session.flush()
         return model
 
-    async def get(self, **filters: t.Any) -> t.Optional[_TBaseModel]:
+    async def get(
+        self,
+        *,
+        options: t.Optional[list[Load]] = None,
+        **filters: t.Any,
+    ) -> t.Optional[_TBaseModel]:
         stmt = select(self.model)
         stmt = self._apply_filters(stmt, self.model, filters).limit(1)
+        if options:
+            for opt in options:
+                stmt = stmt.options(opt)
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
 
@@ -85,16 +103,22 @@ class BaseRepository(AbstractRepository[_TBaseModel]):
         offset: int = 0,
         limit: int = 20,
         order_by: t.Optional[t.Any] = None,
+        options: t.Optional[list[Load]] = None,
         **filters: t.Any,
     ) -> list[_TBaseModel]:
         stmt = select(self.model)
         stmt = self._apply_filters(stmt, self.model, filters)
 
         if order_by is not None:
-            if isinstance(order_by, list):
-                stmt = stmt.order_by(*order_by)
-            else:
-                stmt = stmt.order_by(order_by)
+            stmt = (
+                stmt.order_by(*order_by)
+                if isinstance(order_by, list)
+                else stmt.order_by(order_by)
+            )
+
+        if options:
+            for opt in options:
+                stmt = stmt.options(opt)
 
         stmt = stmt.offset(offset).limit(limit)
         result = await self.session.execute(stmt)

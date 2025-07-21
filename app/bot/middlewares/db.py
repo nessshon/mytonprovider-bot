@@ -3,6 +3,7 @@ from datetime import datetime
 
 from aiogram import BaseMiddleware
 from aiogram.types import TelegramObject, User
+from sqlalchemy.orm import selectinload, joinedload
 
 from ...config import TIMEZONE
 from ...context import Context
@@ -29,8 +30,13 @@ class DbSessionMiddleware(BaseMiddleware):
 
         async with uow:
             if user and not user.is_bot:
-                existing = await uow.user.get(user_id=user.id)
-
+                existing = await uow.user.get(
+                    user_id=user.id,
+                    options=[
+                        selectinload(UserModel.subscriptions),
+                        joinedload(UserModel.alert_settings),
+                    ],
+                )
                 if existing is None:
                     user_model = UserModel(
                         user_id=user.id,
