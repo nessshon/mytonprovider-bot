@@ -7,8 +7,9 @@ apiq==0.0.3
 APScheduler==3.11.0
 cachetools==5.5.2
 environs==14.2.0
+greenlet==3.2.3
 Jinja2==3.1.6
 PyYAML==6.0.2
 redis==6.2.0
-SQLAlchemy[asyncio]==2.0.41
+SQLAlchemy==2.0.41
 sulguk==0.8.0
