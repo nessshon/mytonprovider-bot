@@ -58,7 +58,7 @@ message:
       💰 <b>Цена</b>: {{ provider.price_display }} TON<br>
       📅 Зарегистрирован: {{ provider.reg_time | datetimeformat }}<br><br>
 
-      📡 Отправка телеметрии: {% if provider.is_send_telemetry %}✅ Да{% else %❗️ Нет{% endif %}
+      📡 Отправка телеметрии: {% if provider.is_send_telemetry %}✅ Да{% else %}❗️ Нет{% endif %}
 
 button:
 
