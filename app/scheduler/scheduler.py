@@ -19,8 +19,8 @@ class Scheduler:
         self.remove_jobs()
         self.async_scheduler.shutdown(wait=False)
 
-    def add_jobs(self):
+    def add_jobs(self) -> None:
         DBSyncJob.add_jobs(self.async_scheduler)
 
-    def remove_jobs(self):
+    def remove_jobs(self) -> None:
         DBSyncJob.remove_jobs(self.async_scheduler)

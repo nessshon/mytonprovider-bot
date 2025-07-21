@@ -15,7 +15,7 @@ async def toggle_subscription(
     _: CallbackQuery,
     __,
     manager: DialogManager,
-):
+) -> None:
     user = manager.middleware_data["user_model"]
     uow: UnitOfWork = manager.middleware_data["uow"]
     pubkey = manager.start_data.get("provider_pubkey")
@@ -23,7 +23,6 @@ async def toggle_subscription(
     is_subscribed = await uow.subscription.exists(
         user_id=user.id, provider_pubkey=pubkey
     )
-
     if is_subscribed:
         await uow.subscription.delete(user_id=user.id, provider_pubkey=pubkey)
     else:
@@ -61,8 +60,7 @@ async def toggle_alert_type(
     user_model: UserModel = manager.middleware_data["user_model"]
     uow: UnitOfWork = manager.middleware_data["uow"]
 
-    widget_id = button.widget_id
-    all_types = {e.value for e in UserAlertTypes}
+    widget_id, all_types = button.widget_id, {e.value for e in UserAlertTypes}
     current_types = set(user_model.alert_settings.types or [])
 
     if widget_id == "enable_all_alerts":

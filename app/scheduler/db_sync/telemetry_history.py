@@ -19,7 +19,6 @@ async def create_telemetry_snapshot(
 ) -> None:
     now = datetime.now(TIMEZONE)
     day_str = now.date().isoformat()
-
     key = f"{REDIS_HISTORY_PREFIX}:{telemetry.provider_pubkey}:{day_str}"
 
     telemetry_dict = telemetry.model_dump()

@@ -6,7 +6,6 @@ from pathlib import Path
 import yaml
 from jinja2 import Environment
 
-from .types import LocalesData, LocaleData
 from ...config import LOCALES_DIR, SUPPORTED_LOCALES
 
 
@@ -19,13 +18,15 @@ class I18N:
             trim_blocks=True,
             enable_async=True,
         )
-        self.locales_data: LocalesData = self._load_all_locales()
+        self.locales_data: t.Dict[str, t.Dict[str, t.Any]] = self._load_all_locales()
 
-    def _load_all_locales(self) -> LocalesData:
+    def _load_all_locales(self) -> t.Dict[str, t.Dict[str, t.Any]]:
         if not LOCALES_DIR.is_dir():
-            raise FileNotFoundError(f"Locales directory '{LOCALES_DIR}' does not exist or is not a directory.")
+            raise FileNotFoundError(
+                f"Locales directory '{LOCALES_DIR}' does not exist or is not a directory."
+            )
 
-        locales_data: LocalesData = {}
+        locales_data: t.Dict[str, t.Dict[str, t.Any]] = {}
         for locale in SUPPORTED_LOCALES:
             file_path = self._resolve_locale_file(locale)
             raw_data = self._load_yaml_file(file_path)
@@ -39,7 +40,9 @@ class I18N:
             candidate = LOCALES_DIR / f"{locale}.{ext}"
             if candidate.exists():
                 return candidate
-        raise FileNotFoundError(f"Locale file for '{locale}' not found (.yaml or .yml) in '{LOCALES_DIR}'")
+        raise FileNotFoundError(
+            f"Locale file for '{locale}' not found (.yaml or .yml) in '{LOCALES_DIR}'"
+        )
 
     @staticmethod
     def _load_yaml_file(file_path: Path) -> LocaleData:
@@ -49,7 +52,9 @@ class I18N:
         except yaml.YAMLError as e:
             raise ValueError(f"Failed to parse YAML file '{file_path}': {e}") from e
         if not isinstance(data, dict):
-            raise TypeError(f"Locale file '{file_path}' must contain a top-level dictionary")
+            raise TypeError(
+                f"Locale file '{file_path}' must contain a top-level dictionary"
+            )
         return data
 
     @staticmethod

@@ -4,7 +4,6 @@ import asyncio
 import typing as t
 
 _CTX: t.Optional[Context] = None
-
 _STORAGE_KEY: str = "__context_storage__"
 
 
@@ -45,7 +44,3 @@ def get_context() -> Context:
     if _CTX is None:
         raise RuntimeError("Context has not been set")
     return _CTX
-
-
-def resolve_context_attr(name: str) -> t.Any:
-    return getattr(get_context(), name)

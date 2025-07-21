@@ -1,5 +1,6 @@
 from contextlib import suppress
 
+from aiogram.enums import ContentType
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.types import (
     Message,
@@ -28,11 +29,8 @@ async def providers_inline(
 
     if list_type == "my_providers":
         user = await uow.user.get(user_id=user_id)
-        filters["pubkey"] = (
-            [s.provider_pubkey for s in await uow.subscription.list(user_id=user.id)]
-            if user
-            else []
-        )
+        subscriptions = await uow.subscription.list(user_id=user.id) if user else []
+        filters["pubkey"] = [s.provider_pubkey for s in subscriptions]
 
     total = await uow.provider.count(**filters)
     providers = await uow.provider.list(
@@ -48,11 +46,7 @@ async def providers_inline(
             title=await localizer(f"inline.{list_type}.title", provider=provider),
             description=await localizer(f"inline.{list_type}.desc", provider=provider),
             thumbnail_url="https://mytonprovider.org/logo_48x48.png",
-            thumbnail_width=48,
-            thumbnail_height=48,
-            input_message_content=InputTextMessageContent(
-                message_text=provider.pubkey,
-            ),
+            input_message_content=InputTextMessageContent(message_text=provider.pubkey),
         )
         for provider in providers
     ]
@@ -62,11 +56,13 @@ async def providers_inline(
 
 
 async def defaul_message(
-    message: Message, dialog_manager: DialogManager, uow: UnitOfWork
+    message: Message,
+    dialog_manager: DialogManager,
+    uow: UnitOfWork,
 ) -> None:
-    pubkey = message.text.strip()
+    pubkey = message.text.strip() if message.content_type == ContentType.TEXT else None
 
-    if not is_valid_pubkey(pubkey):
+    if not pubkey or not is_valid_pubkey(pubkey):
         await dialog_manager.start(
             state=states.MainMenu.INVALID_INPUT,
             show_mode=ShowMode.DELETE_AND_SEND,
@@ -75,17 +71,16 @@ async def defaul_message(
             await message.delete()
         return
 
-    if await uow.provider.exists(pubkey=pubkey):
-        await dialog_manager.start(
-            state=states.ProviderMenu.MAIN,
-            data={"provider_pubkey": pubkey},
-            show_mode=ShowMode.DELETE_AND_SEND,
-        )
-    else:
-        await dialog_manager.start(
-            state=states.MainMenu.NOT_FOUND,
-            show_mode=ShowMode.DELETE_AND_SEND,
-        )
+    state, data = (
+        (states.ProviderMenu.MAIN, {"provider_pubkey": pubkey})
+        if await uow.provider.exists(pubkey=pubkey)
+        else (states.MainMenu.NOT_FOUND, None)
+    )
+    await dialog_manager.start(
+        state=state,
+        data=data,
+        show_mode=ShowMode.DELETE_AND_SEND,
+    )
 
 
 def is_valid_pubkey(pubkey: str) -> bool:

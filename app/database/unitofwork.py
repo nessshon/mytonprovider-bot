@@ -2,55 +2,56 @@ from __future__ import annotations
 
 import typing as t
 
-from sqlalchemy.ext.asyncio.session import (
+from sqlalchemy.ext.asyncio import (
     AsyncSession,
     AsyncSessionTransaction,
     async_sessionmaker,
 )
 
-from .repositories import (
-    ProviderRepository,
-    TelemetryRepository,
-    TelemetryHistoryRepository,
-    UserRepository,
-    SubscriptionRepository,
-    AlertSettingRepository,
-    TrigeredAlertRepository,
+from .models import (
+    ProviderModel,
+    TelemetryModel,
+    TelemetryHistoryModel,
+    SubscriptionModel,
+    UserModel,
+    AlertSettingModel,
+    TriggeredAlertModel,
 )
+from .repository import BaseRepository
 
 
 class UnitOfWork:
     session: AsyncSession
     transaction: AsyncSessionTransaction
 
-    provider: ProviderRepository
-    telemetry: TelemetryRepository
-    telemetry_history: TelemetryHistoryRepository
-    subscription: SubscriptionRepository
-    user: UserRepository
-    alert_setting: AlertSettingRepository
-    triggered_alert: TrigeredAlertRepository
+    provider: BaseRepository[ProviderModel]
+    telemetry: BaseRepository[TelemetryModel]
+    telemetry_history: BaseRepository[TelemetryHistoryModel]
+    subscription: BaseRepository[SubscriptionModel]
+    user: BaseRepository[UserModel]
+    alert_setting: BaseRepository[AlertSettingModel]
+    triggered_alert: BaseRepository[TriggeredAlertModel]
 
     def __init__(self, session_factory: async_sessionmaker) -> None:
-        self.session_factory: async_sessionmaker = session_factory
+        self.session_factory = session_factory
 
     async def __aenter__(self) -> UnitOfWork:
         self.session = self.session_factory()
         self.transaction = await self.session.begin()
 
-        self.provider = ProviderRepository(self.session)
-        self.telemetry = TelemetryRepository(self.session)
-        self.telemetry_history = TelemetryHistoryRepository(self.session)
-        self.subscription = SubscriptionRepository(self.session)
-        self.user = UserRepository(self.session)
-        self.alert_setting = AlertSettingRepository(self.session)
-        self.triggered_alert = TrigeredAlertRepository(self.session)
+        self.provider = BaseRepository(ProviderModel, self.session)
+        self.telemetry = BaseRepository(TelemetryModel, self.session)
+        self.telemetry_history = BaseRepository(TelemetryHistoryModel, self.session)
+        self.subscription = BaseRepository(SubscriptionModel, self.session)
+        self.user = BaseRepository(UserModel, self.session)
+        self.alert_setting = BaseRepository(AlertSettingModel, self.session)
+        self.triggered_alert = BaseRepository(TriggeredAlertModel, self.session)
 
         return self
 
     async def __aexit__(
         self,
-        exc_type: t.Optional[t.Type[BaseException]],
+        exc_type: t.Optional[type[BaseException]],
         exc: t.Optional[BaseException],
         tb: t.Optional[t.Any],
     ) -> None:

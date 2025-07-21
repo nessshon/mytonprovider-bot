@@ -3,11 +3,10 @@ from datetime import datetime
 
 from aiogram import BaseMiddleware
 from aiogram.types import TelegramObject, User
-from sqlalchemy import select, exists
 
 from ...config import TIMEZONE
 from ...context import Context
-from ...database.models import UserModel, AlertSettingModel, SubscriptionModel
+from ...database.models import UserModel, AlertSettingModel
 from ...database.unitofwork import UnitOfWork
 from ...scheduler.user_alerts.types import UserAlertTypes
 
@@ -54,9 +53,7 @@ class DbSessionMiddleware(BaseMiddleware):
                     user_model = existing
                     await uow.session.flush()
 
-                has_subscriptions = await uow.session.scalar(
-                    select(exists().where(SubscriptionModel.user_id == user_model.id))
-                )
+                has_subscriptions = await uow.subscription.exists(user_id=user_model.id)
 
             data["user_model"] = user_model
             data["has_subscriptions"] = has_subscriptions

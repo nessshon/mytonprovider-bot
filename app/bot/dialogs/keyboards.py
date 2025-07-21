@@ -1,5 +1,4 @@
 from aiogram import F
-from aiogram_dialog import ShowMode
 from aiogram_dialog.widgets import kbd
 from aiogram_dialog.widgets.kbd import Button
 from aiogram_dialog.widgets.text import Case, Multi, Const
@@ -9,15 +8,9 @@ from ..widgets import I18NJinja
 from ...config import SUPPORTED_LOCALES
 from ...scheduler.user_alerts.types import UserAlertTypes
 
-back = kbd.Cancel(
-    text=I18NJinja("button.common.back"),
-    id="back",
-    show_mode=ShowMode.EDIT,
-)
-
 to_main = kbd.Start(
-    I18NJinja("button.common.to_main"),
-    id="to_main",
+    id="back",
+    text=I18NJinja("button.common.to_main"),
     state=states.MainMenu.MAIN,
 )
 
@@ -115,8 +108,8 @@ alert_settings_menu = kbd.Group(
 
 language_menu = kbd.Group(
     kbd.Select(
-        text=I18NJinja("language_name.{item}"),
         id="select_language",
+        text=I18NJinja("language_name.{item}"),
         item_id_getter=lambda x: x,
         items=SUPPORTED_LOCALES,
         on_click=on_clicks.select_language,
