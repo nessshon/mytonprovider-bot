@@ -63,10 +63,7 @@ async def defaul_message(
     pubkey = message.text.strip() if message.content_type == ContentType.TEXT else None
 
     if not pubkey or not is_valid_pubkey(pubkey):
-        await dialog_manager.start(
-            state=states.MainMenu.INVALID_INPUT,
-            show_mode=ShowMode.DELETE_AND_SEND,
-        )
+        await dialog_manager.start(state=states.MainMenu.INVALID_INPUT)
         with suppress(TelegramBadRequest):
             await message.delete()
         return
