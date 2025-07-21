@@ -1,7 +1,7 @@
 from aiogram import F
 from aiogram_dialog.widgets import kbd
 from aiogram_dialog.widgets.kbd import Button
-from aiogram_dialog.widgets.text import Case, Multi, Const
+from aiogram_dialog.widgets.text import Case, Multi, Const, Format
 
 from . import states, on_clicks
 from ..widgets import I18NJinja
@@ -58,6 +58,10 @@ main_menu = kbd.Group(
 )
 
 provider_menu = kbd.Group(
+    kbd.CopyText(
+        text=I18NJinja("button.provider.copy_pubkey"),
+        copy_text=Format("{provider_pubkey}"),
+    ),
     Button(
         id="toggle_subscription",
         text=Case(

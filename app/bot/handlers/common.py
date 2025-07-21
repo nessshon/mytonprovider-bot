@@ -63,21 +63,24 @@ async def defaul_message(
     pubkey = message.text.strip() if message.content_type == ContentType.TEXT else None
 
     if not pubkey or not is_valid_pubkey(pubkey):
-        await dialog_manager.start(state=states.MainMenu.INVALID_INPUT)
-        with suppress(TelegramBadRequest):
-            await message.delete()
-        return
+        await dialog_manager.start(
+            state=states.MainMenu.INVALID_INPUT,
+            show_mode=ShowMode.EDIT,
+        )
+    else:
+        state, data = (
+            (states.ProviderMenu.MAIN, {"provider_pubkey": pubkey})
+            if await uow.provider.exists(pubkey=pubkey)
+            else (states.MainMenu.NOT_FOUND, None)
+        )
+        await dialog_manager.start(
+            state=state,
+            data=data,
+            show_mode=ShowMode.EDIT,
+        )
 
-    state, data = (
-        (states.ProviderMenu.MAIN, {"provider_pubkey": pubkey})
-        if await uow.provider.exists(pubkey=pubkey)
-        else (states.MainMenu.NOT_FOUND, None)
-    )
-    await dialog_manager.start(
-        state=state,
-        data=data,
-        show_mode=ShowMode.DELETE_AND_SEND,
-    )
+    with suppress(TelegramBadRequest):
+        await message.delete()
 
 
 def is_valid_pubkey(pubkey: str) -> bool:

@@ -94,6 +94,7 @@ button:
     disable_all: "⏸️ 全部關閉"
 
   provider:
+    copy_pubkey: "📋 複製公鑰"
     subscribe: "⭐️ 訂閱"
     unsubscribe: "✖️ 取消訂閱"
 

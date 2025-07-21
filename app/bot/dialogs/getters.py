@@ -29,6 +29,7 @@ async def provider_menu(dialog_manager: DialogManager, **_):
         "is_subscribed": is_subscribed,
         "provider": provider,
         "telemetry": provider.telemetry,
+        "provider_pubkey": pubkey,
     }
 
 

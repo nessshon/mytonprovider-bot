@@ -100,6 +100,7 @@ button:
     disable_all: "⏸️ Disable All"
 
   provider:
+    copy_pubkey: "📋 Copy public key"
     subscribe: "⭐️ Subscribe"
     unsubscribe: "✖️ Unsubscribe"
 
