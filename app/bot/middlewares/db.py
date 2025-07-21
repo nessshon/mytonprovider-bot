@@ -42,7 +42,7 @@ class DbSessionMiddleware(BaseMiddleware):
                         created_at=datetime.now(TIMEZONE),
                         alert_settings=AlertSettingModel(
                             user_id=user.id,
-                            enabled=True,
+                            enabled=False,
                             types=[alert for alert in UserAlertTypes],
                         ),
                     )
