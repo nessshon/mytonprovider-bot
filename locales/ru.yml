@@ -1,5 +1,4 @@
 message:
-
   main:
     menu: |
       👋 <b>Привет, {{ user.full_name }}</b>! Добро пожаловать в бота.<br><br>
@@ -61,7 +60,6 @@ message:
       📡 Отправка телеметрии: {% if provider.is_send_telemetry %}✅ Да{% else %}❗️ Нет{% endif %}
 
 button:
-
   common:
     to_main: "🏠 На главную"
 
@@ -70,12 +68,18 @@ button:
     list_providers: "🗂️ Все провайдеры"
     statuses: "📈 Статусы провайдеров"
     language: "🌐 Язык"
-    help: "ℹ️ О боте"
+    help: "ℹ️ Информация"
 
   help_menu:
-    open_website: "🌐 Сайт проекта"
-    open_chat: "💬 Чат сообщества"
-    become_provider: "🚀 Стать провайдером"
+    open_website:
+      text: "🌐 Сайт проекта"
+      url: "https://mytonprovider.org"
+    open_chat:
+      text: "💬 Чат сообщества"
+      url: "https://t.me/mytonprovider_chat"
+    become_provider:
+      text: "🚀 Стать провайдером"
+      url: "https://github.com/igroman787/mytonprovider/blob/master/README.md"
 
   alert_state:
     enabled: "🔕 Отключить уведомления"
@@ -91,11 +95,9 @@ button:
       network_high: "Высокая сетевая нагрузка"
       disk_load_high: "Высокая нагрузка на диск"
       disk_space_low: "Недостаточно свободного места"
-
     state:
       enabled: "🟢 "
       disabled: "🔘 "
-
     enable_all: "▶️ Включить всё"
     disable_all: "⏸️ Отключить всё"
 
@@ -104,13 +106,7 @@ button:
     subscribe: "⭐️ Подписаться"
     unsubscribe: "✖️ Отписаться"
 
-language_name:
-  ru: "🇷🇺 Русский"
-  en: "🇬🇧 Английский"
-  zh_TW: "🇹🇼 Китайский (традиц.)"
-
 inline:
-
   list_providers:
     title: "{{ provider.status_emoji_display }} {{ provider.short_pubkey }}"
     desc: |
@@ -122,3 +118,16 @@ inline:
     desc: |
       rating: {{ provider.rating|round(2) }} • price: {{ provider.price_display }} TON
       working: {{ provider.working_time_display }} • uptime: {{ provider.uptime|round(2) }}%
+
+commands:
+  start:
+    description: "▶️ Запустить бота"
+  help:
+    description: "ℹ️ Вывести информация"
+  lang:
+    description: "🔤 Сменить язык интерфейса"
+
+language_name:
+  ru: "🇷🇺 Русский"
+  en: "🇬🇧 Английский"
+  zh-TW: "🇹🇼 Китайский (традиц.)"

@@ -1,22 +1,21 @@
 message:
-
   main:
     menu: |
       👋 <b>Hello, {{ user.full_name }}</b>! Welcome to the bot.<br><br>
 
-      🤖 <b>Track your provider in real-time</b> –  
-      telemetry, statuses, urgent alerts, and more.<br><br>
+      🤖 <b>Monitor providers in real time</b> –  
+      telemetry, statuses, alerts, and more.<br><br>
 
       🔎 <b>How to find a provider:</b>
       <ul>
-        <li>Click the button «🗂️ All Providers»</li>
-        <li>Send the public key as a message</li>
+        <li>Tap the “🗂️ All providers” button</li>
+        <li>Send a public key as a message</li>
       </ul>
 
     not_found: |
       ⚠️ <b>Provider not found</b><br><br>
 
-      Please make sure you've entered a valid public key.
+      Make sure you sent a valid public key.
 
     invalid_input: |
       ❗️ <b>Invalid public key format</b><br><br>
@@ -25,92 +24,89 @@ message:
 
   alert_settings:
     menu: |
-      🔔 <b>Notification Settings</b><br><br>
+      🔔 <b>Alert settings</b><br><br>
 
-      Select the events you’d like to be notified about.
+      Choose events you want to receive alerts for.
 
   language:
     menu: |
-      🌐 <b>Language Selection</b><br><br>
+      🌐 <b>Select language</b><br><br>
 
-      Choose your preferred interface language.
+      Set the interface language you prefer.
 
   help:
     menu: |
-      ℹ️ <b>About the Bot</b><br><br>
+      ℹ️ <b>About the bot</b><br><br>
 
-      This bot helps you track provider statuses,
-      receive alerts, and manage your subscriptions.
+      This bot helps monitor provider status,
+      receive alerts, and manage subscriptions.
 
   provider:
     menu: |
       🔐 <b>Provider</b>: {{ provider.short_pubkey }}<br>
       {{ provider.status_emoji_display }} {{ provider.status_text_display }}<br>
       📈 Uptime: {{ provider.uptime|round(2) }}%<br>
-      🕒 Working Time: {{ provider.working_time_display }}<br>
+      🕒 Working time: {{ provider.working_time_display }}<br>
       📊 Rating: {{ provider.rating|round(2) }}<br><br>
 
-      📦 <b>Storage</b>:<br>
-      • Max Bag Size: {{ (provider.max_bag_size_bytes / 1073741824)|round(2) }} GB<br>
+      📦 <b>Storage:</b><br>
+      • Max Bag Size: {{ (provider.max_bag_size_bytes / 1073741824)|round(2) }} GB<br>
       • Min Span: {{ provider.min_span_display }}<br>
       • Max Span: {{ provider.max_span_display }}<br><br>
 
-      💰 <b>Price</b>: {{ provider.price_display }} TON<br>
+      💰 <b>Price:</b> {{ provider.price_display }} TON<br>
       📅 Registered: {{ provider.reg_time | datetimeformat }}<br><br>
 
-      📡 Telemetry Enabled: {% if provider.is_send_telemetry %}✅ Yes{% else %}❗️ No{% endif %}
+      📡 Telemetry sending: {% if provider.is_send_telemetry %}✅ Yes{% else %}❗️ No{% endif %}
 
 button:
-
   common:
-    to_main: "🏠 Back to Main"
+    to_main: "🏠 To main"
 
   main_menu:
-    my_providers: "⭐️ My Providers"
-    list_providers: "🗂️ All Providers"
-    statuses: "📈 Provider Statuses"
+    my_providers: "⭐️ My providers"
+    list_providers: "🗂️ All providers"
+    statuses: "📈 Provider statuses"
     language: "🌐 Language"
-    help: "ℹ️ About"
+    help: "ℹ️ Help"
 
   help_menu:
-    open_website: "🌐 Project Website"
-    open_chat: "💬 Community Chat"
-    become_provider: "🚀 Become a Provider"
+    open_website:
+      text: "🌐 Project website"
+      url: "https://mytonprovider.org"
+    open_chat:
+      text: "💬 Community chat"
+      url: "https://t.me/mytonprovider_chat"
+    become_provider:
+      text: "🚀 Become a provider"
+      url: "https://github.com/igroman787/mytonprovider/blob/master/README.md"
 
   alert_state:
-    enabled: "🔕 Disable Alerts"
-    disabled: "🔔 Enable Alerts"
+    enabled: "🔕 Disable alerts"
+    disabled: "🔔 Enable alerts"
 
   alert_settings:
-    text: "⚙️ Notification Settings"
+    text: "⚙️ Alert settings"
     options:
-      service_restarted: "Service Restarted"
-      monthly_report: "Monthly Report"
-      cpu_high: "High CPU Usage"
-      ram_high: "High RAM Usage"
-      network_high: "High Network Load"
-      disk_load_high: "High Disk Load"
-      disk_space_low: "Low Disk Space"
-
+      service_restarted: "Service restarted"
+      monthly_report: "Monthly report"
+      cpu_high: "High CPU usage"
+      ram_high: "High RAM usage"
+      network_high: "High network load"
+      disk_load_high: "High disk load"
+      disk_space_low: "Low disk space"
     state:
       enabled: "🟢 "
       disabled: "🔘 "
-
-    enable_all: "▶️ Enable All"
-    disable_all: "⏸️ Disable All"
+    enable_all: "▶️ Enable all"
+    disable_all: "⏸️ Disable all"
 
   provider:
     copy_pubkey: "📋 Copy public key"
     subscribe: "⭐️ Subscribe"
     unsubscribe: "✖️ Unsubscribe"
 
-language_name:
-  ru: "🇷🇺 Russian"
-  en: "🇬🇧 English"
-  zh_TW: "🇹🇼 Chinese (Trad.)"
-
 inline:
-
   list_providers:
     title: "{{ provider.status_emoji_display }} {{ provider.short_pubkey }}"
     desc: |
@@ -122,3 +118,16 @@ inline:
     desc: |
       rating: {{ provider.rating|round(2) }} • price: {{ provider.price_display }} TON
       working: {{ provider.working_time_display }} • uptime: {{ provider.uptime|round(2) }}%
+
+commands:
+  start:
+    description: "▶️ Start the bot"
+  help:
+    description: "ℹ️ Show information"
+  lang:
+    description: "🔤 Change language"
+
+language_name:
+  ru: "🇷🇺 Russian"
+  en: "🇬🇧 English"
+  zh-TW: "🇹🇼 Chinese (Traditional)"

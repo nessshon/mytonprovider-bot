@@ -31,11 +31,11 @@ async def on_startup(ctx: Context) -> None:
     dialogs.register(ctx.dp)
     setup_dialogs(ctx.dp)
 
-    await commands.setup(ctx.bot)
+    await commands.setup(ctx)
 
 
 async def on_shutdown(ctx: Context) -> None:
-    await commands.delete(ctx.bot)
+    await commands.delete(ctx)
     await ctx.bot.session.close()
 
     await ctx.scheduler.shutdown()

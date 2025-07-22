@@ -1,0 +1,133 @@
+message:
+  main:
+    menu: |
+      👋 <b>嗨，{{ user.full_name }}</b>！歡迎使用本機器人。<br><br>
+
+      🤖 <b>即時監控提供者</b> –  
+      遙測、狀態、警報通知等等。<br><br>
+
+      🔎 <b>如何查找提供者：</b>
+      <ul>
+        <li>點擊「🗂️ 所有提供者」按鈕</li>
+        <li>發送公鑰作為訊息</li>
+      </ul>
+
+    not_found: |
+      ⚠️ <b>找不到提供者</b><br><br>
+
+      請確認已輸入正確的公鑰。
+
+    invalid_input: |
+      ❗️ <b>公鑰格式不正確</b><br><br>
+
+      請檢查輸入並重試。
+
+  alert_settings:
+    menu: |
+      🔔 <b>警報設定</b><br><br>
+
+      選擇你希望接收通知的事件。
+
+  language:
+    menu: |
+      🔤 <b>選擇語言</b><br><br>
+
+      設定你偏好的介面語言。
+
+  help:
+    menu: |
+      ℹ️ <b>關於本機器人</b><br><br>
+
+      本機器人幫助你監控提供者狀態、
+      收取通知及管理訂閱。
+
+  provider:
+    menu: |
+      🔐 <b>提供者</b>: {{ provider.short_pubkey }}<br>
+      {{ provider.status_emoji_display }} {{ provider.status_text_display }}<br>
+      📈 運作率：{{ provider.uptime|round(2) }}%<br>
+      🕒 運行時間：{{ provider.working_time_display }}<br>
+      📊 評分：{{ provider.rating|round(2) }}<br><br>
+
+      📦 <b>儲存資訊：</b><br>
+      • 最大Bag大小：{{ (provider.max_bag_size_bytes / 1073741824)|round(2) }} GB<br>
+      • 最小Span：{{ provider.min_span_display }}<br>
+      • 最大Span：{{ provider.max_span_display }}<br><br>
+
+      💰 <b>價格：</b>{{ provider.price_display }} TON<br>
+      📅 註冊時間：{{ provider.reg_time | datetimeformat }}<br><br>
+
+      📡 發送遙測：{% if provider.is_send_telemetry %}✅ 是{% else %}❗️ 否{% endif %}
+
+button:
+  common:
+    to_main: "🏠 返回主選單"
+
+  main_menu:
+    my_providers: "⭐️ 我的提供者"
+    list_providers: "🗂️ 所有提供者"
+    statuses: "📈 提供者狀態"
+    language: "🔤 語言"
+    help: "ℹ️ 說明"
+
+  help_menu:
+    open_website:
+      text: "🌐 專案網站"
+      url: "https://mytonprovider.org"
+    open_chat:
+      text: "💬 社群聊天"
+      url: "https://t.me/mytonprovider_chat"
+    become_provider:
+      text: "🚀 成為提供者"
+      url: "https://github.com/igroman787/mytonprovider/blob/master/README.md"
+
+  alert_state:
+    enabled: "🔕 關閉通知"
+    disabled: "🔔 開啟通知"
+
+  alert_settings:
+    text: "⚙️ 警報設定"
+    options:
+      service_restarted: "服務重新啟動"
+      monthly_report: "每月報告"
+      cpu_high: "CPU 過高"
+      ram_high: "RAM 過高"
+      network_high: "網路負載過高"
+      disk_load_high: "磁碟負載過高"
+      disk_space_low: "磁碟空間不足"
+    state:
+      enabled: "🟢 "
+      disabled: "🔘 "
+    enable_all: "▶️ 全部啟用"
+    disable_all: "⏸️ 全部停用"
+
+  provider:
+    copy_pubkey: "📋 複製公鑰"
+    subscribe: "⭐️ 訂閱"
+    unsubscribe: "✖️ 退訂"
+
+inline:
+  list_providers:
+    title: "{{ provider.status_emoji_display }} {{ provider.short_pubkey }}"
+    desc: |
+      rating: {{ provider.rating|round(2) }} • price: {{ provider.price_display }} TON
+      working: {{ provider.working_time_display }} • uptime: {{ provider.uptime|round(2) }}%
+
+  my_providers:
+    title: "{{ provider.status_emoji_display }} {{ provider.short_pubkey }}"
+    desc: |
+      rating: {{ provider.rating|round(2) }} • price: {{ provider.price_display }} TON
+      working: {{ provider.working_time_display }} • uptime: {{ provider.uptime|round(2) }}%
+
+commands:
+  start:
+    description: "▶️ 啟動機器人"
+  help:
+    description: "ℹ️ 顯示資訊"
+  lang:
+    description: "🔤 切換語言"
+
+language_name:
+  ru: "🇷🇺 Russian"
+  en: "🇬🇧 English"
+  zh-TW: "🇹🇼 中文 (繁體)"

@@ -1,15 +1,19 @@
 from aiogram import Dispatcher, F
 from aiogram.enums import ChatType
-from aiogram.filters import ExceptionTypeFilter, CommandStart
+from aiogram.filters import ExceptionTypeFilter
 from aiogram_dialog.api.exceptions import UnknownIntent, UnknownState
 
-from .commands import start_command
+from .commands import register_command
 from .common import defaul_message, providers_inline
 from .errors import on_unknown_intent, on_unknown_state
+from ..dialogs import states
 
 
 def register(dp: Dispatcher) -> None:
-    dp.message.register(start_command, CommandStart())
+    register_command(dp, "start", states.MainMenu.MAIN)
+    register_command(dp, "help", states.HelpMenu.MAIN)
+    register_command(dp, "lang", states.LanguageMenu.MAIN)
+
     dp.message.register(defaul_message)
 
     dp.inline_query.register(

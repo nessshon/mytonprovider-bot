@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import typing as t
-from dataclasses import dataclass
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -25,12 +24,3 @@ REDIS_URL = ENV.str("REDIS_URL")
 SCHEDULER_URL = ENV.str("SCHEDULER_URL")
 
 BOT_TOKEN: str = ENV.str("BOT_TOKEN")
-
-
-@dataclass(frozen=True)
-class ExternalLinks:
-    WEBSITE: str = "https://mytonprovider.org/"
-    CHAT: str = "https://t.me/mytonprovider_chat"
-    BECOME_PROVIDER: str = (
-        "https://github.com/igroman787/mytonprovider/blob/master/README.md"
-    )
