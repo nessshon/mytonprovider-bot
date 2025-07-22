@@ -68,7 +68,7 @@ button:
     list_providers: "🗂️ Все провайдеры"
     statuses: "📈 Статусы провайдеров"
     language: "🌐 Язык"
-    help: "ℹ️ Информация"
+    help: "ℹ️ About"
 
   help_menu:
     open_website:

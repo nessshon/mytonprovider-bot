@@ -68,7 +68,7 @@ button:
     list_providers: "🗂️ All providers"
     statuses: "📈 Provider statuses"
     language: "🌐 Language"
-    help: "ℹ️ Help"
+    help: "ℹ️ About"
 
   help_menu:
     open_website:

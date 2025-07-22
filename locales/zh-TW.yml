@@ -68,7 +68,7 @@ button:
     list_providers: "🗂️ 所有提供者"
     statuses: "📈 提供者狀態"
     language: "🔤 語言"
-    help: "ℹ️ 說明"
+    help: "ℹ️ 關於機器人"
 
   help_menu:
     open_website:
