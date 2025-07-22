@@ -15,4 +15,4 @@ services:
     container_name: "mytonprovider-redis"
     restart: unless-stopped
     volumes:
-      - ./redis/data:/data
+      - ./data:/data
