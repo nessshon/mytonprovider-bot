@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import date, timedelta
+from datetime import date
 
 from sqlalchemy import (
     BigInteger,
@@ -19,6 +19,7 @@ from sqlalchemy.orm import (
 )
 
 from ._base import BaseModel
+from .display import ProviderDisplay
 from ...utils.mtpapi.models import Telemetry
 
 
@@ -54,77 +55,8 @@ class ProviderModel(BaseModel):
         return Telemetry(**self.telemetry_raw)
 
     @property
-    def short_pubkey(self) -> str:
-        return f"{self.pubkey[:8]}...{self.pubkey[-8:]}"
-
-    @property
-    def price_display(self) -> str:
-        return f"{self.price / 1e9:.2f}"
-
-    @property
-    def min_span_display(self) -> str:
-        return self._format_duration_display(self.min_span)
-
-    @property
-    def max_span_display(self) -> str:
-        return self._format_duration_display(self.max_span)
-
-    @property
-    def working_time_display(self) -> str:
-        return self._format_duration_display(self.working_time)
-
-    @staticmethod
-    def _format_duration_display(seconds: int) -> str:
-        delta = timedelta(seconds=seconds)
-        days = delta.days
-        hours = delta.seconds // 3600
-        if days > 365:
-            years = days // 365
-            rem_days = days % 365
-            return f"{years} year{'s' if years > 1 else ''} {rem_days} days"
-        if days > 0:
-            return f"{days} days {hours} hr"
-        return f"{hours} hr"
-
-    @property
-    def status_emoji_display(self) -> str:
-        ratio = self.uptime / 100 if self.uptime else 0
-        if self.status is None:
-            return "⚪️"
-        if self.status == 0:
-            if ratio < 0.8:
-                return "🔴"
-            elif ratio < 0.99:
-                return "🟡"
-            else:
-                return "🟢"
-        if self.status == 2:
-            return "🟠"
-        if self.status == 3:
-            return "🚫"
-        if self.status == 500:
-            return "⚫️"
-        return "⚪️"
-
-    @property
-    def status_text_display(self) -> str:
-        ratio = self.uptime / 100 if self.uptime else 0
-        if self.status is None:
-            return "No Data"
-        if self.status == 0:
-            if ratio < 0.8:
-                return "Unstable"
-            elif ratio < 0.99:
-                return "Partial"
-            else:
-                return "Stable"
-        if self.status == 2:
-            return "Invalid"
-        if self.status == 3:
-            return "Not Store"
-        if self.status == 500:
-            return "Not Accessible"
-        return "Unknown"
+    def display(self) -> ProviderDisplay:
+        return ProviderDisplay(self)
 
 
 class TelemetryModel(BaseModel):

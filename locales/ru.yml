@@ -43,21 +43,22 @@ message:
 
   provider:
     menu: |
-      🔐 <b>Провайдер</b>: {{ provider.short_pubkey }}<br>
-      {{ provider.status_emoji_display }} {{ provider.status_text_display }}<br>
-      📈 Аптайм: {{ provider.uptime|round(2) }}%<br>
-      🕒 Время в работе: {{ provider.working_time_display }}<br>
-      📊 Рейтинг: {{ provider.rating|round(2) }}<br><br>
-
-      📦 <b>Хранилище</b>:<br>
-      • Max Bag Size: {{ (provider.max_bag_size_bytes / 1073741824)|round(2) }} GB<br>
-      • Min Span: {{ provider.min_span_display }}<br>
-      • Max Span: {{ provider.max_span_display }}<br><br>
-
-      💰 <b>Цена</b>: {{ provider.price_display }} TON<br>
-      📅 Зарегистрирован: {{ provider.reg_time | datetimeformat }}<br><br>
-
-      📡 Отправка телеметрии: {% if provider.is_send_telemetry %}✅ Да{% else %}❗️ Нет{% endif %}
+      {{ provider.display.status_emoji }} <b>Провайдер</b><br>
+      • Ключ: {{ provider.display.short_pubkey }}<br>
+      • Статус: {{ provider.display.status_text }}<br>
+      • Аптайм: {{ provider.display.uptime }}<br>
+      • Время в работе: {{ provider.working_time | durationformat }}<br>
+      • Рейтинг: {{ provider.display.rating }}<br><br>
+      
+      💾 <b>Хранилище</b><br>
+      • Максимальный размер бага: {{ provider.display.max_bag_size }} ГБ<br>
+      • Минимальный срок хранения: {{ provider.min_span | durationformat }}<br>
+      • Максимальный срок хранения: {{ provider.max_span | durationformat }}<br><br>
+      
+      📊 <b>Общие данные</b><br>
+      • Стоимость хранения: {{ provider.display.price }}<br>
+      • Дата регистрации: {{ provider.reg_time | datetimeformat }}<br>
+      • Телеметрия: {% if provider.is_send_telemetry %}включена{% else %}отключена{% endif %}
 
 button:
   common:
@@ -108,16 +109,16 @@ button:
 
 inline:
   list_providers:
-    title: "{{ provider.status_emoji_display }} {{ provider.short_pubkey }}"
+    title: "{{ provider.display.status_emoji }} {{ provider.display.short_pubkey }}"
     desc: |
-      rating: {{ provider.rating|round(2) }} • price: {{ provider.price_display }} TON
-      working: {{ provider.working_time_display }} • uptime: {{ provider.uptime|round(2) }}%
+      рейтинг: {{ provider.display.rating }} • цена: {{ provider.display.price }}
+      в работе: {{ provider.working_time | durationformat }} • аптайм: {{ provider.display.uptime }}
 
   my_providers:
-    title: "{{ provider.status_emoji_display }} {{ provider.short_pubkey }}"
+    title: "{{ provider.display.status_emoji }} {{ provider.display.short_pubkey }}"
     desc: |
-      rating: {{ provider.rating|round(2) }} • price: {{ provider.price_display }} TON
-      working: {{ provider.working_time_display }} • uptime: {{ provider.uptime|round(2) }}%
+      рейтинг: {{ provider.display.rating }} • цена: {{ provider.display.price }}
+      в работе: {{ provider.working_time | durationformat }} • аптайм: {{ provider.display.uptime }}
 
 commands:
   start:
@@ -131,3 +132,8 @@ language_name:
   ru: "🇷🇺 Русский"
   en: "🇬🇧 Английский"
   zh-TW: "🇹🇼 Китайский (традиц.)"
+
+duration_short:
+  year: "г"
+  day: "д"
+  hour: "ч"

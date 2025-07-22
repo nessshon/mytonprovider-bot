@@ -43,21 +43,22 @@ message:
 
   provider:
     menu: |
-      🔐 <b>Provider</b>: {{ provider.short_pubkey }}<br>
-      {{ provider.status_emoji_display }} {{ provider.status_text_display }}<br>
-      📈 Uptime: {{ provider.uptime|round(2) }}%<br>
-      🕒 Working time: {{ provider.working_time_display }}<br>
-      📊 Rating: {{ provider.rating|round(2) }}<br><br>
-
-      📦 <b>Storage:</b><br>
-      • Max Bag Size: {{ (provider.max_bag_size_bytes / 1073741824)|round(2) }} GB<br>
-      • Min Span: {{ provider.min_span_display }}<br>
-      • Max Span: {{ provider.max_span_display }}<br><br>
-
-      💰 <b>Price:</b> {{ provider.price_display }} TON<br>
-      📅 Registered: {{ provider.reg_time | datetimeformat }}<br><br>
-
-      📡 Telemetry sending: {% if provider.is_send_telemetry %}✅ Yes{% else %}❗️ No{% endif %}
+      {{ provider.display.status_emoji }} <b>Provider</b><br>
+      • Key: {{ provider.display.short_pubkey }}<br>
+      • Status: {{ provider.display.status_text }}<br>
+      • Uptime: {{ provider.display.uptime }}<br>
+      • Working time: {{ provider.working_time | durationformat }}<br>
+      • Rating: {{ provider.display.rating }}<br><br>
+      
+      💾 <b>Storage</b><br>
+      • Max bag size: {{ provider.display.max_bag_size }} GB<br>
+      • Min retention: {{ provider.min_span | durationformat }}<br>
+      • Max retention: {{ provider.max_span | durationformat }}<br><br>
+      
+      📊 <b>General</b><br>
+      • Storage price: {{ provider.display.price }}<br>
+      • Registered on: {{ provider.reg_time | datetimeformat }}<br>
+      • Telemetry: {% if provider.is_send_telemetry %}enabled{% else %}disabled{% endif %}
 
 button:
   common:
@@ -108,16 +109,16 @@ button:
 
 inline:
   list_providers:
-    title: "{{ provider.status_emoji_display }} {{ provider.short_pubkey }}"
+    title: "{{ provider.display.status_emoji }} {{ provider.display.short_pubkey }}"
     desc: |
-      rating: {{ provider.rating|round(2) }} • price: {{ provider.price_display }} TON
-      working: {{ provider.working_time_display }} • uptime: {{ provider.uptime|round(2) }}%
+      rating: {{ provider.display.rating }} • price: {{ provider.display.price }}
+      uptime: {{ provider.display.uptime }} • working: {{ provider.working_time | durationformat }}
 
   my_providers:
-    title: "{{ provider.status_emoji_display }} {{ provider.short_pubkey }}"
+    title: "{{ provider.display.status_emoji }} {{ provider.display.short_pubkey }}"
     desc: |
-      rating: {{ provider.rating|round(2) }} • price: {{ provider.price_display }} TON
-      working: {{ provider.working_time_display }} • uptime: {{ provider.uptime|round(2) }}%
+      rating: {{ provider.display.rating }} • price: {{ provider.display.price }}
+      uptime: {{ provider.display.uptime }} • working: {{ provider.working_time | durationformat }}
 
 commands:
   start:
@@ -131,3 +132,8 @@ language_name:
   ru: "🇷🇺 Russian"
   en: "🇬🇧 English"
   zh-TW: "🇹🇼 Chinese (Traditional)"
+
+duration_short:
+  year: "y"
+  day: "d"
+  hour: "h"

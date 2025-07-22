@@ -43,21 +43,22 @@ message:
 
   provider:
     menu: |
-      🔐 <b>提供者</b>: {{ provider.short_pubkey }}<br>
-      {{ provider.status_emoji_display }} {{ provider.status_text_display }}<br>
-      📈 運作率：{{ provider.uptime|round(2) }}%<br>
-      🕒 運行時間：{{ provider.working_time_display }}<br>
-      📊 評分：{{ provider.rating|round(2) }}<br><br>
-
-      📦 <b>儲存資訊：</b><br>
-      • 最大Bag大小：{{ (provider.max_bag_size_bytes / 1073741824)|round(2) }} GB<br>
-      • 最小Span：{{ provider.min_span_display }}<br>
-      • 最大Span：{{ provider.max_span_display }}<br><br>
-
-      💰 <b>價格：</b>{{ provider.price_display }} TON<br>
-      📅 註冊時間：{{ provider.reg_time | datetimeformat }}<br><br>
-
-      📡 發送遙測：{% if provider.is_send_telemetry %}✅ 是{% else %}❗️ 否{% endif %}
+      {{ provider.display.status_emoji }} <b>提供者</b><br>
+      • 金鑰：{{ provider.display.short_pubkey }}<br>
+      • 狀態：{{ provider.display.status_text }}<br>
+      • 正常運作時間：{{ provider.display.uptime }}<br>
+      • 總運行時間：{{ provider.working_time | durationformat }}<br>
+      • 評分：{{ provider.display.rating }}<br><br>
+      
+      💾 <b>儲存空間</b><br>
+      • 最大資料袋大小：{{ provider.display.max_bag_size }} GB<br>
+      • 最短保存期限：{{ provider.min_span | durationformat }}<br>
+      • 最長保存期限：{{ provider.max_span | durationformat }}<br><br>
+      
+      📊 <b>一般資訊</b><br>
+      • 儲存價格：{{ provider.display.price }}<br>
+      • 註冊日期：{{ provider.reg_time | datetimeformat }}<br>
+      • 遙測傳送：{% if provider.is_send_telemetry %}已啟用{% else %}已停用{% endif %}
 
 button:
   common:
@@ -108,16 +109,16 @@ button:
 
 inline:
   list_providers:
-    title: "{{ provider.status_emoji_display }} {{ provider.short_pubkey }}"
+    title: "{{ provider.display.status_emoji }} {{ provider.display.short_pubkey }}"
     desc: |
-      rating: {{ provider.rating|round(2) }} • price: {{ provider.price_display }} TON
-      working: {{ provider.working_time_display }} • uptime: {{ provider.uptime|round(2) }}%
+      評分：{{ provider.display.rating }} • 價格：{{ provider.display.price }}
+      正常運作時間：{{ provider.display.uptime }} • 總運行時間：{{ provider.working_time | durationformat }}
 
   my_providers:
-    title: "{{ provider.status_emoji_display }} {{ provider.short_pubkey }}"
+    title: "{{ provider.display.status_emoji }} {{ provider.display.short_pubkey }}"
     desc: |
-      rating: {{ provider.rating|round(2) }} • price: {{ provider.price_display }} TON
-      working: {{ provider.working_time_display }} • uptime: {{ provider.uptime|round(2) }}%
+      評分：{{ provider.display.rating }} • 價格：{{ provider.display.price }}
+      正常運作時間：{{ provider.display.uptime }} • 總運行時間：{{ provider.working_time | durationformat }}
 
 commands:
   start:
@@ -128,6 +129,11 @@ commands:
     description: "🔤 切換語言"
 
 language_name:
-  ru: "🇷🇺 Russian"
-  en: "🇬🇧 English"
-  zh-TW: "🇹🇼 中文 (繁體)"
+  ru: "🇷🇺 俄文"
+  en: "🇬🇧 英文"
+  zh-TW: "🇹🇼 中文（繁體）"
+
+duration_short:
+  year: "年"
+  day: "日"
+  hour: "小時"

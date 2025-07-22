@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import typing as t
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any, Optional
 
 from jinja2 import Environment
@@ -19,10 +21,55 @@ class Localizer:
         self.locale_data = locale_data
 
         self.jinja_env.filters["datetimeformat"] = self._datetimeformat
+        self.jinja_env.filters["durationformat"] = self._durationformat
 
     @staticmethod
-    def _datetimeformat(ts: int, fmt="%Y-%m-%d %H:%M:%S") -> str:
-        return datetime.fromtimestamp(ts, tz=TIMEZONE).strftime(fmt)
+    def _datetimeformat(ts: int, fmt: str = "%Y-%m-%d %H:%M:%S") -> str:
+        formatted = datetime.fromtimestamp(ts, tz=TIMEZONE).strftime(fmt)
+        print("Rendered datetime:", repr(formatted))
+        return formatted
+
+    async def _durationformat(self, seconds: int) -> str:
+        delta = timedelta(seconds=seconds)
+        days = delta.days
+        hours = delta.seconds // 3600
+
+        async def l(key: str) -> str:
+            return await self(f"duration_short.{key}")
+
+        if days > 365:
+            years = days // 365
+            rem_days = days % 365
+            return f"{years}{await l('year')} {rem_days}{await l('day')}"
+        elif days > 0:
+            return f"{days}{await l('day')} {hours}{await l('hour')}"
+        return f"{hours}{await l('hour')}"
+
+    @classmethod
+    def _get_nested(
+        cls, data: t.Dict[str, t.Any], dotted_key: str, default: Optional[Any] = None
+    ) -> Any:
+        keys = dotted_key.split(".")
+        current = data
+
+        for key in keys:
+            if isinstance(current, dict) and key in current:
+                current = current[key]
+            else:
+                return default
+        return current
+
+    def _get_locale(self, key: str, default: Optional[str] = None) -> Optional[str]:
+        if key in self.locale_data:
+            return self.locale_data[key]
+        return self._get_nested(self.locale_data, key, default)
+
+    def render_sync(self, key: str, **kwargs) -> str:
+        template_str = self._get_locale(key)
+        if template_str is None:
+            return key
+        template = self.jinja_env.from_string(template_str)
+        return template.render(**kwargs)
 
     async def __call__(
         self,
@@ -46,22 +93,3 @@ class Localizer:
         except (Exception,):
             return template_str
         return text
-
-    def _get_locale(self, key: str, default: Optional[str] = None) -> Optional[str]:
-        if key in self.locale_data:
-            return self.locale_data[key]
-        return self._get_nested(self.locale_data, key, default)
-
-    @classmethod
-    def _get_nested(
-        cls, data: t.Dict[str, t.Any], dotted_key: str, default: Optional[Any] = None
-    ) -> Any:
-        keys = dotted_key.split(".")
-        current = data
-
-        for key in keys:
-            if isinstance(current, dict) and key in current:
-                current = current[key]
-            else:
-                return default
-        return current
