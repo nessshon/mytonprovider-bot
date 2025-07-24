@@ -29,7 +29,7 @@ class Scheduler:
 
         self.async_scheduler.add_job(
             monitor_providers_and_telemetry_job,
-            trigger=IntervalTrigger(seconds=20),
+            trigger=IntervalTrigger(seconds=60),
             kwargs={"ctx": ctx},
             id=monitor_providers_and_telemetry_job.__name__,
             misfire_grace_time=30,
