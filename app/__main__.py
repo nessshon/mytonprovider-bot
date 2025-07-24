@@ -11,8 +11,8 @@ from sulguk import SULGUK_PARSE_MODE
 from .bot import (
     middlewares,
     handlers,
-    commands,
     dialogs,
+    Broadcaster,
 )
 from .config import BOT_TOKEN, REDIS_URL
 from .context import Context, set_context
@@ -20,6 +20,7 @@ from .database import Database
 from .scheduler import Scheduler
 from .utils.i18n import I18N
 from .utils.mtpapi import MyTONProviderAPI
+from .utils.toncenter import TONCenterAPI
 
 
 async def on_startup(ctx: Context) -> None:
@@ -31,11 +32,11 @@ async def on_startup(ctx: Context) -> None:
     dialogs.register(ctx.dp)
     setup_dialogs(ctx.dp)
 
-    await commands.setup(ctx)
+    # await commands.setup(ctx)
 
 
 async def on_shutdown(ctx: Context) -> None:
-    await commands.delete(ctx)
+    # await commands.delete(ctx)
     await ctx.bot.session.close()
 
     await ctx.scheduler.shutdown()
@@ -49,16 +50,21 @@ async def main() -> None:
     ctx.scheduler = Scheduler()
     ctx.redis = Redis.from_url(url=REDIS_URL)
 
-    ctx.i18n = I18N()
-    ctx.mtpapi = MyTONProviderAPI()
-
-    properties = DefaultBotProperties(parse_mode=SULGUK_PARSE_MODE)
+    properties = DefaultBotProperties(
+        parse_mode=SULGUK_PARSE_MODE,
+        link_preview_is_disabled=True,
+    )
     storage = RedisStorage(
         redis=ctx.redis,
         key_builder=DefaultKeyBuilder(with_destiny=True),
     )
     ctx.bot = Bot(BOT_TOKEN, default=properties)
     ctx.dp = Dispatcher(storage=storage, ctx=ctx)
+
+    ctx.broadcaster = Broadcaster(ctx.bot)
+    ctx.toncenterapi = TONCenterAPI()
+    ctx.mtpapi = MyTONProviderAPI()
+    ctx.i18n = I18N()
 
     ctx.dp.startup.register(on_startup)
     ctx.dp.shutdown.register(on_shutdown)

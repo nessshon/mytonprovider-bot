@@ -7,19 +7,30 @@ from aiogram.types import (
     InlineQuery,
     InlineQueryResultArticle,
     InputTextMessageContent,
+    CallbackQuery,
+    ChatMemberUpdated,
 )
 from aiogram_dialog import DialogManager, ShowMode
 
 from ..dialogs import states
 from ...database import UnitOfWork
-from ...database.models import ProviderModel
+from ...database.models import ProviderModel, UserModel
 from ...utils.i18n import Localizer
 
 
+async def my_chat_memeber(
+        update: ChatMemberUpdated,
+        uow: UnitOfWork,
+        user_model: UserModel,
+) -> None:
+    user_model.state = update.new_chat_member.status
+    await uow.user.upsert(user_model)
+
+
 async def providers_inline(
-    query: InlineQuery,
-    uow: UnitOfWork,
-    localizer: Localizer,
+        query: InlineQuery,
+        uow: UnitOfWork,
+        localizer: Localizer,
 ) -> None:
     offset, limit = int(query.offset or 0), 20
     query_type = (query.query or "").strip().lower()
@@ -29,7 +40,9 @@ async def providers_inline(
 
     if list_type == "my_providers":
         user = await uow.user.get(user_id=user_id)
-        subscriptions = await uow.subscription.list(user_id=user.id) if user else []
+        subscriptions = (
+            await uow.user_subscription.list(user_id=user.id) if user else []
+        )
         filters["pubkey"] = [s.provider_pubkey for s in subscriptions]
 
     total = await uow.provider.count(**filters)
@@ -43,24 +56,47 @@ async def providers_inline(
     results = [
         InlineQueryResultArticle(
             id=provider.pubkey,
-            title=await localizer(f"inline.{list_type}.title", provider=provider),
-            description=await localizer(f"inline.{list_type}.desc", provider=provider),
-            thumbnail_url="https://mytonprovider.org/logo_48x48.png",
+            title=await localizer(
+                f"inlines.{list_type}.title",
+                provider=provider,
+            ),
+            description=await localizer(
+                f"inlines.{list_type}.description",
+                provider=provider,
+            ),
+            thumbnail_url=await localizer(
+                f"inlines.{list_type}.thumbnail_url",
+                provider=provider,
+            ),
             input_message_content=InputTextMessageContent(message_text=provider.pubkey),
         )
         for provider in providers
     ]
 
     next_offset = str(offset + limit) if offset + limit < total else ""
-    await query.answer(results, cache_time=1, is_personal=True, next_offset=next_offset)
+    await query.answer(results, cache_time=5, is_personal=True, next_offset=next_offset)
 
 
-async def defaul_message(
-    message: Message,
-    dialog_manager: DialogManager,
-    uow: UnitOfWork,
+async def hide_callback_query(call: CallbackQuery) -> None:
+    with suppress(TelegramBadRequest):
+        await call.message.delete()
+
+
+async def default_message(
+        message: Message,
+        dialog_manager: DialogManager,
+        uow: UnitOfWork,
 ) -> None:
     pubkey = message.text.strip() if message.content_type == ContentType.TEXT else None
+
+    def is_valid_pubkey(_pubkey: str) -> bool:
+        if len(_pubkey) != 64:
+            return False
+        try:
+            bytes.fromhex(_pubkey)
+            return True
+        except ValueError:
+            return False
 
     if not pubkey or not is_valid_pubkey(pubkey):
         await dialog_manager.start(
@@ -81,13 +117,3 @@ async def defaul_message(
 
     with suppress(TelegramBadRequest):
         await message.delete()
-
-
-def is_valid_pubkey(pubkey: str) -> bool:
-    if len(pubkey) != 64:
-        return False
-    try:
-        bytes.fromhex(pubkey)
-        return True
-    except ValueError:
-        return False

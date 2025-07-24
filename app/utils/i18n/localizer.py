@@ -13,9 +13,9 @@ from ...config import TIMEZONE
 class Localizer:
 
     def __init__(
-        self,
-        jinja_env: Environment,
-        locale_data: t.Dict[str, t.Any],
+            self,
+            jinja_env: Environment,
+            locale_data: t.Dict[str, t.Any],
     ) -> None:
         self.jinja_env = jinja_env
         self.locale_data = locale_data
@@ -24,12 +24,14 @@ class Localizer:
         self.jinja_env.filters["durationformat"] = self._durationformat
 
     @staticmethod
-    def _datetimeformat(ts: int, fmt: str = "%Y-%m-%d %H:%M:%S") -> str:
-        formatted = datetime.fromtimestamp(ts, tz=TIMEZONE).strftime(fmt)
-        print("Rendered datetime:", repr(formatted))
-        return formatted
+    async def _datetimeformat(ts: t.Optional[int], fmt: str = "%Y-%m-%d %H:%M") -> str:
+        if ts is None:
+            return "N/A"
+        return datetime.fromtimestamp(ts, tz=TIMEZONE).strftime(fmt)
 
-    async def _durationformat(self, seconds: int) -> str:
+    async def _durationformat(self, seconds: t.Optional[int]) -> str:
+        if seconds is None:
+            return "N/A"
         delta = timedelta(seconds=seconds)
         days = delta.days
         hours = delta.seconds // 3600
@@ -47,7 +49,7 @@ class Localizer:
 
     @classmethod
     def _get_nested(
-        cls, data: t.Dict[str, t.Any], dotted_key: str, default: Optional[Any] = None
+            cls, data: t.Dict[str, t.Any], dotted_key: str, default: Optional[Any] = None
     ) -> Any:
         keys = dotted_key.split(".")
         current = data
@@ -72,11 +74,11 @@ class Localizer:
         return template.render(**kwargs)
 
     async def __call__(
-        self,
-        key: Optional[str] = None,
-        *,
-        default: Optional[str] = None,
-        **kwargs: t.Any,
+            self,
+            key: Optional[str] = None,
+            *,
+            default: Optional[str] = None,
+            **kwargs: t.Any,
     ) -> t.Union[str, RenderResult]:
         if key is not None:
             template_str = self._get_locale(key)

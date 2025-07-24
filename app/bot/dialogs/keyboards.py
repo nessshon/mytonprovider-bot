@@ -6,52 +6,52 @@ from aiogram_dialog.widgets.text import Case, Multi, Const, Format
 from . import states, on_clicks
 from ..widgets import I18NJinja
 from ...config import SUPPORTED_LOCALES
-from ...scheduler.user_alerts.types import UserAlertTypes
+from ...utils.alerts.types import AlertTypes
 
 to_main = kbd.Start(
     id="back",
-    text=I18NJinja("button.common.to_main"),
+    text=I18NJinja("buttons.common.to_main"),
     state=states.MainMenu.MAIN,
 )
 
 main_menu = kbd.Group(
     kbd.SwitchInlineQueryCurrentChat(
         id="open_my_providers",
-        text=I18NJinja("button.main_menu.my_providers"),
+        text=I18NJinja("buttons.main_menu.my_providers"),
         switch_inline_query_current_chat=Const("my providers"),
         when=F["has_subscriptions"],
     ),
     kbd.SwitchInlineQueryCurrentChat(
         id="open_list_providers",
-        text=I18NJinja("button.main_menu.list_providers"),
+        text=I18NJinja("buttons.main_menu.list_providers"),
         switch_inline_query_current_chat=Const("list providers"),
+    ),
+    kbd.Start(
+        id="to_alert_settings",
+        text=I18NJinja("buttons.alert_settings.text"),
+        state=states.AlertSettingsMenu.MAIN,
+        when=F["user_model"].alert_settings.enabled,
     ),
     kbd.Button(
         id="toggle_alerts",
         text=Case(
             {
-                True: I18NJinja("button.alert_state.enabled"),
-                False: I18NJinja("button.alert_state.disabled"),
+                True: I18NJinja("buttons.alert_state.enabled"),
+                False: I18NJinja("buttons.alert_state.disabled"),
             },
             selector=F["user_model"].alert_settings.enabled,
         ),
         on_click=on_clicks.toggle_alerts,
     ),
-    kbd.Start(
-        id="to_alert_settings",
-        text=I18NJinja("button.alert_settings.text"),
-        state=states.AlertSettingsMenu.MAIN,
-        when=F["user_model"].alert_settings.enabled,
-    ),
     kbd.Row(
         kbd.Start(
             id="to_help_menu",
-            text=I18NJinja("button.main_menu.help"),
+            text=I18NJinja("buttons.main_menu.help"),
             state=states.HelpMenu.MAIN,
         ),
         kbd.Start(
             id="to_language_menu",
-            text=I18NJinja("button.main_menu.language"),
+            text=I18NJinja("buttons.main_menu.language"),
             state=states.LanguageMenu.MAIN,
         ),
     ),
@@ -59,15 +59,19 @@ main_menu = kbd.Group(
 
 provider_menu = kbd.Group(
     kbd.CopyText(
-        text=I18NJinja("button.provider.copy_pubkey"),
+        text=I18NJinja("buttons.provider.copy_pubkey"),
         copy_text=Format("{provider_pubkey}"),
+    ),
+    kbd.CopyText(
+        text=I18NJinja("buttons.provider.copy_address"),
+        copy_text=Format("{provider_address}"),
     ),
     Button(
         id="toggle_subscription",
         text=Case(
             {
-                True: I18NJinja("button.provider.unsubscribe"),
-                False: I18NJinja("button.provider.subscribe"),
+                True: I18NJinja("buttons.provider.unsubscribe"),
+                False: I18NJinja("buttons.provider.subscribe"),
             },
             selector=F["is_subscribed"],
         ),
@@ -83,27 +87,27 @@ alert_settings_menu = kbd.Group(
             text=Multi(
                 Case(
                     {
-                        True: I18NJinja("button.alert_settings.state.enabled")
-                        + I18NJinja(f"button.alert_settings.options.{opt.value}"),
-                        False: I18NJinja("button.alert_settings.state.disabled")
-                        + I18NJinja(f"button.alert_settings.options.{opt.value}"),
+                        True: I18NJinja("buttons.alert_settings.state.enabled")
+                              + I18NJinja(f"buttons.alert_settings.options.{opt.value}"),
+                        False: I18NJinja("buttons.alert_settings.state.disabled")
+                               + I18NJinja(f"buttons.alert_settings.options.{opt.value}"),
                     },
                     selector=F["user_model"].alert_settings.types.contains(opt.value),
                 )
             ),
             on_click=on_clicks.toggle_alert_type,
         )
-        for opt in UserAlertTypes
+        for opt in AlertTypes
     ],
     kbd.Row(
         Button(
             id="enable_all_alerts",
-            text=I18NJinja("button.alert_settings.enable_all"),
+            text=I18NJinja("buttons.alert_settings.enable_all"),
             on_click=on_clicks.toggle_alert_type,
         ),
         Button(
             id="disable_all_alerts",
-            text=I18NJinja("button.alert_settings.disable_all"),
+            text=I18NJinja("buttons.alert_settings.disable_all"),
             on_click=on_clicks.toggle_alert_type,
         ),
     ),
@@ -113,7 +117,7 @@ alert_settings_menu = kbd.Group(
 language_menu = kbd.Group(
     kbd.Select(
         id="select_language",
-        text=I18NJinja("language_name.{item}"),
+        text=I18NJinja("language_names.{item}"),
         item_id_getter=lambda x: x,
         items=SUPPORTED_LOCALES,
         on_click=on_clicks.select_language,
@@ -125,18 +129,18 @@ language_menu = kbd.Group(
 help_menu = kbd.Group(
     kbd.Url(
         id="open_website",
-        text=I18NJinja("button.help_menu.open_website.text"),
-        url=I18NJinja("button.help_menu.open_website.url"),
+        text=I18NJinja("buttons.help_menu.open_website.text"),
+        url=I18NJinja("buttons.help_menu.open_website.url"),
     ),
     kbd.Url(
         id="open_chat",
-        text=I18NJinja("button.help_menu.open_chat.text"),
-        url=I18NJinja("button.help_menu.open_chat.url"),
+        text=I18NJinja("buttons.help_menu.open_chat.text"),
+        url=I18NJinja("buttons.help_menu.open_chat.url"),
     ),
     kbd.Url(
         id="become_provider",
-        text=I18NJinja("button.help_menu.become_provider.text"),
-        url=I18NJinja("button.help_menu.become_provider.url"),
+        text=I18NJinja("buttons.help_menu.become_provider.text"),
+        url=I18NJinja("buttons.help_menu.become_provider.url"),
     ),
     to_main,
 )

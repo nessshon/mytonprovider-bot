@@ -38,10 +38,10 @@ class BaseModel(DeclarativeBase):
         return getattr(self, self.get_pk_column().key)
 
     def model_dump(
-        self,
-        *,
-        exclude_none: bool = True,
-        exclude: t.Optional[t.Iterable[t.Union[str, InstrumentedAttribute]]] = None,
+            self,
+            *,
+            exclude_none: bool = True,
+            exclude: t.Optional[t.Iterable[t.Union[str, InstrumentedAttribute]]] = None,
     ) -> dict[str, t.Any]:
         exclude_set = {
             item.key if isinstance(item, InstrumentedAttribute) else str(item)

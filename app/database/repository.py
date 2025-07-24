@@ -28,9 +28,9 @@ class BaseRepository(t.Generic[_TModel]):
         self.session: AsyncSession = session
 
     def _build_filters(
-        self,
-        stmt: _TStmt,
-        filters: t.Dict[str, t.Any],
+            self,
+            stmt: _TStmt,
+            filters: t.Dict[str, t.Any],
     ) -> _TStmt:
         for field, value in filters.items():
             column = getattr(self.model, field)
@@ -39,13 +39,17 @@ class BaseRepository(t.Generic[_TModel]):
         return stmt
 
     async def upsert(self, model: _TModel) -> _TModel:
-        pk_field: str = self.model.get_pk_column().name
-        existing = await self.get(**{pk_field: model.get_pk()})
+        pk_columns = self.model.__mapper__.primary_key
+        pk_filter = {col.key: getattr(model, col.key) for col in pk_columns}
+
+        existing = await self.get(**pk_filter)
         if existing:
             for field in model.__table__.columns.keys():
-                setattr(existing, field, getattr(model, field))
+                if field not in pk_filter:
+                    setattr(existing, field, getattr(model, field))
             await self.session.flush()
             return existing
+
         return await self.create(model)
 
     async def create(self, model: _TModel) -> _TModel:
@@ -60,12 +64,12 @@ class BaseRepository(t.Generic[_TModel]):
         return result.scalar_one_or_none()
 
     async def list(
-        self,
-        *,
-        offset: int = 0,
-        limit: int = 20,
-        order_by: t.Optional[t.Any] = None,
-        **filters: t.Any,
+            self,
+            *,
+            offset: int = 0,
+            limit: int = 20,
+            order_by: t.Optional[t.Any] = None,
+            **filters: t.Any,
     ) -> t.List[_TModel]:
         stmt: Select = select(self.model)
         stmt = self._build_filters(stmt, filters)
@@ -78,10 +82,15 @@ class BaseRepository(t.Generic[_TModel]):
         result = await self.session.execute(stmt)
         return list(result.scalars().all())
 
+    async def all(self) -> t.List[_TModel]:
+        stmt: Select = select(self.model)
+        result = await self.session.execute(stmt)
+        return list(result.scalars().all())
+
     async def update(
-        self,
-        filters: t.Dict[str, t.Any],
-        values: t.Dict[str, t.Any],
+            self,
+            filters: t.Dict[str, t.Any],
+            values: t.Dict[str, t.Any],
     ) -> t.Optional[_TModel]:
         stmt: Update = update(self.model).values(**values).returning(self.model)
         stmt = self._build_filters(stmt, filters)

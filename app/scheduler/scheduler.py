@@ -1,8 +1,13 @@
 from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.triggers.interval import IntervalTrigger
 
-from .db_sync import DBSyncJob
+from .tasks import (
+    monitor_providers_and_telemetry_job,
+    save_telemetry_jostory_job,
+)
 from ..config import TIMEZONE, SCHEDULER_URL
+from ..context import get_context
 
 
 class Scheduler:
@@ -20,7 +25,25 @@ class Scheduler:
         self.async_scheduler.shutdown(wait=False)
 
     def add_jobs(self) -> None:
-        DBSyncJob.add_jobs(self.async_scheduler)
+        ctx = get_context()
+
+        self.async_scheduler.add_job(
+            monitor_providers_and_telemetry_job,
+            trigger=IntervalTrigger(seconds=20),
+            kwargs={"ctx": ctx},
+            id=monitor_providers_and_telemetry_job.__name__,
+            misfire_grace_time=30,
+            coalesce=True,
+            replace_existing=True,
+        )
+        self.async_scheduler.add_job(
+            save_telemetry_jostory_job,
+            trigger=IntervalTrigger(hours=1),
+            kwargs={"ctx": ctx},
+            id=save_telemetry_jostory_job.__name__,
+            replace_existing=True,
+        )
 
     def remove_jobs(self) -> None:
-        DBSyncJob.remove_jobs(self.async_scheduler)
+        self.async_scheduler.remove_job(monitor_providers_and_telemetry_job.__name__)
+        self.async_scheduler.remove_job(save_telemetry_jostory_job.__name__)

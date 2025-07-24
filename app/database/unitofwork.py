@@ -12,10 +12,11 @@ from .models import (
     ProviderModel,
     TelemetryModel,
     TelemetryHistoryModel,
-    SubscriptionModel,
+    UserSubscriptionModel,
     UserModel,
-    AlertSettingModel,
-    TriggeredAlertModel,
+    UserAlertSettingModel,
+    UserTriggeredAlertModel,
+    ProviderTelemetryModel,
 )
 from .repository import BaseRepository
 
@@ -27,10 +28,10 @@ class UnitOfWork:
     provider: BaseRepository[ProviderModel]
     telemetry: BaseRepository[TelemetryModel]
     telemetry_history: BaseRepository[TelemetryHistoryModel]
-    subscription: BaseRepository[SubscriptionModel]
+    user_subscription: BaseRepository[UserSubscriptionModel]
     user: BaseRepository[UserModel]
-    alert_setting: BaseRepository[AlertSettingModel]
-    triggered_alert: BaseRepository[TriggeredAlertModel]
+    user_alert_setting: BaseRepository[UserAlertSettingModel]
+    user_triggered_alert: BaseRepository[UserTriggeredAlertModel]
 
     def __init__(self, session_factory: async_sessionmaker) -> None:
         self.session_factory = session_factory
@@ -40,20 +41,25 @@ class UnitOfWork:
         self.transaction = await self.session.begin()
 
         self.provider = BaseRepository(ProviderModel, self.session)
+        self.provider_telemetry = BaseRepository(ProviderTelemetryModel, self.session)
+
         self.telemetry = BaseRepository(TelemetryModel, self.session)
         self.telemetry_history = BaseRepository(TelemetryHistoryModel, self.session)
-        self.subscription = BaseRepository(SubscriptionModel, self.session)
+
         self.user = BaseRepository(UserModel, self.session)
-        self.alert_setting = BaseRepository(AlertSettingModel, self.session)
-        self.triggered_alert = BaseRepository(TriggeredAlertModel, self.session)
+        self.user_subscription = BaseRepository(UserSubscriptionModel, self.session)
+        self.user_alert_setting = BaseRepository(UserAlertSettingModel, self.session)
+        self.user_triggered_alert = BaseRepository(
+            UserTriggeredAlertModel, self.session
+        )
 
         return self
 
     async def __aexit__(
-        self,
-        exc_type: t.Optional[type[BaseException]],
-        exc: t.Optional[BaseException],
-        tb: t.Optional[t.Any],
+            self,
+            exc_type: t.Optional[type[BaseException]],
+            exc: t.Optional[BaseException],
+            tb: t.Optional[t.Any],
     ) -> None:
         if exc_type:
             await self.rollback()

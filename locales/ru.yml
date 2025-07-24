@@ -1,16 +1,12 @@
-message:
+messages:
   main:
     menu: |
-      👋 <b>Привет, {{ user.full_name }}</b>! Добро пожаловать в бота.<br><br>
+      🤖 <b>Отслеживайте статус провайдеров</b> –  
+      телеметрия, уведомления и многое другое.<br><br>
 
-      🤖 <b>Следите за провайдером в реальном времени</b> –  
-      телеметрия, статусы, срочные уведомления и многое другое.<br><br>
-
-      🔎 <b>Как найти провайдера:</b>
-      <ul>
-        <li>Нажмите на кнопку «🗂️ Все провайдеры»</li>
-        <li>Отправьте публичный ключ сообщением</li>
-      </ul>
+      📘 <b>Как найти провайдера:</b><br>
+      • Нажмите «Список провайдеров»<br>
+      • Или отправьте публичный ключ в чат<br>
 
     not_found: |
       ⚠️ <b>Провайдер не найден</b><br><br>
@@ -38,58 +34,130 @@ message:
     menu: |
       ℹ️ <b>О боте</b><br><br>
 
-      Этот бот помогает отслеживать статус провайдеров,
+      Бот помогает отслеживать статус провайдеров,
       получать уведомления и управлять подписками.
 
   provider:
     menu: |
-      {{ provider.display.status_emoji }} <b>Провайдер</b><br>
-      • Ключ: {{ provider.display.short_pubkey }}<br>
-      • Статус: {{ provider.display.status_text }}<br>
-      • Аптайм: {{ provider.display.uptime }}<br>
-      • Время в работе: {{ provider.working_time | durationformat }}<br>
-      • Рейтинг: {{ provider.display.rating }}<br><br>
-      
-      💾 <b>Хранилище</b><br>
-      • Максимальный размер бага: {{ provider.display.max_bag_size }} ГБ<br>
-      • Минимальный срок хранения: {{ provider.min_span | durationformat }}<br>
-      • Максимальный срок хранения: {{ provider.max_span | durationformat }}<br><br>
-      
-      📊 <b>Общие данные</b><br>
-      • Стоимость хранения: {{ provider.display.price }}<br>
-      • Дата регистрации: {{ provider.reg_time | datetimeformat }}<br>
-      • Телеметрия: {% if provider.is_send_telemetry %}включена{% else %}отключена{% endif %}
+      {{ provider.ui.status_emoji }} <b>Провайдер</b> <code>{{ provider.ui.short_pubkey }}</code><br>
 
-button:
+      <h2>Основное</h2>
+      <blockquote>
+      <b>• Статус</b>: <code>{{ provider.ui.status_text }} ({{ provider.ui.uptime }})</code><br>
+      <b>• Рейтинг</b>: <code>{{ provider.ui.rating }}</code><br>
+      <b>• Цена</b>: <code>{{ provider.ui.price }}</code><br>
+      <b>• Адрес:</b> <a href="https://tonviewer.com/{{ provider.address }}">{{ provider.ui.short_address }}</a><br>
+      <b>• В работе</b>: <code>{{ provider.working_time | durationformat }}</code><br>
+      <b>• Дата регистрации:</b> <code>{{ provider.reg_time | datetimeformat }}</code><br>
+      </blockquote>
+
+      <h2>Хранение</h2>
+      <blockquote>
+      <b>• Макс. размер бага:</b> <code>{{ provider.ui.max_bag_size }}</code><br>
+      <b>• Макс. срок хранения:</b> <code>{{ provider.max_span | durationformat }}</code><br>
+      <b>• Мин. срок хранения:</b> <code>{{ provider.min_span | durationformat }}</code><br>
+      </blockquote>
+
+      <h2>Железо</h2>
+      <blockquote>
+      <b>• CPU:</b> <code>{{ provider.ui.cpu_name }}</code><br>
+      <b>• Количество ядер:</b> <code>{{ provider.ui.cpu_number }}</code><br>
+      <b>• Виртуальный CPU.:</b> <code>{{ provider.ui.cpu_is_virtual }}</code><br>
+      <b>• RAM:</b> <code>{{ provider.ui.ram }}</code><br>
+      <b>• Объём хранилища:</b> <code>{{ provider.ui.storage }}</code><br>
+      </blockquote>
+
+      <h2>Диск</h2>
+      <blockquote>
+      <b>• Чтение диска:</b> <code>{{ provider.ui.disk_read_speed }}</code><br>
+      <b>• Запись диска:</b> <code>{{ provider.ui.disk_write_speed }}</code><br>
+      </blockquote>
+
+      <h2>Сеть</h2>
+      <blockquote>
+      <b>• Загрузка:</b> <code>{{ provider.ui.speed_download }}</code><br>
+      <b>• Отправка:</b> <code>{{ provider.ui.speed_upload }}</code><br>
+      <b>• Пинг:</b> <code>{{ provider.ui.ping }}</code><br>
+      <b>• Страна:</b> <code>{{ provider.ui.country }}</code><br>
+      <b>• Провайдер:</b> <code>{{ provider.ui.isp }}</code><br>
+      </blockquote>
+
+      <h2>ПО</h2>
+      <blockquote>
+      <b>• Git хеш хранилища:</b> <code>{{ provider.ui.storage_git_hash }}</code><br>
+      <b>• Git хеш провайдера:</b> <code>{{ provider.ui.provider_git_hash }}</code><br>
+      </blockquote>
+
+alerts:
+  monthly_report:
+    text: |
+      ...
+
+  service_restarted:
+    text: |
+      ...
+
+  cpu_high:
+    text: |
+      ❗️ <b>Повышенная нагрузка на CPU</b><br><br>
+
+      <b>Провайдер</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
+
+  ram_high:
+    text: |
+      ❗️ <b>Повышенная нагрузка на RAM</b><br><br>
+
+      <b>Провайдер</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
+
+  disk_load_high:
+    text: |
+      ❗️ <b>Повышенная нагрузка на Диск</b><br><br>
+
+      <b>Провайдер</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
+
+  network_high:
+    text: |
+      ❗️ <b>Повышенная нагрузка на Сеть</b><br><br>
+
+      <b>Провайдер</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
+
+  disk_space_low:
+    text: |
+      ❗️ <b>Диск | Выделенное место почти заполнилось</b><br><br>
+
+      <b>Провайдер</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
+
+buttons:
   common:
-    to_main: "🏠 На главную"
+    to_main: "‹ Назад"
+    hide: "× Скрыть"
 
   main_menu:
-    my_providers: "⭐️ Мои провайдеры"
-    list_providers: "🗂️ Все провайдеры"
-    statuses: "📈 Статусы провайдеров"
-    language: "🌐 Язык"
-    help: "ℹ️ О боте"
+    my_providers: "Мои провайдеры {{ my_providers_count }}"
+    list_providers: "Все провайдеры {{ list_providers_count}}"
+    statuses: "Статусы провайдеров"
+    language: "Язык"
+    help: "О боте"
 
   help_menu:
     open_website:
-      text: "🌐 Сайт проекта"
+      text: "Сайт проекта"
       url: "https://mytonprovider.org"
     open_chat:
-      text: "💬 Чат сообщества"
+      text: "Чат сообщества"
       url: "https://t.me/mytonprovider_chat"
     become_provider:
-      text: "🚀 Стать провайдером"
+      text: "Стать провайдером"
       url: "https://github.com/igroman787/mytonprovider/blob/master/README.md"
 
   alert_state:
-    enabled: "🔕 Отключить уведомления"
-    disabled: "🔔 Включить уведомления"
+    enabled: "Отключить уведомления"
+    disabled: "Включить уведомления"
 
   alert_settings:
-    text: "⚙️ Настройка уведомлений"
+    text: "Настроить уведомления"
     options:
-      service_restarted: "Перезапуск службы"
+      service_restarted: "Перезапуск служб"
       monthly_report: "Ежемесячный отчёт"
       cpu_high: "Высокая нагрузка на CPU"
       ram_high: "Высокая нагрузка на RAM"
@@ -97,41 +165,44 @@ button:
       disk_load_high: "Высокая нагрузка на диск"
       disk_space_low: "Недостаточно свободного места"
     state:
-      enabled: "🟢 "
-      disabled: "🔘 "
-    enable_all: "▶️ Включить всё"
-    disable_all: "⏸️ Отключить всё"
+      enabled: "◉ "
+      disabled: "⭘ "
+    enable_all: "Включить всe"
+    disable_all: "Отключить всe"
 
   provider:
-    copy_pubkey: "📋 Скопировать публичный ключ"
-    subscribe: "⭐️ Подписаться"
-    unsubscribe: "✖️ Отписаться"
+    copy_pubkey: "Скопировать публичный ключ"
+    copy_address: "Скопировать адрес"
+    subscribe: "+ Подписаться"
+    unsubscribe: "× Отписаться"
 
-inline:
+inlines:
   list_providers:
-    title: "{{ provider.display.status_emoji }} {{ provider.display.short_pubkey }}"
-    desc: |
-      рейтинг: {{ provider.display.rating }} • цена: {{ provider.display.price }}
-      в работе: {{ provider.working_time | durationformat }} • аптайм: {{ provider.display.uptime }}
+    title: "{{ provider.ui.status_emoji }} Провайдер: {{ provider.ui.short_pubkey }}"
+    description: |
+      аптайм:  {{ provider.ui.uptime }} • в работе: {{ provider.working_time | durationformat }}
+      рейтинг: {{ provider.ui.rating }} • цена: {{ provider.ui.price }}
+    thumbnail_url: "https://mytonprovider.org/logo_48x48.png"
 
   my_providers:
-    title: "{{ provider.display.status_emoji }} {{ provider.display.short_pubkey }}"
-    desc: |
-      рейтинг: {{ provider.display.rating }} • цена: {{ provider.display.price }}
-      в работе: {{ provider.working_time | durationformat }} • аптайм: {{ provider.display.uptime }}
+    title: "{{ provider.ui.status_emoji }} Провайдер: {{ provider.ui.short_pubkey }}"
+    description: |
+      аптайм:  {{ provider.ui.uptime }} • в работе: {{ provider.working_time | durationformat }}
+      рейтинг: {{ provider.ui.rating }} • цена: {{ provider.ui.price }}
+    thumbnail_url: "https://mytonprovider.org/logo_48x48.png"
 
 commands:
   start:
-    description: "▶️ Запустить бота"
+    description: "Запустить бота"
   help:
-    description: "ℹ️ Вывести информация"
+    description: "Вывести информация"
   lang:
-    description: "🔤 Сменить язык интерфейса"
+    description: "Сменить язык интерфейса"
 
-language_name:
-  ru: "🇷🇺 Русский"
-  en: "🇬🇧 Английский"
-  zh-TW: "🇹🇼 Китайский (традиц.)"
+language_names:
+  ru: "Русский"
+  en: "Английский"
+  zh-TW: "Китайский (традиц.)"
 
 duration_short:
   year: "г"

@@ -1,11 +1,22 @@
 from aiogram import Dispatcher, F
 from aiogram.enums import ChatType
 from aiogram.filters import ExceptionTypeFilter
-from aiogram_dialog.api.exceptions import UnknownIntent, UnknownState
+from aiogram_dialog.api.exceptions import (
+    UnknownIntent,
+    UnknownState,
+)
 
 from .commands import register_command
-from .common import defaul_message, providers_inline
-from .errors import on_unknown_intent, on_unknown_state
+from .common import (
+    default_message,
+    hide_callback_query,
+    my_chat_memeber,
+    providers_inline,
+)
+from .errors import (
+    on_unknown_intent,
+    on_unknown_state,
+)
 from ..dialogs import states
 
 
@@ -14,7 +25,9 @@ def register(dp: Dispatcher) -> None:
     register_command(dp, "help", states.HelpMenu.MAIN)
     register_command(dp, "lang", states.LanguageMenu.MAIN)
 
-    dp.message.register(defaul_message)
+    dp.message.register(default_message)
+    dp.my_chat_member.register(my_chat_memeber)
+    dp.callback_query.register(hide_callback_query, F.data == "hide")
 
     dp.inline_query.register(
         providers_inline,

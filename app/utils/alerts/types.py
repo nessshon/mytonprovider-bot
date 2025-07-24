@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class UserAlertTypes(str, Enum):
+class AlertTypes(str, Enum):
     MONTHLY_REPORT = "monthly_report"
     SERVICE_RESTARTED = "service_restarted"
 
@@ -10,4 +10,3 @@ class UserAlertTypes(str, Enum):
     NETWORK_HIGH = "network_high"
     DISK_LOAD_HIGH = "disk_load_high"
     DISK_SPACE_LOW = "disk_space_low"
-

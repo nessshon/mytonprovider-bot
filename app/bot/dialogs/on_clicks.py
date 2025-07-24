@@ -6,28 +6,31 @@ from aiogram_dialog.widgets.kbd import Button
 from . import states
 from ...context import Context
 from ...database import UnitOfWork
-from ...database.models import UserModel, SubscriptionModel
-from ...scheduler.user_alerts.types import UserAlertTypes
+from ...database.models import (
+    UserModel,
+    UserSubscriptionModel,
+)
+from ...utils.alerts.types import AlertTypes
 from ...utils.i18n import Localizer
 
 
 async def toggle_subscription(
-    _: CallbackQuery,
-    __,
-    manager: DialogManager,
+        _: CallbackQuery,
+        __,
+        manager: DialogManager,
 ) -> None:
     user = manager.middleware_data["user_model"]
     uow: UnitOfWork = manager.middleware_data["uow"]
     pubkey = manager.start_data.get("provider_pubkey")
 
-    is_subscribed = await uow.subscription.exists(
+    is_subscribed = await uow.user_subscription.exists(
         user_id=user.id, provider_pubkey=pubkey
     )
     if is_subscribed:
-        await uow.subscription.delete(user_id=user.id, provider_pubkey=pubkey)
+        await uow.user_subscription.delete(user_id=user.id, provider_pubkey=pubkey)
     else:
-        await uow.subscription.create(
-            SubscriptionModel(
+        await uow.user_subscription.create(
+            UserSubscriptionModel(
                 user_id=user.id,
                 provider_pubkey=pubkey,
             )
@@ -38,9 +41,9 @@ async def toggle_subscription(
 
 
 async def toggle_alerts(
-    _: CallbackQuery,
-    __: Button,
-    manager: DialogManager,
+        _: CallbackQuery,
+        __: Button,
+        manager: DialogManager,
 ) -> None:
     uow: UnitOfWork = manager.middleware_data["uow"]
     user_model: UserModel = manager.middleware_data["user_model"]
@@ -53,14 +56,14 @@ async def toggle_alerts(
 
 
 async def toggle_alert_type(
-    _: CallbackQuery,
-    button: Button,
-    manager: DialogManager,
+        _: CallbackQuery,
+        button: Button,
+        manager: DialogManager,
 ) -> None:
     user_model: UserModel = manager.middleware_data["user_model"]
     uow: UnitOfWork = manager.middleware_data["uow"]
 
-    widget_id, all_types = button.widget_id, {e.value for e in UserAlertTypes}
+    widget_id, all_types = button.widget_id, {e.value for e in AlertTypes}
     current_types = set(user_model.alert_settings.types or [])
 
     if widget_id == "enable_all_alerts":
@@ -80,10 +83,10 @@ async def toggle_alert_type(
 
 
 async def select_language(
-    _: CallbackQuery,
-    __: kbd.Select,
-    manager: DialogManager,
-    item_id: str,
+        _: CallbackQuery,
+        __: kbd.Select,
+        manager: DialogManager,
+        item_id: str,
 ) -> None:
     ctx: Context = manager.middleware_data["ctx"]
     uow: UnitOfWork = manager.middleware_data["uow"]

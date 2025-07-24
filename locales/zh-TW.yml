@@ -1,137 +1,208 @@
-message:
+messages:
   main:
     menu: |
-      👋 <b>嗨，{{ user.full_name }}</b>！歡迎使用本機器人。<br><br>
-
-      🤖 <b>即時監控提供者</b> –  
-      遙測、狀態、警報通知等等。<br><br>
-
-      🔎 <b>如何查找提供者：</b>
-      <ul>
-        <li>點擊「🗂️ 所有提供者」按鈕</li>
-        <li>發送公鑰作為訊息</li>
-      </ul>
+      🤖 <b>監控提供者狀態</b> –  
+      遙測、通知與更多功能。<br><br>
+      
+      📘 <b>如何找到提供者：</b><br>
+      • 點擊「提供者列表」<br>
+      • 或在聊天室中發送公開金鑰<br>
 
     not_found: |
       ⚠️ <b>找不到提供者</b><br><br>
-
-      請確認已輸入正確的公鑰。
+      
+      請確認您輸入的是有效的公開金鑰。
 
     invalid_input: |
-      ❗️ <b>公鑰格式不正確</b><br><br>
-
-      請檢查輸入並重試。
+      ❗️ <b>公開金鑰格式無效</b><br><br>
+      
+      請檢查輸入內容並再試一次。
 
   alert_settings:
     menu: |
-      🔔 <b>警報設定</b><br><br>
-
-      選擇你希望接收通知的事件。
+      🔔 <b>通知設定</b><br><br>
+      
+      選擇您希望接收哪些事件的通知。
 
   language:
     menu: |
-      🔤 <b>選擇語言</b><br><br>
-
-      設定你偏好的介面語言。
+      🌐 <b>語言選擇</b><br><br>
+      
+      設定您偏好的介面語言。
 
   help:
     menu: |
-      ℹ️ <b>關於本機器人</b><br><br>
-
-      本機器人幫助你監控提供者狀態、
-      收取通知及管理訂閱。
+      ℹ️ <b>關於機器人</b><br><br>
+      
+      本機器人可協助您監控提供者狀態、
+      接收通知並管理訂閱。
 
   provider:
     menu: |
-      {{ provider.display.status_emoji }} <b>提供者</b><br>
-      • 金鑰：{{ provider.display.short_pubkey }}<br>
-      • 狀態：{{ provider.display.status_text }}<br>
-      • 正常運作時間：{{ provider.display.uptime }}<br>
-      • 總運行時間：{{ provider.working_time | durationformat }}<br>
-      • 評分：{{ provider.display.rating }}<br><br>
+      {{ provider.ui.status_emoji }} <b>提供者</b> <code>{{ provider.ui.short_pubkey }}</code><br>
       
-      💾 <b>儲存空間</b><br>
-      • 最大資料袋大小：{{ provider.display.max_bag_size }} GB<br>
-      • 最短保存期限：{{ provider.min_span | durationformat }}<br>
-      • 最長保存期限：{{ provider.max_span | durationformat }}<br><br>
-      
-      📊 <b>一般資訊</b><br>
-      • 儲存價格：{{ provider.display.price }}<br>
-      • 註冊日期：{{ provider.reg_time | datetimeformat }}<br>
-      • 遙測傳送：{% if provider.is_send_telemetry %}已啟用{% else %}已停用{% endif %}
+      <h2>一般資訊</h2>
+      <blockquote>
+      <b>• 狀態：</b><code>{{ provider.ui.status_text }} ({{ provider.ui.uptime }})</code><br>
+      <b>• 評分：</b><code>{{ provider.ui.rating }}</code><br>
+      <b>• 價格：</b><code>{{ provider.ui.price }}</code><br>
+      <b>• 地址：</b><a href="https://tonviewer.com/{{ provider.address }}">{{ provider.ui.short_address }}</a><br>
+      <b>• 運行時間：</b><code>{{ provider.working_time | durationformat }}</code><br>
+      <b>• 註冊日期：</b><code>{{ provider.reg_time | datetimeformat }}</code><br>
+      </blockquote>
 
-button:
+      <h2>儲存</h2>
+      <blockquote>
+      <b>• 最大包大小：</b><code>{{ provider.ui.max_bag_size }}</code><br>
+      <b>• 最長保存期限：</b><code>{{ provider.max_span | durationformat }}</code><br>
+      <b>• 最短保存期限：</b><code>{{ provider.min_span | durationformat }}</code><br>
+      </blockquote>
+
+      <h2>硬體</h2>
+      <blockquote>
+      <b>• 處理器：</b><code>{{ provider.ui.cpu_name }}</code><br>
+      <b>• 核心數：</b><code>{{ provider.ui.cpu_number }}</code><br>
+      <b>• 虛擬 CPU：</b><code>{{ provider.ui.cpu_is_virtual }}</code><br>
+      <b>• 記憶體：</b><code>{{ provider.ui.ram }}</code><br>
+      <b>• 儲存容量：</b><code>{{ provider.ui.storage }}</code><br>
+      </blockquote>
+
+      <h2>磁碟</h2>
+      <blockquote>
+      <b>• 讀取速度：</b><code>{{ provider.ui.disk_read_speed }}</code><br>
+      <b>• 寫入速度：</b><code>{{ provider.ui.disk_write_speed }}</code><br>
+      </blockquote>
+
+      <h2>網路</h2>
+      <blockquote>
+      <b>• 下載：</b><code>{{ provider.ui.speed_download }}</code><br>
+      <b>• 上傳：</b><code>{{ provider.ui.speed_upload }}</code><br>
+      <b>• 延遲：</b><code>{{ provider.ui.ping }}</code><br>
+      <b>• 國家：</b><code>{{ provider.ui.country }}</code><br>
+      <b>• 網路業者：</b><code>{{ provider.ui.isp }}</code><br>
+      </blockquote>
+
+      <h2>軟體</h2>
+      <blockquote>
+      <b>• 儲存 Git 哈希：</b><code>{{ provider.ui.storage_git_hash }}</code><br>
+      <b>• 提供者 Git 哈希：</b><code>{{ provider.ui.provider_git_hash }}</code><br>
+      </blockquote>
+
+alerts:
+  monthly_report:
+    text: |
+      ...
+
+  service_restarted:
+    text: |
+      ...
+
+  cpu_high:
+    text: |
+      ❗️ <b>CPU 載入過高</b><br><br>
+
+      <b>提供者：</b><code>{{ provider.ui.short_pubkey }}</code><br>
+
+  ram_high:
+    text: |
+      ❗️ <b>記憶體載入過高</b><br><br>
+
+      <b>提供者：</b><code>{{ provider.ui.short_pubkey }}</code><br>
+
+  disk_load_high:
+    text: |
+      ❗️ <b>磁碟載入過高</b><br><br>
+
+      <b>提供者：</b><code>{{ provider.ui.short_pubkey }}</code><br>
+
+  network_high:
+    text: |
+      ❗️ <b>網路載入過高</b><br><br>
+
+      <b>提供者：</b><code>{{ provider.ui.short_pubkey }}</code><br>
+
+  disk_space_low:
+    text: |
+      ❗️ <b>磁碟 | 空間即將耗盡</b><br><br>
+
+      <b>提供者：</b><code>{{ provider.ui.short_pubkey }}</code><br>
+
+buttons:
   common:
-    to_main: "🏠 返回主選單"
+    to_main: "‹ 返回"
+    hide: "× 隱藏"
 
   main_menu:
-    my_providers: "⭐️ 我的提供者"
-    list_providers: "🗂️ 所有提供者"
-    statuses: "📈 提供者狀態"
-    language: "🔤 語言"
-    help: "ℹ️ 關於機器人"
+    my_providers: "我的提供者 {{ my_providers_count }}"
+    list_providers: "所有提供者 {{ list_providers_count }}"
+    statuses: "提供者狀態"
+    language: "語言"
+    help: "關於機器人"
 
   help_menu:
     open_website:
-      text: "🌐 專案網站"
+      text: "專案網站"
       url: "https://mytonprovider.org"
     open_chat:
-      text: "💬 社群聊天"
+      text: "社群聊天室"
       url: "https://t.me/mytonprovider_chat"
     become_provider:
-      text: "🚀 成為提供者"
+      text: "成為提供者"
       url: "https://github.com/igroman787/mytonprovider/blob/master/README.md"
 
   alert_state:
-    enabled: "🔕 關閉通知"
-    disabled: "🔔 開啟通知"
+    enabled: "停用通知"
+    disabled: "啟用通知"
 
   alert_settings:
-    text: "⚙️ 警報設定"
+    text: "設定通知"
     options:
-      service_restarted: "服務重新啟動"
+      service_restarted: "服務已重啟"
       monthly_report: "每月報告"
-      cpu_high: "CPU 過高"
-      ram_high: "RAM 過高"
-      network_high: "網路負載過高"
-      disk_load_high: "磁碟負載過高"
+      cpu_high: "CPU 載入過高"
+      ram_high: "記憶體載入過高"
+      network_high: "網路載入過高"
+      disk_load_high: "磁碟載入過高"
       disk_space_low: "磁碟空間不足"
     state:
-      enabled: "🟢 "
-      disabled: "🔘 "
-    enable_all: "▶️ 全部啟用"
-    disable_all: "⏸️ 全部停用"
+      enabled: "◉ "
+      disabled: "⭘ "
+    enable_all: "全部啟用"
+    disable_all: "全部停用"
 
   provider:
-    copy_pubkey: "📋 複製公鑰"
-    subscribe: "⭐️ 訂閱"
-    unsubscribe: "✖️ 退訂"
+    copy_pubkey: "複製公開金鑰"
+    copy_address: "複製地址"
+    subscribe: "+ 訂閱"
+    unsubscribe: "× 取消訂閱"
 
-inline:
+inlines:
   list_providers:
-    title: "{{ provider.display.status_emoji }} {{ provider.display.short_pubkey }}"
-    desc: |
-      評分：{{ provider.display.rating }} • 價格：{{ provider.display.price }}
-      正常運作時間：{{ provider.display.uptime }} • 總運行時間：{{ provider.working_time | durationformat }}
+    title: "{{ provider.ui.status_emoji }} 提供者：{{ provider.ui.short_pubkey }}"
+    description: |
+      運行時間：{{ provider.ui.uptime }} • 已上線：{{ provider.working_time | durationformat }}
+      評分：{{ provider.ui.rating }} • 價格：{{ provider.ui.price }}
+    thumbnail_url: "https://mytonprovider.org/logo_48x48.png"
 
   my_providers:
-    title: "{{ provider.display.status_emoji }} {{ provider.display.short_pubkey }}"
-    desc: |
-      評分：{{ provider.display.rating }} • 價格：{{ provider.display.price }}
-      正常運作時間：{{ provider.display.uptime }} • 總運行時間：{{ provider.working_time | durationformat }}
+    title: "{{ provider.ui.status_emoji }} 提供者：{{ provider.ui.short_pubkey }}"
+    description: |
+      運行時間：{{ provider.ui.uptime }} • 已上線：{{ provider.working_time | durationformat }}
+      評分：{{ provider.ui.rating }} • 價格：{{ provider.ui.price }}
+    thumbnail_url: "https://mytonprovider.org/logo_48x48.png"
 
 commands:
   start:
-    description: "▶️ 啟動機器人"
+    description: "啟動機器人"
   help:
-    description: "ℹ️ 顯示資訊"
+    description: "顯示說明資訊"
   lang:
-    description: "🔤 切換語言"
+    description: "變更介面語言"
 
-language_name:
-  ru: "🇷🇺 俄文"
-  en: "🇬🇧 英文"
-  zh-TW: "🇹🇼 中文（繁體）"
+language_names:
+  ru: "俄文"
+  en: "英文"
+  zh-TW: "中文（繁體）"
 
 duration_short:
   year: "年"

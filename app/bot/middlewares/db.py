@@ -6,18 +6,21 @@ from aiogram.types import TelegramObject, User
 
 from ...config import TIMEZONE
 from ...context import Context
-from ...database.models import UserModel, AlertSettingModel
+from ...database.models import (
+    UserModel,
+    UserAlertSettingModel,
+)
 from ...database.unitofwork import UnitOfWork
-from ...scheduler.user_alerts.types import UserAlertTypes
+from ...utils.alerts.types import AlertTypes
 
 
 class DbSessionMiddleware(BaseMiddleware):
 
     async def __call__(
-        self,
-        handler: t.Callable[[TelegramObject, t.Dict[str, t.Any]], t.Awaitable[t.Any]],
-        event: TelegramObject,
-        data: t.Dict[str, t.Any],
+            self,
+            handler: t.Callable[[TelegramObject, t.Dict[str, t.Any]], t.Awaitable[t.Any]],
+            event: TelegramObject,
+            data: t.Dict[str, t.Any],
     ) -> t.Optional[t.Any]:
         user: t.Optional[User] = data.get("event_from_user")
         ctx: t.Optional[Context] = data.get("ctx")
@@ -40,10 +43,10 @@ class DbSessionMiddleware(BaseMiddleware):
                         full_name=user.full_name,
                         username=user.username,
                         created_at=datetime.now(TIMEZONE),
-                        alert_settings=AlertSettingModel(
+                        alert_settings=UserAlertSettingModel(
                             user_id=user.id,
                             enabled=False,
-                            types=[alert for alert in UserAlertTypes],
+                            types=[alert for alert in AlertTypes],
                         ),
                     )
                     user_model = await uow.user.create(user_model)
@@ -53,7 +56,9 @@ class DbSessionMiddleware(BaseMiddleware):
                     user_model = existing
                     await uow.session.flush()
 
-                has_subscriptions = await uow.subscription.exists(user_id=user_model.id)
+                has_subscriptions = await uow.user_subscription.exists(
+                    user_id=user_model.id
+                )
 
             data["user_model"] = user_model
             data["has_subscriptions"] = has_subscriptions

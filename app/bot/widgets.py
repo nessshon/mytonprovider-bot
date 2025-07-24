@@ -14,9 +14,9 @@ class I18NJinja(Text):
         self.key_template = key
 
     async def _render_text(
-        self,
-        data: dict[str, Any],
-        manager: DialogManager,
+            self,
+            data: dict[str, Any],
+            manager: DialogManager,
     ) -> str:
         try:
             localizer: Localizer = manager.middleware_data.get("localizer")

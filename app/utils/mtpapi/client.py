@@ -6,7 +6,7 @@ from .models import (
     ProviderSearchPayload,
     TelemetryResponse,
 )
-from ...config import ENV
+from ...config import MYTONPROVIDER_API_KEY
 
 
 class Providers(AsyncAPINamespace):
@@ -18,7 +18,7 @@ class Providers(AsyncAPINamespace):
 
 
 class MyTONProviderAPI(AsyncClientAPI):
-    headers = {"Authorization": ENV.str("MYTONPROVIDER_API_KEY")}
+    headers = {"Authorization": MYTONPROVIDER_API_KEY}
     base_url = "https://mytonprovider.org/api/"
     version = "v1"
 

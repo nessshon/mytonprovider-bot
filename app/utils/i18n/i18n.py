@@ -4,7 +4,7 @@ import typing as t
 from pathlib import Path
 
 import yaml
-from jinja2 import Environment
+from jinja2 import Environment, StrictUndefined
 
 from ...config import LOCALES_DIR, SUPPORTED_LOCALES
 
@@ -17,6 +17,7 @@ class I18N:
             lstrip_blocks=True,
             trim_blocks=True,
             enable_async=True,
+            undefined=StrictUndefined,
         )
         self.locales_data: t.Dict[str, t.Dict[str, t.Any]] = self._load_all_locales()
 
@@ -45,7 +46,7 @@ class I18N:
         )
 
     @staticmethod
-    def _load_yaml_file(file_path: Path) -> LocaleData:
+    def _load_yaml_file(file_path: Path) -> t.Dict[str, t.Any]:
         try:
             with file_path.open(encoding="utf-8") as f:
                 data = yaml.safe_load(f)

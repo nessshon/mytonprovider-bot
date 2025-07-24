@@ -1,137 +1,208 @@
-message:
+messages:
   main:
     menu: |
-      👋 <b>Hello, {{ user.full_name }}</b>! Welcome to the bot.<br><br>
-
-      🤖 <b>Monitor providers in real time</b> –  
-      telemetry, statuses, alerts, and more.<br><br>
-
-      🔎 <b>How to find a provider:</b>
-      <ul>
-        <li>Tap the “🗂️ All providers” button</li>
-        <li>Send a public key as a message</li>
-      </ul>
+      🤖 <b>Track your provider status</b> –  
+      telemetry, alerts, and more.<br><br>
+      
+      📘 <b>How to find a provider:</b><br>
+      • Tap “List of Providers”<br>
+      • Or send the public key in chat<br>
 
     not_found: |
       ⚠️ <b>Provider not found</b><br><br>
-
-      Make sure you sent a valid public key.
+      
+      Please make sure you sent a valid public key.
 
     invalid_input: |
       ❗️ <b>Invalid public key format</b><br><br>
-
-      Please check your input and try again.
+      
+      Please check the input and try again.
 
   alert_settings:
     menu: |
-      🔔 <b>Alert settings</b><br><br>
-
-      Choose events you want to receive alerts for.
+      🔔 <b>Notification Settings</b><br><br>
+      
+      Choose which events you want to be notified about.
 
   language:
     menu: |
-      🌐 <b>Select language</b><br><br>
-
+      🌐 <b>Language Selection</b><br><br>
+      
       Set the interface language you prefer.
 
   help:
     menu: |
-      ℹ️ <b>About the bot</b><br><br>
-
-      This bot helps monitor provider status,
+      ℹ️ <b>About the Bot</b><br><br>
+      
+      This bot helps you monitor provider status, 
       receive alerts, and manage subscriptions.
 
   provider:
     menu: |
-      {{ provider.display.status_emoji }} <b>Provider</b><br>
-      • Key: {{ provider.display.short_pubkey }}<br>
-      • Status: {{ provider.display.status_text }}<br>
-      • Uptime: {{ provider.display.uptime }}<br>
-      • Working time: {{ provider.working_time | durationformat }}<br>
-      • Rating: {{ provider.display.rating }}<br><br>
+      {{ provider.ui.status_emoji }} <b>Provider</b> <code>{{ provider.ui.short_pubkey }}</code><br>
       
-      💾 <b>Storage</b><br>
-      • Max bag size: {{ provider.display.max_bag_size }} GB<br>
-      • Min retention: {{ provider.min_span | durationformat }}<br>
-      • Max retention: {{ provider.max_span | durationformat }}<br><br>
+      <h2>General</h2>
+      <blockquote>
+      <b>• Status</b>: <code>{{ provider.ui.status_text }} ({{ provider.ui.uptime }})</code><br>
+      <b>• Rating</b>: <code>{{ provider.ui.rating }}</code><br>
+      <b>• Price</b>: <code>{{ provider.ui.price }}</code><br>
+      <b>• Address:</b> <a href="https://tonviewer.com/{{ provider.address }}">{{ provider.ui.short_address }}</a><br>
+      <b>• Uptime:</b> <code>{{ provider.working_time | durationformat }}</code><br>
+      <b>• Registration Date:</b> <code>{{ provider.reg_time | datetimeformat }}</code><br>
+      </blockquote>
       
-      📊 <b>General</b><br>
-      • Storage price: {{ provider.display.price }}<br>
-      • Registered on: {{ provider.reg_time | datetimeformat }}<br>
-      • Telemetry: {% if provider.is_send_telemetry %}enabled{% else %}disabled{% endif %}
+      <h2>Storage</h2>
+      <blockquote>
+      <b>• Max bag size:</b> <code>{{ provider.ui.max_bag_size }}</code><br>
+      <b>• Max retention period:</b> <code>{{ provider.max_span | durationformat }}</code><br>
+      <b>• Min retention period:</b> <code>{{ provider.min_span | durationformat }}</code><br>
+      </blockquote>
+      
+      <h2>Hardware</h2>
+      <blockquote>
+      <b>• CPU:</b> <code>{{ provider.ui.cpu_name }}</code><br>
+      <b>• Core count:</b> <code>{{ provider.ui.cpu_number }}</code><br>
+      <b>• Virtual CPU:</b> <code>{{ provider.ui.cpu_is_virtual }}</code><br>
+      <b>• RAM:</b> <code>{{ provider.ui.ram }}</code><br>
+      <b>• Storage capacity:</b> <code>{{ provider.ui.storage }}</code><br>
+      </blockquote>
+      
+      <h2>Disk</h2>
+      <blockquote>
+      <b>• Disk read:</b> <code>{{ provider.ui.disk_read_speed }}</code><br>
+      <b>• Disk write:</b> <code>{{ provider.ui.disk_write_speed }}</code><br>
+      </blockquote>
+      
+      <h2>Network</h2>
+      <blockquote>
+      <b>• Download:</b> <code>{{ provider.ui.speed_download }}</code><br>
+      <b>• Upload:</b> <code>{{ provider.ui.speed_upload }}</code><br>
+      <b>• Ping:</b> <code>{{ provider.ui.ping }}</code><br>
+      <b>• Country:</b> <code>{{ provider.ui.country }}</code><br>
+      <b>• ISP:</b> <code>{{ provider.ui.isp }}</code><br>
+      </blockquote>
+      
+      <h2>Software</h2>
+      <blockquote>
+      <b>• Storage Git hash:</b> <code>{{ provider.ui.storage_git_hash }}</code><br>
+      <b>• Provider Git hash:</b> <code>{{ provider.ui.provider_git_hash }}</code><br>
+      </blockquote>
 
-button:
+alerts:
+  monthly_report:
+    text: |
+      ...
+
+  service_restarted:
+    text: |
+      ...
+
+  cpu_high:
+    text: |
+      ❗️ <b>High CPU load</b><br><br>
+
+      <b>Provider</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
+
+  ram_high:
+    text: |
+      ❗️ <b>High RAM load</b><br><br>
+
+      <b>Provider</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
+
+  disk_load_high:
+    text: |
+      ❗️ <b>High Disk load</b><br><br>
+
+      <b>Provider</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
+
+  network_high:
+    text: |
+      ❗️ <b>High Network load</b><br><br>
+
+      <b>Provider</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
+
+  disk_space_low:
+    text: |
+      ❗️ <b>Disk | Storage almost full</b><br><br>
+
+      <b>Provider</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
+
+buttons:
   common:
-    to_main: "🏠 To main"
+    to_main: "‹ Back"
+    hide: "× Hide"
 
   main_menu:
-    my_providers: "⭐️ My providers"
-    list_providers: "🗂️ All providers"
-    statuses: "📈 Provider statuses"
-    language: "🌐 Language"
-    help: "ℹ️ About"
+    my_providers: "My providers {{ my_providers_count }}"
+    list_providers: "All providers {{ list_providers_count }}"
+    statuses: "Provider status"
+    language: "Language"
+    help: "About Bot"
 
   help_menu:
     open_website:
-      text: "🌐 Project website"
+      text: "Project website"
       url: "https://mytonprovider.org"
     open_chat:
-      text: "💬 Community chat"
+      text: "Community chat"
       url: "https://t.me/mytonprovider_chat"
     become_provider:
-      text: "🚀 Become a provider"
+      text: "Become a Provider"
       url: "https://github.com/igroman787/mytonprovider/blob/master/README.md"
 
   alert_state:
-    enabled: "🔕 Disable alerts"
-    disabled: "🔔 Enable alerts"
+    enabled: "Disable alerts"
+    disabled: "Enable alerts"
 
   alert_settings:
-    text: "⚙️ Alert settings"
+    text: "Configure alerts"
     options:
-      service_restarted: "Service restarted"
+      service_restarted: "Service restart"
       monthly_report: "Monthly report"
-      cpu_high: "High CPU usage"
-      ram_high: "High RAM usage"
+      cpu_high: "High CPU load"
+      ram_high: "High RAM load"
       network_high: "High network load"
       disk_load_high: "High disk load"
       disk_space_low: "Low disk space"
     state:
-      enabled: "🟢 "
-      disabled: "🔘 "
-    enable_all: "▶️ Enable all"
-    disable_all: "⏸️ Disable all"
+      enabled: "◉ "
+      disabled: "⭘ "
+    enable_all: "Enable all"
+    disable_all: "Disable all"
 
   provider:
-    copy_pubkey: "📋 Copy public key"
-    subscribe: "⭐️ Subscribe"
-    unsubscribe: "✖️ Unsubscribe"
+    copy_pubkey: "Copy public key"
+    copy_address: "Copy address"
+    subscribe: "+ Subscribe"
+    unsubscribe: "× Unsubscribe"
 
-inline:
+inlines:
   list_providers:
-    title: "{{ provider.display.status_emoji }} {{ provider.display.short_pubkey }}"
-    desc: |
-      rating: {{ provider.display.rating }} • price: {{ provider.display.price }}
-      uptime: {{ provider.display.uptime }} • working: {{ provider.working_time | durationformat }}
+    title: "{{ provider.ui.status_emoji }} Provider: {{ provider.ui.short_pubkey }}"
+    description: |
+      uptime: {{ provider.ui.uptime }} • active for: {{ provider.working_time | durationformat }}
+      rating: {{ provider.ui.rating }} • price: {{ provider.ui.price }}
+    thumbnail_url: "https://mytonprovider.org/logo_48x48.png"
 
   my_providers:
-    title: "{{ provider.display.status_emoji }} {{ provider.display.short_pubkey }}"
-    desc: |
-      rating: {{ provider.display.rating }} • price: {{ provider.display.price }}
-      uptime: {{ provider.display.uptime }} • working: {{ provider.working_time | durationformat }}
+    title: "{{ provider.ui.status_emoji }} Provider: {{ provider.ui.short_pubkey }}"
+    description: |
+      uptime: {{ provider.ui.uptime }} • active for: {{ provider.working_time | durationformat }}
+      rating: {{ provider.ui.rating }} • price: {{ provider.ui.price }}
+    thumbnail_url: "https://mytonprovider.org/logo_48x48.png"
 
 commands:
   start:
-    description: "▶️ Start the bot"
+    description: "Start the bot"
   help:
-    description: "ℹ️ Show information"
+    description: "Show information"
   lang:
-    description: "🔤 Change language"
+    description: "Change interface language"
 
-language_name:
-  ru: "🇷🇺 Russian"
-  en: "🇬🇧 English"
-  zh-TW: "🇹🇼 Chinese (Traditional)"
+language_names:
+  ru: "Russian"
+  en: "English"
+  zh-TW: "Chinese (Traditional)"
 
 duration_short:
   year: "y"
