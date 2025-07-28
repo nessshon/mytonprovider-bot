@@ -1,8 +1,10 @@
 from aiogram_dialog import Window
+from aiogram_dialog.widgets.text import Case
 
 from . import getters
 from . import keyboards
 from . import states
+from .consts import PROVIDER_TABS
 from ..widgets import I18NJinja
 
 main_menu = Window(
@@ -33,6 +35,10 @@ allert_settings_menu = Window(
 
 provider_menu = Window(
     I18NJinja("messages.provider.menu"),
+    Case(
+        {i: I18NJinja(f"messages.provider.{i}") for i in PROVIDER_TABS},
+        selector="provider_tab",
+    ),
     keyboards.provider_menu,
     getter=getters.provider_menu,
     state=states.ProviderMenu.MAIN,

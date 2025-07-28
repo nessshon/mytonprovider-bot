@@ -10,7 +10,6 @@ from sqlalchemy import (
     Integer,
     Float,
     Date,
-    BigInteger,
 )
 from sqlalchemy.orm import (
     Mapped,
@@ -61,13 +60,8 @@ class TelemetryHistoryModel(BaseModel):
     provider_pubkey: Mapped[str] = mapped_column(String(64), primary_key=True)
     date: Mapped[date] = mapped_column(Date, primary_key=True)
 
-    wallet_address: Mapped[str] = mapped_column(String(64))
-
     total_provider_space: Mapped[float] = mapped_column(Float)
     used_provider_space: Mapped[float] = mapped_column(Float)
     bags_count: Mapped[int] = mapped_column(Integer)
     traffic_in: Mapped[float] = mapped_column(Float)
     traffic_out: Mapped[float] = mapped_column(Float)
-
-    ton_balance: Mapped[int] = mapped_column(BigInteger)
-    ton_earned: Mapped[int] = mapped_column(BigInteger)

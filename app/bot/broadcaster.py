@@ -13,11 +13,11 @@ class Broadcaster:
         self._lock = asyncio.Lock()
 
     async def send_message(
-            self,
-            user_id: int,
-            text: str,
-            reply_markup: t.Optional[InlineKeyboardMarkup] = None,
-            max_retries: int = 10,
+        self,
+        user_id: int,
+        text: str,
+        reply_markup: t.Optional[InlineKeyboardMarkup] = None,
+        max_retries: int = 10,
     ) -> bool:
         for _ in range(max_retries):
             async with self._lock:

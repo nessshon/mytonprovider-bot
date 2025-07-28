@@ -17,10 +17,10 @@ from ...utils.alerts.types import AlertTypes
 class DbSessionMiddleware(BaseMiddleware):
 
     async def __call__(
-            self,
-            handler: t.Callable[[TelegramObject, t.Dict[str, t.Any]], t.Awaitable[t.Any]],
-            event: TelegramObject,
-            data: t.Dict[str, t.Any],
+        self,
+        handler: t.Callable[[TelegramObject, t.Dict[str, t.Any]], t.Awaitable[t.Any]],
+        event: TelegramObject,
+        data: t.Dict[str, t.Any],
     ) -> t.Optional[t.Any]:
         user: t.Optional[User] = data.get("event_from_user")
         ctx: t.Optional[Context] = data.get("ctx")

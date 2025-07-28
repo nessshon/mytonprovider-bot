@@ -1,6 +1,4 @@
-from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager
-from aiogram_dialog.widgets import kbd
 from aiogram_dialog.widgets.kbd import Button
 
 from . import states
@@ -14,10 +12,20 @@ from ...utils.alerts.types import AlertTypes
 from ...utils.i18n import Localizer
 
 
+async def change_provider_tab(
+    _,
+    __,
+    manager: DialogManager,
+    item_id: str,
+) -> None:
+    manager.start_data.update({"provider_tab": item_id})
+    await manager.switch_to(manager.current_context().state)
+
+
 async def toggle_subscription(
-        _: CallbackQuery,
-        __,
-        manager: DialogManager,
+    _,
+    __,
+    manager: DialogManager,
 ) -> None:
     user = manager.middleware_data["user_model"]
     uow: UnitOfWork = manager.middleware_data["uow"]
@@ -41,9 +49,9 @@ async def toggle_subscription(
 
 
 async def toggle_alerts(
-        _: CallbackQuery,
-        __: Button,
-        manager: DialogManager,
+    _,
+    __,
+    manager: DialogManager,
 ) -> None:
     uow: UnitOfWork = manager.middleware_data["uow"]
     user_model: UserModel = manager.middleware_data["user_model"]
@@ -56,9 +64,9 @@ async def toggle_alerts(
 
 
 async def toggle_alert_type(
-        _: CallbackQuery,
-        button: Button,
-        manager: DialogManager,
+    _,
+    button: Button,
+    manager: DialogManager,
 ) -> None:
     user_model: UserModel = manager.middleware_data["user_model"]
     uow: UnitOfWork = manager.middleware_data["uow"]
@@ -83,10 +91,10 @@ async def toggle_alert_type(
 
 
 async def select_language(
-        _: CallbackQuery,
-        __: kbd.Select,
-        manager: DialogManager,
-        item_id: str,
+    _,
+    __,
+    manager: DialogManager,
+    item_id: str,
 ) -> None:
     ctx: Context = manager.middleware_data["ctx"]
     uow: UnitOfWork = manager.middleware_data["uow"]

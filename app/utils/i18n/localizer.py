@@ -7,29 +7,39 @@ from typing import Any, Optional
 from jinja2 import Environment
 from sulguk import RenderResult
 
-from ...config import TIMEZONE
-
 
 class Localizer:
 
     def __init__(
-            self,
-            jinja_env: Environment,
-            locale_data: t.Dict[str, t.Any],
+        self,
+        jinja_env: Environment,
+        locale_data: t.Dict[str, t.Any],
     ) -> None:
         self.jinja_env = jinja_env
         self.locale_data = locale_data
 
-        self.jinja_env.filters["datetimeformat"] = self._datetimeformat
-        self.jinja_env.filters["durationformat"] = self._durationformat
+        self.jinja_env.filters["toamount"] = self._toamount_filter
+        self.jinja_env.filters["datetimeformat"] = self._datetimeformat_filter
+        self.jinja_env.filters["durationformat"] = self._durationformat_filter
 
     @staticmethod
-    async def _datetimeformat(ts: t.Optional[int], fmt: str = "%Y-%m-%d %H:%M") -> str:
+    async def _toamount_filter(value: t.Optional[int]) -> str:
+        if value is None:
+            return "0"
+        return f"{value / 1e9:.4f}".rstrip("0").rstrip(".")
+
+    @staticmethod
+    async def _datetimeformat_filter(
+        ts: t.Optional[t.Union[int, datetime]],
+        fmt: str = "%Y-%m-%d %H:%M",
+    ) -> str:
         if ts is None:
             return "N/A"
-        return datetime.fromtimestamp(ts, tz=TIMEZONE).strftime(fmt)
+        if isinstance(ts, int):
+            ts = datetime.fromtimestamp(ts)
+        return ts.strftime(fmt)
 
-    async def _durationformat(self, seconds: t.Optional[int]) -> str:
+    async def _durationformat_filter(self, seconds: t.Optional[int]) -> str:
         if seconds is None:
             return "N/A"
         delta = timedelta(seconds=seconds)
@@ -49,7 +59,7 @@ class Localizer:
 
     @classmethod
     def _get_nested(
-            cls, data: t.Dict[str, t.Any], dotted_key: str, default: Optional[Any] = None
+        cls, data: t.Dict[str, t.Any], dotted_key: str, default: Optional[Any] = None
     ) -> Any:
         keys = dotted_key.split(".")
         current = data
@@ -74,11 +84,11 @@ class Localizer:
         return template.render(**kwargs)
 
     async def __call__(
-            self,
-            key: Optional[str] = None,
-            *,
-            default: Optional[str] = None,
-            **kwargs: t.Any,
+        self,
+        key: Optional[str] = None,
+        *,
+        default: Optional[str] = None,
+        **kwargs: t.Any,
     ) -> t.Union[str, RenderResult]:
         if key is not None:
             template_str = self._get_locale(key)

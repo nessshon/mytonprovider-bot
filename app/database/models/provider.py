@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import typing as t
+from datetime import date, datetime
 
 from sqlalchemy import (
     BigInteger,
@@ -10,12 +11,14 @@ from sqlalchemy import (
     Boolean,
     ForeignKey,
     JSON,
+    Index,
 )
 from sqlalchemy.orm import (
     Mapped,
     mapped_column,
     relationship,
 )
+from sqlalchemy.sql.sqltypes import DateTime
 
 from ._base import BaseModel
 from ...utils.mtpapi.models import Provider, Telemetry
@@ -60,6 +63,27 @@ class ProviderTelemetryModel(BaseModel):
     @property
     def raw_model(self) -> Telemetry:
         return Telemetry(**self.raw)
+
+
+class ProviderWalletHistoryModel(BaseModel):
+    __tablename__ = "providers.wallet_history"
+
+    provider_pubkey: Mapped[str] = mapped_column(
+        ForeignKey("providers.pubkey"),
+        primary_key=True,
+    )
+    date: Mapped[date] = mapped_column(primary_key=True)
+    address: Mapped[str] = mapped_column(String(64), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+
+    balance: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    earned: Mapped[int] = mapped_column(BigInteger, nullable=False)
+
+    last_lt: Mapped[int] = mapped_column(BigInteger)
+
+    __table_args__ = (
+        Index("ix_wallet_history_provider_date", "provider_pubkey", "date"),
+    )
 
 
 class ProviderModel(BaseModel):
@@ -108,9 +132,9 @@ class ProviderUI:
 
     @staticmethod
     def _format_or_dash(
-            value: t.Optional[t.Union[float, int, str]],
-            fmt: str = "{}",
-            default: str = "N/A",
+        value: t.Optional[t.Union[float, int, str]],
+        fmt: str = "{}",
+        default: str = "N/A",
     ) -> str:
         if value is None:
             return default

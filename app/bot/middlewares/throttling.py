@@ -12,11 +12,11 @@ THROTTLING_DEFAULT_TTL: float = 0.5
 class ThrottlingMiddleware(BaseMiddleware):
 
     def __init__(
-            self,
-            *,
-            default_key: t.Optional[str] = THROTTLING_DEFAULT_KEY,
-            default_ttl: float = THROTTLING_DEFAULT_TTL,
-            **ttl_map: float,
+        self,
+        *,
+        default_key: t.Optional[str] = THROTTLING_DEFAULT_KEY,
+        default_ttl: float = THROTTLING_DEFAULT_TTL,
+        **ttl_map: float,
     ) -> None:
         if default_key:
             ttl_map[default_key] = default_ttl
@@ -28,10 +28,10 @@ class ThrottlingMiddleware(BaseMiddleware):
             self.caches[name] = TTLCache(maxsize=10_000, ttl=ttl)
 
     async def __call__(
-            self,
-            handler: t.Callable[[TelegramObject, t.Dict[str, t.Any]], t.Awaitable[t.Any]],
-            event: TelegramObject,
-            data: t.Dict[str, t.Any],
+        self,
+        handler: t.Callable[[TelegramObject, t.Dict[str, t.Any]], t.Awaitable[t.Any]],
+        event: TelegramObject,
+        data: t.Dict[str, t.Any],
     ) -> t.Optional[t.Any]:
         user: t.Optional[User] = data.get("event_from_user", None)
 

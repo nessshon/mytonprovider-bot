@@ -4,6 +4,7 @@ from aiogram_dialog.widgets.kbd import Button
 from aiogram_dialog.widgets.text import Case, Multi, Const, Format
 
 from . import states, on_clicks
+from .consts import PROVIDER_TABS
 from ..widgets import I18NJinja
 from ...config import SUPPORTED_LOCALES
 from ...utils.alerts.types import AlertTypes
@@ -58,6 +59,17 @@ main_menu = kbd.Group(
 )
 
 provider_menu = kbd.Group(
+    kbd.Group(
+        kbd.Radio(
+            checked_text=Const("• ") + I18NJinja("buttons.provider.tab.{item}"),
+            unchecked_text=I18NJinja("buttons.provider.tab.{item}"),
+            id="provider_tab",
+            item_id_getter=lambda x: x,
+            items=PROVIDER_TABS,
+            on_click=on_clicks.change_provider_tab,
+        ),
+        width=3,
+    ),
     kbd.CopyText(
         text=I18NJinja("buttons.provider.copy_pubkey"),
         copy_text=Format("{provider_pubkey}"),
@@ -88,9 +100,9 @@ alert_settings_menu = kbd.Group(
                 Case(
                     {
                         True: I18NJinja("buttons.alert_settings.state.enabled")
-                              + I18NJinja(f"buttons.alert_settings.options.{opt.value}"),
+                        + I18NJinja(f"buttons.alert_settings.options.{opt.value}"),
                         False: I18NJinja("buttons.alert_settings.state.disabled")
-                               + I18NJinja(f"buttons.alert_settings.options.{opt.value}"),
+                        + I18NJinja(f"buttons.alert_settings.options.{opt.value}"),
                     },
                     selector=F["user_model"].alert_settings.types.contains(opt.value),
                 )

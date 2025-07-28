@@ -2,10 +2,7 @@ from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 
-from .tasks import (
-    monitor_providers_and_telemetry_job,
-    save_telemetry_jostory_job,
-)
+from . import tasks
 from ..config import TIMEZONE, SCHEDULER_URL
 from ..context import get_context
 
@@ -28,22 +25,26 @@ class Scheduler:
         ctx = get_context()
 
         self.async_scheduler.add_job(
-            monitor_providers_and_telemetry_job,
-            trigger=IntervalTrigger(seconds=60),
+            tasks.monitor_providers_job,
+            trigger=IntervalTrigger(seconds=30),
             kwargs={"ctx": ctx},
-            id=monitor_providers_and_telemetry_job.__name__,
+            id=tasks.monitor_providers_job.__name__,
             misfire_grace_time=30,
             coalesce=True,
+            max_instances=1,
             replace_existing=True,
         )
         self.async_scheduler.add_job(
-            save_telemetry_jostory_job,
-            trigger=IntervalTrigger(hours=1),
+            tasks.monitor_balances_job,
+            trigger=IntervalTrigger(seconds=60),
             kwargs={"ctx": ctx},
-            id=save_telemetry_jostory_job.__name__,
+            id=tasks.monitor_balances_job.__name__,
+            misfire_grace_time=30,
+            coalesce=True,
+            max_instances=1,
             replace_existing=True,
         )
 
     def remove_jobs(self) -> None:
-        self.async_scheduler.remove_job(monitor_providers_and_telemetry_job.__name__)
-        self.async_scheduler.remove_job(save_telemetry_jostory_job.__name__)
+        self.async_scheduler.remove_job(tasks.monitor_providers_job.__name__)
+        self.async_scheduler.remove_job(tasks.monitor_balances_job.__name__)

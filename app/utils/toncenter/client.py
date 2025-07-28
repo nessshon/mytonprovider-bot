@@ -1,7 +1,9 @@
+import typing as t
+
 from apiq import AsyncClientAPI, async_endpoint
 from apiq.types import HTTPMethod
 
-from .models import AccountStatesResponse
+from .models import AccountStatesResponse, TransactionList
 from ...config import TONCENTER_API_KEY
 
 
@@ -11,12 +13,34 @@ class TONCenterAPI(AsyncClientAPI):
     version = "v3"
 
     max_retries = 5
-    rps = 5
+    rps = 9
 
     @async_endpoint(
         HTTPMethod.GET,
         path="/accountStates",
         return_as=AccountStatesResponse,
     )
-    async def account_state(self, address: str) -> AccountStatesResponse:
+    async def account_state(
+        self,
+        address: str,
+    ) -> AccountStatesResponse:
+        pass
+
+    @async_endpoint(
+        HTTPMethod.GET,
+        path="/transactions",
+        return_as=TransactionList,
+    )
+    async def transactions(
+        self,
+        account: t.Union[str, list[str]],
+        limit: int = 100,
+        sort: str = "desc",
+        start_utime: t.Optional[int] = None,
+        end_utime: t.Optional[int] = None,
+        lt: t.Optional[int] = None,
+        start_lt: t.Optional[int] = None,
+        end_lt: t.Optional[int] = None,
+        offset: t.Optional[int] = None,
+    ) -> TransactionList:
         pass

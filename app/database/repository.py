@@ -28,9 +28,9 @@ class BaseRepository(t.Generic[_TModel]):
         self.session: AsyncSession = session
 
     def _build_filters(
-            self,
-            stmt: _TStmt,
-            filters: t.Dict[str, t.Any],
+        self,
+        stmt: _TStmt,
+        filters: t.Dict[str, t.Any],
     ) -> _TStmt:
         for field, value in filters.items():
             column = getattr(self.model, field)
@@ -57,19 +57,26 @@ class BaseRepository(t.Generic[_TModel]):
         await self.session.flush()
         return model
 
-    async def get(self, **filters: t.Any) -> t.Optional[_TModel]:
+    async def get(
+        self,
+        order_by: t.Optional[t.Any] = None,
+        **filters: t.Any,
+    ) -> t.Optional[_TModel]:
         stmt: Select = select(self.model)
-        stmt = self._build_filters(stmt, filters).limit(1)
+        stmt = self._build_filters(stmt, filters)
+        if order_by is not None:
+            stmt = stmt.order_by(order_by)
+        stmt = stmt.limit(1)
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
 
     async def list(
-            self,
-            *,
-            offset: int = 0,
-            limit: int = 20,
-            order_by: t.Optional[t.Any] = None,
-            **filters: t.Any,
+        self,
+        *,
+        offset: int = 0,
+        limit: int = 20,
+        order_by: t.Optional[t.Any] = None,
+        **filters: t.Any,
     ) -> t.List[_TModel]:
         stmt: Select = select(self.model)
         stmt = self._build_filters(stmt, filters)
@@ -88,9 +95,9 @@ class BaseRepository(t.Generic[_TModel]):
         return list(result.scalars().all())
 
     async def update(
-            self,
-            filters: t.Dict[str, t.Any],
-            values: t.Dict[str, t.Any],
+        self,
+        filters: t.Dict[str, t.Any],
+        values: t.Dict[str, t.Any],
     ) -> t.Optional[_TModel]:
         stmt: Update = update(self.model).values(**values).returning(self.model)
         stmt = self._build_filters(stmt, filters)

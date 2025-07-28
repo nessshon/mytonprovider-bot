@@ -1,8 +1,8 @@
 """Initial schema
 
-Revision ID: af86ee08669b
+Revision ID: d0cae1c7c326
 Revises: 
-Create Date: 2025-07-24 13:17:46.401723
+Create Date: 2025-07-28 11:37:39.621272
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'af86ee08669b'
+revision: str = 'd0cae1c7c326'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -40,14 +40,11 @@ def upgrade() -> None:
     op.create_table('telemetry.history',
     sa.Column('provider_pubkey', sa.String(length=64), nullable=False),
     sa.Column('date', sa.Date(), nullable=False),
-    sa.Column('wallet_address', sa.String(length=64), nullable=False),
     sa.Column('total_provider_space', sa.Float(), nullable=False),
     sa.Column('used_provider_space', sa.Float(), nullable=False),
     sa.Column('bags_count', sa.Integer(), nullable=False),
     sa.Column('traffic_in', sa.Float(), nullable=False),
     sa.Column('traffic_out', sa.Float(), nullable=False),
-    sa.Column('ton_balance', sa.BigInteger(), nullable=False),
-    sa.Column('ton_earned', sa.BigInteger(), nullable=False),
     sa.PrimaryKeyConstraint('provider_pubkey', 'date')
     )
     op.create_table('users',
@@ -85,6 +82,18 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['provider_pubkey'], ['providers.pubkey'], ),
     sa.PrimaryKeyConstraint('provider_pubkey')
     )
+    op.create_table('providers.wallet_history',
+    sa.Column('provider_pubkey', sa.String(length=64), nullable=False),
+    sa.Column('date', sa.Date(), nullable=False),
+    sa.Column('address', sa.String(length=64), nullable=False),
+    sa.Column('updated_at', sa.DateTime(), nullable=False),
+    sa.Column('balance', sa.BigInteger(), nullable=False),
+    sa.Column('earned', sa.BigInteger(), nullable=False),
+    sa.Column('last_lt', sa.BigInteger(), nullable=False),
+    sa.ForeignKeyConstraint(['provider_pubkey'], ['providers.pubkey'], ),
+    sa.PrimaryKeyConstraint('provider_pubkey', 'date')
+    )
+    op.create_index('ix_wallet_history_provider_date', 'providers.wallet_history', ['provider_pubkey', 'date'], unique=False)
     op.create_table('telemetry',
     sa.Column('provider_pubkey', sa.String(length=64), nullable=False),
     sa.Column('storage', sa.JSON(), nullable=False),
@@ -145,6 +154,8 @@ def downgrade() -> None:
     op.drop_index(op.f('ix_users.alert_settings_enabled'), table_name='users.alert_settings')
     op.drop_table('users.alert_settings')
     op.drop_table('telemetry')
+    op.drop_index('ix_wallet_history_provider_date', table_name='providers.wallet_history')
+    op.drop_table('providers.wallet_history')
     op.drop_table('providers.telemetry')
     op.drop_table('users')
     op.drop_table('telemetry.history')

@@ -10,47 +10,50 @@ messages:
 
     not_found: |
       ⚠️ <b>Провайдер не найден</b><br><br>
-
       Убедитесь, что вы отправили корректный публичный ключ.
 
     invalid_input: |
       ❗️ <b>Неверный формат публичного ключа</b><br><br>
-
       Пожалуйста, проверьте ввод и попробуйте снова.
 
   alert_settings:
     menu: |
       🔔 <b>Настройка уведомлений</b><br><br>
-
       Выберите события, о которых хотите получать уведомления.
 
   language:
     menu: |
       🌐 <b>Выбор языка</b><br><br>
-
       Установите язык интерфейса, который вам удобнее.
 
   help:
     menu: |
       ℹ️ <b>О боте</b><br><br>
-
       Бот помогает отслеживать статус провайдеров,
       получать уведомления и управлять подписками.
 
   provider:
     menu: |
-      {{ provider.ui.status_emoji }} <b>Провайдер</b> <code>{{ provider.ui.short_pubkey }}</code><br>
-
-      <h2>Основное</h2>
-      <blockquote>
+      {{ provider.ui.status_emoji }} <b>Провайдер</b> <code>{{ provider.ui.short_pubkey }}</code><br><br>
       <b>• Статус</b>: <code>{{ provider.ui.status_text }} ({{ provider.ui.uptime }})</code><br>
       <b>• Рейтинг</b>: <code>{{ provider.ui.rating }}</code><br>
       <b>• Цена</b>: <code>{{ provider.ui.price }}</code><br>
-      <b>• Адрес:</b> <a href="https://tonviewer.com/{{ provider.address }}">{{ provider.ui.short_address }}</a><br>
+      <b>• Адрес</b>: <a href="https://tonviewer.com/{{ provider.address }}">{{ provider.ui.short_address }}</a><br>
       <b>• В работе</b>: <code>{{ provider.working_time | durationformat }}</code><br>
       <b>• Дата регистрации:</b> <code>{{ provider.reg_time | datetimeformat }}</code><br>
+
+    wallet: |
+      <h2>Кошелек</h2>
+      <blockquote>
+      <b>• Баланс:</b> <code>{{ provider_wallet_metrics.get('balance') | toamount }} TON</code><br>
+      <b>• Заработано сегодня:</b> <code>{{ provider_wallet_metrics.get('earned_today') | toamount }} TON</code><br>
+      <b>• Заработано за 7 дней:</b> <code>{{ provider_wallet_metrics.get('earned_week') | toamount }} TON</code><br>
+      <b>• Заработано за 30 дней:</b> <code>{{ provider_wallet_metrics.get('earned_month') | toamount }} TON</code><br>
+      <b>• Всего заработано:</b> <code>{{ provider_wallet_metrics.get('earned_total') | toamount }} TON</code><br>
+      <b>• Обновлено:</b> <code>{{ provider_wallet_metrics.get('updated_at') | datetimeformat }}</code><br>
       </blockquote>
 
+    storage:
       <h2>Хранение</h2>
       <blockquote>
       <b>• Макс. размер бага:</b> <code>{{ provider.ui.max_bag_size }}</code><br>
@@ -58,6 +61,7 @@ messages:
       <b>• Мин. срок хранения:</b> <code>{{ provider.min_span | durationformat }}</code><br>
       </blockquote>
 
+    hardware:
       <h2>Железо</h2>
       <blockquote>
       <b>• CPU:</b> <code>{{ provider.ui.cpu_name }}</code><br>
@@ -67,12 +71,14 @@ messages:
       <b>• Объём хранилища:</b> <code>{{ provider.ui.storage }}</code><br>
       </blockquote>
 
-      <h2>Диск</h2>
+    benchmarks:
+      <h2>Бенчмарки</h2>
       <blockquote>
       <b>• Чтение диска:</b> <code>{{ provider.ui.disk_read_speed }}</code><br>
       <b>• Запись диска:</b> <code>{{ provider.ui.disk_write_speed }}</code><br>
       </blockquote>
 
+    network:
       <h2>Сеть</h2>
       <blockquote>
       <b>• Загрузка:</b> <code>{{ provider.ui.speed_download }}</code><br>
@@ -82,6 +88,7 @@ messages:
       <b>• Провайдер:</b> <code>{{ provider.ui.isp }}</code><br>
       </blockquote>
 
+    software:
       <h2>ПО</h2>
       <blockquote>
       <b>• Git хеш хранилища:</b> <code>{{ provider.ui.storage_git_hash }}</code><br>
@@ -100,32 +107,42 @@ alerts:
   cpu_high:
     text: |
       ❗️ <b>Повышенная нагрузка на CPU</b><br><br>
-
       <b>Провайдер</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
 
   ram_high:
     text: |
       ❗️ <b>Повышенная нагрузка на RAM</b><br><br>
-
       <b>Провайдер</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
 
   disk_load_high:
     text: |
       ❗️ <b>Повышенная нагрузка на Диск</b><br><br>
-
       <b>Провайдер</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
 
   network_high:
     text: |
       ❗️ <b>Повышенная нагрузка на Сеть</b><br><br>
-
       <b>Провайдер</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
 
   disk_space_low:
     text: |
       ❗️ <b>Диск | Выделенное место почти заполнилось</b><br><br>
-
       <b>Провайдер</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
+
+inlines:
+  list_providers:
+    title: "{{ provider.ui.status_emoji }} Провайдер: {{ provider.ui.short_pubkey }}"
+    description: |
+      аптайм:  {{ provider.ui.uptime }} • в работе: {{ provider.working_time | durationformat }}
+      рейтинг: {{ provider.ui.rating }} • цена: {{ provider.ui.price }}
+    thumbnail_url: "https://mytonprovider.org/logo_48x48.png"
+
+  my_providers:
+    title: "{{ provider.ui.status_emoji }} Провайдер: {{ provider.ui.short_pubkey }}"
+    description: |
+      аптайм:  {{ provider.ui.uptime }} • в работе: {{ provider.working_time | durationformat }}
+      рейтинг: {{ provider.ui.rating }} • цена: {{ provider.ui.price }}
+    thumbnail_url: "https://mytonprovider.org/logo_48x48.png"
 
 buttons:
   common:
@@ -148,7 +165,7 @@ buttons:
       url: "https://t.me/mytonprovider_chat"
     become_provider:
       text: "Стать провайдером"
-      url: "https://github.com/igroman787/mytonprovider/blob/master/README.md"
+      url: "https://github.com/igroman787/mytonprovider/blob/master/README.ru.md"
 
   alert_state:
     enabled: "Отключить уведомления"
@@ -172,24 +189,17 @@ buttons:
 
   provider:
     copy_pubkey: "Скопировать публичный ключ"
-    copy_address: "Скопировать адрес"
+    copy_address: "Скопировать адрес кошелька"
     subscribe: "+ Подписаться"
     unsubscribe: "× Отписаться"
-
-inlines:
-  list_providers:
-    title: "{{ provider.ui.status_emoji }} Провайдер: {{ provider.ui.short_pubkey }}"
-    description: |
-      аптайм:  {{ provider.ui.uptime }} • в работе: {{ provider.working_time | durationformat }}
-      рейтинг: {{ provider.ui.rating }} • цена: {{ provider.ui.price }}
-    thumbnail_url: "https://mytonprovider.org/logo_48x48.png"
-
-  my_providers:
-    title: "{{ provider.ui.status_emoji }} Провайдер: {{ provider.ui.short_pubkey }}"
-    description: |
-      аптайм:  {{ provider.ui.uptime }} • в работе: {{ provider.working_time | durationformat }}
-      рейтинг: {{ provider.ui.rating }} • цена: {{ provider.ui.price }}
-    thumbnail_url: "https://mytonprovider.org/logo_48x48.png"
+    tab:
+      storage: Хранилище
+      hardware: Железо
+      benchmarks: Бенчмарки
+      disk: Диск
+      network: Сеть
+      software: ПО
+      wallet: Кошелек
 
 commands:
   start:

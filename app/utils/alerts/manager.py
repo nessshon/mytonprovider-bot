@@ -1,4 +1,3 @@
-import logging
 import typing as t
 from datetime import datetime
 
@@ -31,12 +30,12 @@ class AlertManager:
         self.ctx = ctx
 
     async def _process_user_alerts(
-            self,
-            uow: UnitOfWork,
-            user: UserModel,
-            triggered_alerts: t.Set[AlertTypes],
-            provider: ProviderModel,
-            telemetry: TelemetryModel,
+        self,
+        uow: UnitOfWork,
+        user: UserModel,
+        triggered_alerts: t.Set[AlertTypes],
+        provider: ProviderModel,
+        telemetry: TelemetryModel,
     ) -> None:
         active_alerts = await self._get_user_active_alerts(uow, user.user_id)
 
@@ -64,38 +63,34 @@ class AlertManager:
             )
 
     async def dispatch(
-            self,
-            provider: ProviderModel,
-            telemetry: TelemetryModel,
+        self,
+        provider: ProviderModel,
+        telemetry: TelemetryModel,
     ) -> None:
         uow = UnitOfWork(self.ctx.db.session_factory)
 
-        async with uow:
-            overload_detecotor = OverloadDetector(provider, telemetry)
-            triggered_alerts = overload_detecotor.get_triggered_alerts()
-            if not triggered_alerts:
-                return
+        overload_detecotor = OverloadDetector(provider, telemetry)
+        triggered_alerts = overload_detecotor.get_triggered_alerts()
+        if not triggered_alerts:
+            return
 
-            logging.info(
-                f"Triggered alerts for provider {provider.pubkey}: {triggered_alerts}"
+        for user in await self._get_subscribed_users(uow, provider.pubkey):
+            if not user.alert_settings or not user.alert_settings.enabled:
+                continue
+
+            await self._process_user_alerts(
+                uow=uow,
+                user=user,
+                triggered_alerts=triggered_alerts,
+                provider=provider,
+                telemetry=telemetry,
             )
-            for user in await self._get_subscribed_users(uow, provider.pubkey):
-                if not user.alert_settings or not user.alert_settings.enabled:
-                    continue
-
-                await self._process_user_alerts(
-                    uow=uow,
-                    user=user,
-                    triggered_alerts=triggered_alerts,
-                    provider=provider,
-                    telemetry=telemetry,
-                )
 
     async def notify(
-            self,
-            user: UserModel,
-            alert_type: AlertTypes,
-            **kwargs: t.Any,
+        self,
+        user: UserModel,
+        alert_type: AlertTypes,
+        **kwargs: t.Any,
     ) -> None:
         localizer = Localizer(
             self.ctx.i18n.jinja_env,
@@ -112,8 +107,8 @@ class AlertManager:
 
     @staticmethod
     async def _get_subscribed_users(
-            uow: UnitOfWork,
-            provider_pubkey: str,
+        uow: UnitOfWork,
+        provider_pubkey: str,
     ) -> t.List[UserModel]:
         stmt = (
             select(UserModel)
@@ -128,41 +123,45 @@ class AlertManager:
                 selectinload(UserModel.alert_settings),
             )
         )
-        result = await uow.session.execute(stmt)
+        async with uow:
+            result = await uow.session.execute(stmt)
         return list(result.scalars().all())
 
     @staticmethod
     async def _get_user_active_alerts(
-            uow: UnitOfWork,
-            user_id: int,
+        uow: UnitOfWork,
+        user_id: int,
     ) -> t.Set[AlertTypes]:
-        result = await uow.user_triggered_alert.list(user_id=user_id)
+        async with uow:
+            result = await uow.user_triggered_alert.list(user_id=user_id)
         return {AlertTypes(i.alert_type) for i in result}
 
     @staticmethod
     async def _create_alert_record(
-            uow: UnitOfWork,
-            user_id: int,
-            alert_type: AlertTypes,
-            provider_pubkey: str,
+        uow: UnitOfWork,
+        user_id: int,
+        alert_type: AlertTypes,
+        provider_pubkey: str,
     ) -> None:
-        model = UserTriggeredAlertModel(
-            user_id=user_id,
-            provider_pubkey=provider_pubkey,
-            alert_type=alert_type,
-            triggered_at=datetime.now(TIMEZONE),
-        )
-        await uow.user_triggered_alert.create(model)
+        async with uow:
+            model = UserTriggeredAlertModel(
+                user_id=user_id,
+                provider_pubkey=provider_pubkey,
+                alert_type=alert_type,
+                triggered_at=datetime.now(TIMEZONE),
+            )
+            await uow.user_triggered_alert.create(model)
 
     @staticmethod
     async def _delete_alert_record(
-            uow: UnitOfWork,
-            user_id: int,
-            alert_type: AlertTypes,
-            provider_pubkey: str,
+        uow: UnitOfWork,
+        user_id: int,
+        alert_type: AlertTypes,
+        provider_pubkey: str,
     ) -> None:
-        await uow.user_triggered_alert.delete(
-            user_id=user_id,
-            alert_type=alert_type,
-            provider_pubkey=provider_pubkey,
-        )
+        async with uow:
+            await uow.user_triggered_alert.delete(
+                user_id=user_id,
+                alert_type=alert_type,
+                provider_pubkey=provider_pubkey,
+            )

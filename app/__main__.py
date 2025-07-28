@@ -1,7 +1,9 @@
 import logging
+from contextlib import suppress
 
 from aiogram import Dispatcher, Bot
 from aiogram.client.default import DefaultBotProperties
+from aiogram.exceptions import TelegramBadRequest, TelegramRetryAfter
 from aiogram.fsm.storage.base import DefaultKeyBuilder
 from aiogram.fsm.storage.redis import RedisStorage
 from aiogram_dialog import setup_dialogs
@@ -9,6 +11,7 @@ from redis.asyncio import Redis
 from sulguk import SULGUK_PARSE_MODE
 
 from .bot import (
+    commands,
     middlewares,
     handlers,
     dialogs,
@@ -32,11 +35,13 @@ async def on_startup(ctx: Context) -> None:
     dialogs.register(ctx.dp)
     setup_dialogs(ctx.dp)
 
-    # await commands.setup(ctx)
+    with suppress(TelegramRetryAfter):
+        await commands.setup(ctx)
 
 
 async def on_shutdown(ctx: Context) -> None:
-    # await commands.delete(ctx)
+    with suppress(TelegramRetryAfter):
+        await commands.delete(ctx)
     await ctx.bot.session.close()
 
     await ctx.scheduler.shutdown()

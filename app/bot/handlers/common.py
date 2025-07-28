@@ -19,18 +19,18 @@ from ...utils.i18n import Localizer
 
 
 async def my_chat_memeber(
-        update: ChatMemberUpdated,
-        uow: UnitOfWork,
-        user_model: UserModel,
+    update: ChatMemberUpdated,
+    uow: UnitOfWork,
+    user_model: UserModel,
 ) -> None:
     user_model.state = update.new_chat_member.status
     await uow.user.upsert(user_model)
 
 
 async def providers_inline(
-        query: InlineQuery,
-        uow: UnitOfWork,
-        localizer: Localizer,
+    query: InlineQuery,
+    uow: UnitOfWork,
+    localizer: Localizer,
 ) -> None:
     offset, limit = int(query.offset or 0), 20
     query_type = (query.query or "").strip().lower()
@@ -83,11 +83,15 @@ async def hide_callback_query(call: CallbackQuery) -> None:
 
 
 async def default_message(
-        message: Message,
-        dialog_manager: DialogManager,
-        uow: UnitOfWork,
+    message: Message,
+    dialog_manager: DialogManager,
+    uow: UnitOfWork,
 ) -> None:
-    pubkey = message.text.strip() if message.content_type == ContentType.TEXT else None
+    pubkey = (
+        message.text.strip().lower()
+        if message.content_type == ContentType.TEXT
+        else None
+    )
 
     def is_valid_pubkey(_pubkey: str) -> bool:
         if len(_pubkey) != 64:

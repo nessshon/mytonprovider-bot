@@ -11,10 +11,10 @@ from ...database.models import (
 class OverloadDetector:
 
     def __init__(
-            self,
-            provider: ProviderModel,
-            telemetry: TelemetryModel,
-            thresholds: OverloadThresholds = OverloadThresholds(),
+        self,
+        provider: ProviderModel,
+        telemetry: TelemetryModel,
+        thresholds: OverloadThresholds = OverloadThresholds(),
     ) -> None:
         self.provider = provider
         self.telemetry = telemetry
@@ -50,8 +50,8 @@ class OverloadDetector:
     def is_ram_high(self) -> bool:
         ram_usage_percent = self.telemetry.ram.get("usage_percent")
         return (
-                ram_usage_percent is not None
-                and ram_usage_percent > self.thresholds.ram_percent
+            ram_usage_percent is not None
+            and ram_usage_percent > self.thresholds.ram_percent
         )
 
     def is_disk_space_low(self) -> bool:

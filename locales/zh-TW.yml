@@ -3,89 +3,96 @@ messages:
     menu: |
       🤖 <b>監控提供者狀態</b> –  
       遙測、通知與更多功能。<br><br>
-      
+
       📘 <b>如何找到提供者：</b><br>
-      • 點擊「提供者列表」<br>
+      • 點擊「所有提供者」<br>
       • 或在聊天室中發送公開金鑰<br>
 
     not_found: |
       ⚠️ <b>找不到提供者</b><br><br>
-      
-      請確認您輸入的是有效的公開金鑰。
+      請確認您輸入的公開金鑰正確無誤。
 
     invalid_input: |
       ❗️ <b>公開金鑰格式無效</b><br><br>
-      
       請檢查輸入內容並再試一次。
 
   alert_settings:
     menu: |
       🔔 <b>通知設定</b><br><br>
-      
       選擇您希望接收哪些事件的通知。
 
   language:
     menu: |
       🌐 <b>語言選擇</b><br><br>
-      
-      設定您偏好的介面語言。
+      請選擇您偏好的介面語言。
 
   help:
     menu: |
-      ℹ️ <b>關於機器人</b><br><br>
-      
-      本機器人可協助您監控提供者狀態、
+      ℹ️ <b>關於此機器人</b><br><br>
+      此機器人可協助您監控提供者狀態、
       接收通知並管理訂閱。
 
   provider:
     menu: |
-      {{ provider.ui.status_emoji }} <b>提供者</b> <code>{{ provider.ui.short_pubkey }}</code><br>
-      
-      <h2>一般資訊</h2>
+      {{ provider.ui.status_emoji }} <b>提供者</b> <code>{{ provider.ui.short_pubkey }}</code><br><br>
+      <b>• 狀態</b>: <code>{{ provider.ui.status_text }} ({{ provider.ui.uptime }})</code><br>
+      <b>• 評分</b>: <code>{{ provider.ui.rating }}</code><br>
+      <b>• 價格</b>: <code>{{ provider.ui.price }}</code><br>
+      <b>• 地址</b>: <a href="https://tonviewer.com/{{ provider.address }}">{{ provider.ui.short_address }}</a><br>
+      <b>• 運行時間</b>: <code>{{ provider.working_time | durationformat }}</code><br>
+      <b>• 註冊時間：</b> <code>{{ provider.reg_time | datetimeformat }}</code><br>
+
+    wallet: |
+      <h2>錢包</h2>
       <blockquote>
-      <b>• 狀態：</b><code>{{ provider.ui.status_text }} ({{ provider.ui.uptime }})</code><br>
-      <b>• 評分：</b><code>{{ provider.ui.rating }}</code><br>
-      <b>• 價格：</b><code>{{ provider.ui.price }}</code><br>
-      <b>• 地址：</b><a href="https://tonviewer.com/{{ provider.address }}">{{ provider.ui.short_address }}</a><br>
-      <b>• 運行時間：</b><code>{{ provider.working_time | durationformat }}</code><br>
-      <b>• 註冊日期：</b><code>{{ provider.reg_time | datetimeformat }}</code><br>
+      <b>• 餘額：</b> <code>{{ provider_wallet_metrics.get('balance') | toamount }} TON</code><br>
+      <b>• 今日收益：</b> <code>{{ provider_wallet_metrics.get('earned_today') | toamount }} TON</code><br>
+      <b>• 七日收益：</b> <code>{{ provider_wallet_metrics.get('earned_week') | toamount }} TON</code><br>
+      <b>• 三十日收益：</b> <code>{{ provider_wallet_metrics.get('earned_month') | toamount }} TON</code><br>
+      <b>• 總收益：</b> <code>{{ provider_wallet_metrics.get('earned_total') | toamount }} TON</code><br>
+      <b>• 更新時間：</b> <code>{{ provider_wallet_metrics.get('updated_at') | datetimeformat }}</code><br>
       </blockquote>
 
-      <h2>儲存</h2>
+    storage:
+      <h2>儲存空間</h2>
       <blockquote>
-      <b>• 最大包大小：</b><code>{{ provider.ui.max_bag_size }}</code><br>
-      <b>• 最長保存期限：</b><code>{{ provider.max_span | durationformat }}</code><br>
-      <b>• 最短保存期限：</b><code>{{ provider.min_span | durationformat }}</code><br>
+      <b>• 最大 bag 大小：</b> <code>{{ provider.ui.max_bag_size }}</code><br>
+      <b>• 最長儲存時間：</b> <code>{{ provider.max_span | durationformat }}</code><br>
+      <b>• 最短儲存時間：</b> <code>{{ provider.min_span | durationformat }}</code><br>
       </blockquote>
 
-      <h2>硬體</h2>
+    hardware:
+      <h2>硬體資訊</h2>
       <blockquote>
-      <b>• 處理器：</b><code>{{ provider.ui.cpu_name }}</code><br>
-      <b>• 核心數：</b><code>{{ provider.ui.cpu_number }}</code><br>
-      <b>• 虛擬 CPU：</b><code>{{ provider.ui.cpu_is_virtual }}</code><br>
-      <b>• 記憶體：</b><code>{{ provider.ui.ram }}</code><br>
-      <b>• 儲存容量：</b><code>{{ provider.ui.storage }}</code><br>
+      <b>• CPU：</b> <code>{{ provider.ui.cpu_name }}</code><br>
+      <b>• 核心數：</b> <code>{{ provider.ui.cpu_number }}</code><br>
+      <b>• 虛擬 CPU：</b> <code>{{ provider.ui.cpu_is_virtual }}</code><br>
+      <b>• 記憶體：</b> <code>{{ provider.ui.ram }}</code><br>
+      <b>• 儲存容量：</b> <code>{{ provider.ui.storage }}</code><br>
       </blockquote>
 
-      <h2>磁碟</h2>
+    benchmarks:
+      <h2>效能測試</h2>
       <blockquote>
-      <b>• 讀取速度：</b><code>{{ provider.ui.disk_read_speed }}</code><br>
-      <b>• 寫入速度：</b><code>{{ provider.ui.disk_write_speed }}</code><br>
+      <b>• 讀取速度：</b> <code>{{ provider.ui.disk_read_speed }}</code><br>
+      <b>• 寫入速度：</b> <code>{{ provider.ui.disk_write_speed }}</code><br>
       </blockquote>
 
+    network:
       <h2>網路</h2>
       <blockquote>
-      <b>• 下載：</b><code>{{ provider.ui.speed_download }}</code><br>
-      <b>• 上傳：</b><code>{{ provider.ui.speed_upload }}</code><br>
-      <b>• 延遲：</b><code>{{ provider.ui.ping }}</code><br>
-      <b>• 國家：</b><code>{{ provider.ui.country }}</code><br>
-      <b>• 網路業者：</b><code>{{ provider.ui.isp }}</code><br>
+      <b>• 下載速度：</b> <code>{{ provider.ui.speed_download }}</code><br>
+      <b>• 上傳速度：</b> <code>{{ provider.ui.speed_upload }}</code><br>
+      <b>• 延遲：</b> <code>{{ provider.ui.ping }}</code><br>
+      <b>• 國家：</b> <code>{{ provider.ui.country }}</code><br>
+      <b>• 網路供應商：</b> <code>{{ provider.ui.isp }}</code><br>
       </blockquote>
 
+    software:
       <h2>軟體</h2>
       <blockquote>
-      <b>• 儲存 Git 哈希：</b><code>{{ provider.ui.storage_git_hash }}</code><br>
-      <b>• 提供者 Git 哈希：</b><code>{{ provider.ui.provider_git_hash }}</code><br>
+      <b>• Storage Git 哈希：</b> <code>{{ provider.ui.storage_git_hash }}</code><br>
+      <b>• Provider Git 哈希：</b> <code>{{ provider.ui.provider_git_hash }}</code><br>
       </blockquote>
 
 alerts:
@@ -99,33 +106,43 @@ alerts:
 
   cpu_high:
     text: |
-      ❗️ <b>CPU 載入過高</b><br><br>
-
-      <b>提供者：</b><code>{{ provider.ui.short_pubkey }}</code><br>
+      ❗️ <b>CPU 負載過高</b><br><br>
+      <b>提供者：</b> <code>{{ provider.ui.short_pubkey }}</code><br>
 
   ram_high:
     text: |
-      ❗️ <b>記憶體載入過高</b><br><br>
-
-      <b>提供者：</b><code>{{ provider.ui.short_pubkey }}</code><br>
+      ❗️ <b>RAM 負載過高</b><br><br>
+      <b>提供者：</b> <code>{{ provider.ui.short_pubkey }}</code><br>
 
   disk_load_high:
     text: |
-      ❗️ <b>磁碟載入過高</b><br><br>
-
-      <b>提供者：</b><code>{{ provider.ui.short_pubkey }}</code><br>
+      ❗️ <b>磁碟負載過高</b><br><br>
+      <b>提供者：</b> <code>{{ provider.ui.short_pubkey }}</code><br>
 
   network_high:
     text: |
-      ❗️ <b>網路載入過高</b><br><br>
-
-      <b>提供者：</b><code>{{ provider.ui.short_pubkey }}</code><br>
+      ❗️ <b>網路負載過高</b><br><br>
+      <b>提供者：</b> <code>{{ provider.ui.short_pubkey }}</code><br>
 
   disk_space_low:
     text: |
-      ❗️ <b>磁碟 | 空間即將耗盡</b><br><br>
+      ❗️ <b>磁碟空間不足</b><br><br>
+      <b>提供者：</b> <code>{{ provider.ui.short_pubkey }}</code><br>
 
-      <b>提供者：</b><code>{{ provider.ui.short_pubkey }}</code><br>
+inlines:
+  list_providers:
+    title: "{{ provider.ui.status_emoji }} 提供者：{{ provider.ui.short_pubkey }}"
+    description: |
+      運行時間：{{ provider.ui.uptime }} • 活躍時長：{{ provider.working_time | durationformat }}
+      評分：{{ provider.ui.rating }} • 價格：{{ provider.ui.price }}
+    thumbnail_url: "https://mytonprovider.org/logo_48x48.png"
+
+  my_providers:
+    title: "{{ provider.ui.status_emoji }} 提供者：{{ provider.ui.short_pubkey }}"
+    description: |
+      運行時間：{{ provider.ui.uptime }} • 活躍時長：{{ provider.working_time | durationformat }}
+      評分：{{ provider.ui.rating }} • 價格：{{ provider.ui.price }}
+    thumbnail_url: "https://mytonprovider.org/logo_48x48.png"
 
 buttons:
   common:
@@ -137,7 +154,7 @@ buttons:
     list_providers: "所有提供者 {{ list_providers_count }}"
     statuses: "提供者狀態"
     language: "語言"
-    help: "關於機器人"
+    help: "關於"
 
   help_menu:
     open_website:
@@ -148,21 +165,21 @@ buttons:
       url: "https://t.me/mytonprovider_chat"
     become_provider:
       text: "成為提供者"
-      url: "https://github.com/igroman787/mytonprovider/blob/master/README.md"
+      url: "https://github.com/igroman787/mytonprovider/blob/master/README.ru.md"
 
   alert_state:
     enabled: "停用通知"
     disabled: "啟用通知"
 
   alert_settings:
-    text: "設定通知"
+    text: "通知設定"
     options:
       service_restarted: "服務已重啟"
       monthly_report: "每月報告"
-      cpu_high: "CPU 載入過高"
-      ram_high: "記憶體載入過高"
-      network_high: "網路載入過高"
-      disk_load_high: "磁碟載入過高"
+      cpu_high: "CPU 負載過高"
+      ram_high: "RAM 負載過高"
+      network_high: "網路負載過高"
+      disk_load_high: "磁碟負載過高"
       disk_space_low: "磁碟空間不足"
     state:
       enabled: "◉ "
@@ -172,32 +189,25 @@ buttons:
 
   provider:
     copy_pubkey: "複製公開金鑰"
-    copy_address: "複製地址"
+    copy_address: "複製錢包地址"
     subscribe: "+ 訂閱"
     unsubscribe: "× 取消訂閱"
-
-inlines:
-  list_providers:
-    title: "{{ provider.ui.status_emoji }} 提供者：{{ provider.ui.short_pubkey }}"
-    description: |
-      運行時間：{{ provider.ui.uptime }} • 已上線：{{ provider.working_time | durationformat }}
-      評分：{{ provider.ui.rating }} • 價格：{{ provider.ui.price }}
-    thumbnail_url: "https://mytonprovider.org/logo_48x48.png"
-
-  my_providers:
-    title: "{{ provider.ui.status_emoji }} 提供者：{{ provider.ui.short_pubkey }}"
-    description: |
-      運行時間：{{ provider.ui.uptime }} • 已上線：{{ provider.working_time | durationformat }}
-      評分：{{ provider.ui.rating }} • 價格：{{ provider.ui.price }}
-    thumbnail_url: "https://mytonprovider.org/logo_48x48.png"
+    tab:
+      storage: 儲存空間
+      hardware: 硬體
+      benchmarks: 效能測試
+      disk: 磁碟
+      network: 網路
+      software: 軟體
+      wallet: 錢包
 
 commands:
   start:
     description: "啟動機器人"
   help:
-    description: "顯示說明資訊"
+    description: "顯示資訊"
   lang:
-    description: "變更介面語言"
+    description: "更改語言介面"
 
 language_names:
   ru: "俄文"

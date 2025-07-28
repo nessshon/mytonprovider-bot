@@ -17,10 +17,10 @@ from ...utils.i18n import Localizer
 class I18nMiddleware(BaseMiddleware):
 
     async def __call__(
-            self,
-            handler: Callable[[TelegramObject, t.Dict[str, t.Any]], Awaitable[t.Any]],
-            event: TelegramObject,
-            data: t.Dict[str, t.Any],
+        self,
+        handler: Callable[[TelegramObject, t.Dict[str, t.Any]], Awaitable[t.Any]],
+        event: TelegramObject,
+        data: t.Dict[str, t.Any],
     ) -> t.Any:
         user: t.Optional[User] = data.get("event_from_user")
         ctx: Context = data.get("ctx")
@@ -29,8 +29,8 @@ class I18nMiddleware(BaseMiddleware):
             user_model = data.get("user_model")
 
             if (
-                    user_model
-                    and getattr(user_model, "language_code", None) in SUPPORTED_LOCALES
+                user_model
+                and getattr(user_model, "language_code", None) in SUPPORTED_LOCALES
             ):
                 language_code = user_model.language_code
             elif user.language_code in SUPPORTED_LOCALES:

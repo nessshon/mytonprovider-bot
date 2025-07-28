@@ -8,9 +8,9 @@ from aiogram_dialog import DialogManager, StartMode, ShowMode
 
 
 def register_command(
-        dp: Dispatcher,
-        command: str,
-        state,
+    dp: Dispatcher,
+    command: str,
+    state,
 ) -> None:
     async def handler(message: Message, dialog_manager: DialogManager) -> None:
         await dialog_manager.start(
