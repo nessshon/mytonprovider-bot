@@ -1,3 +1,4 @@
+import logging
 import typing as t
 
 from ...context import Context
@@ -10,6 +11,8 @@ from ...database.models import TelemetryModel
 from ...utils.alerts import AlertManager
 from ...utils.mtpapi import MyTONProviderAPI
 from ...utils.mtpapi.models import Provider, ProviderSearchPayload
+
+logger = logging.getLogger(__name__)
 
 
 async def _iterate_providers(
@@ -33,8 +36,10 @@ async def sync_providers(
     mtpapi: MyTONProviderAPI,
 ) -> t.List[ProviderModel]:
     providers = []
+    total_from_api = 0
 
     async for provider in _iterate_providers(mtpapi):
+        total_from_api += 1
         provider_pubkey = provider.pubkey.lower()
 
         provider_telemetry_raw_data = provider.telemetry.model_dump()
@@ -57,6 +62,10 @@ async def sync_providers(
             provider_model = await uow.provider.upsert(model)
         providers.append(provider_model)
 
+    logger.info(
+        f"Retrieved {total_from_api} providers from API, "
+        f"upserted: {len(providers)} into the database"
+    )
     return providers
 
 
@@ -66,6 +75,7 @@ async def sync_telemetries(
 ) -> t.List[TelemetryModel]:
     telemetries = []
     response = await mtpapi.telemetry()
+    total_from_api = len(response.providers)
 
     for telemetry in response.providers:
         pubkey = telemetry.storage.provider.pubkey.lower()
@@ -80,6 +90,10 @@ async def sync_telemetries(
             telemetry_model = await uow.telemetry.upsert(model)
         telemetries.append(telemetry_model)
 
+    logger.info(
+        f"Retrieved {total_from_api} telemetry from API, "
+        f"upserted: {len(telemetries)} into the database"
+    )
     return telemetries
 
 
@@ -87,9 +101,22 @@ async def monitor_providers_job(ctx: Context) -> None:
     uow = UnitOfWork(ctx.db.session_factory)
     mtpapi: MyTONProviderAPI = ctx.mtpapi
 
-    async with mtpapi:
-        providers = await sync_providers(uow, mtpapi)
-        telemetries = await sync_telemetries(uow, mtpapi)
+    try:
+        async with mtpapi:
+            try:
+                providers = await sync_providers(uow, mtpapi)
+            except Exception:
+                logger.exception(f"Failed to sync providers")
+                raise
+
+            try:
+                telemetries = await sync_telemetries(uow, mtpapi)
+            except Exception:
+                logger.exception(f"Failed to sync telemetries")
+                raise
+    except Exception:
+        logger.exception(f"Failed to connect or sync via MTP API")
+        raise
 
     telemetry_map: t.Dict[str, TelemetryModel] = {
         telemetry.provider_pubkey: telemetry for telemetry in telemetries

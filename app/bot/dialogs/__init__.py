@@ -1,13 +1,16 @@
+import logging
+
 from aiogram import Dispatcher, Router
 from aiogram_dialog import Dialog, LaunchMode
 
 from . import windows
 
+logger = logging.getLogger(__name__)
+
 
 def register(dp: Dispatcher) -> None:
-    router = Router()
-
-    router.include_routers(
+    dialog_router = Router()
+    dialog_router.include_routers(
         Dialog(
             windows.main_menu,
             windows.main_not_found,
@@ -19,7 +22,9 @@ def register(dp: Dispatcher) -> None:
         Dialog(windows.language_menu),
         Dialog(windows.help_menu),
     )
-    dp.include_router(router)
+    dp.include_router(dialog_router)
+
+    logger.info("Dialogs registered")
 
 
 __all__ = ["register"]

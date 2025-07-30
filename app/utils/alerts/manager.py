@@ -1,3 +1,4 @@
+import logging
 import typing as t
 from datetime import datetime
 
@@ -23,6 +24,8 @@ from ...database.models import (
     UserTriggeredAlertModel,
 )
 
+logger = logging.getLogger(__name__)
+
 
 class AlertManager:
 
@@ -46,12 +49,19 @@ class AlertManager:
             if alert_type not in user.alert_settings.types:
                 continue
 
-            await self.notify(
-                user=user,
-                alert_type=alert_type,
-                provider=provider,
-                telemetry=telemetry,
+            try:
+                await self.notify(
+                    user=user,
+                    alert_type=alert_type,
+                    provider=provider,
+                    telemetry=telemetry,
+                )
+            except Exception as e:
+                logger.exception(
+                    f"Failed to notify user {user.user_id} "
+                    f"for alert '{alert_type.name}': {e}"
             )
+                continue
 
             await self._create_alert_record(
                 uow, user.user_id, alert_type, provider.pubkey
@@ -71,8 +81,14 @@ class AlertManager:
 
         overload_detecotor = OverloadDetector(provider, telemetry)
         triggered_alerts = overload_detecotor.get_triggered_alerts()
+
         if not triggered_alerts:
             return
+
+        logger.info(
+            f"Detected overloads for provider {provider.pubkey}: "
+            f"{', '.join(a.name for a in triggered_alerts)}"
+        )
 
         for user in await self._get_subscribed_users(uow, provider.pubkey):
             if not user.alert_settings or not user.alert_settings.enabled:

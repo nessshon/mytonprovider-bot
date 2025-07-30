@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 import typing as t
 from datetime import date, timedelta
 
@@ -21,21 +22,23 @@ from .models import (
     ProviderTelemetryModel,
     ProviderWalletHistoryModel,
 )
-from .repository import BaseRepository
+from .repository import BaseRepository as BRepo
+
+logger = logging.getLogger(__name__)
 
 
 class UnitOfWork:
     session: AsyncSession
 
-    provider: BaseRepository[ProviderModel]
-    provider_wallet_history: BaseRepository[ProviderWalletHistoryModel]
-    provider_telemetry: BaseRepository[ProviderTelemetryModel]
-    telemetry: BaseRepository[TelemetryModel]
-    telemetry_history: BaseRepository[TelemetryHistoryModel]
-    user_subscription: BaseRepository[UserSubscriptionModel]
-    user: BaseRepository[UserModel]
-    user_alert_setting: BaseRepository[UserAlertSettingModel]
-    user_triggered_alert: BaseRepository[UserTriggeredAlertModel]
+    provider: BRepo[ProviderModel]
+    provider_wallet_history: BRepo[ProviderWalletHistoryModel]
+    provider_telemetry: BRepo[ProviderTelemetryModel]
+    telemetry: BRepo[TelemetryModel]
+    telemetry_history: BRepo[TelemetryHistoryModel]
+    user_subscription: BRepo[UserSubscriptionModel]
+    user: BRepo[UserModel]
+    user_alert_setting: BRepo[UserAlertSettingModel]
+    user_triggered_alert: BRepo[UserTriggeredAlertModel]
 
     def __init__(self, session_factory: async_sessionmaker) -> None:
         self.session_factory = session_factory
@@ -43,21 +46,17 @@ class UnitOfWork:
     async def __aenter__(self) -> UnitOfWork:
         self.session = self.session_factory()
 
-        self.provider = BaseRepository(ProviderModel, self.session)
-        self.provider_telemetry = BaseRepository(ProviderTelemetryModel, self.session)
-        self.provider_wallet_history = BaseRepository(
-            ProviderWalletHistoryModel, self.session
-        )
+        self.provider = BRepo(ProviderModel, self.session)
+        self.provider_telemetry = BRepo(ProviderTelemetryModel, self.session)
+        self.provider_wallet_history = BRepo(ProviderWalletHistoryModel, self.session)
 
-        self.telemetry = BaseRepository(TelemetryModel, self.session)
-        self.telemetry_history = BaseRepository(TelemetryHistoryModel, self.session)
+        self.telemetry = BRepo(TelemetryModel, self.session)
+        self.telemetry_history = BRepo(TelemetryHistoryModel, self.session)
 
-        self.user = BaseRepository(UserModel, self.session)
-        self.user_subscription = BaseRepository(UserSubscriptionModel, self.session)
-        self.user_alert_setting = BaseRepository(UserAlertSettingModel, self.session)
-        self.user_triggered_alert = BaseRepository(
-            UserTriggeredAlertModel, self.session
-        )
+        self.user = BRepo(UserModel, self.session)
+        self.user_subscription = BRepo(UserSubscriptionModel, self.session)
+        self.user_alert_setting = BRepo(UserAlertSettingModel, self.session)
+        self.user_triggered_alert = BRepo(UserTriggeredAlertModel, self.session)
 
         return self
 
@@ -72,6 +71,10 @@ class UnitOfWork:
         else:
             await self.commit()
         await self.session.close()
+
+        if exc:
+            logger.error(f"Unit of work error: {exc}")
+            raise exc.with_traceback(tb)
 
     async def commit(self) -> None:
         await self.session.commit()

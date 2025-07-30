@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import typing as t
 from pathlib import Path
 
@@ -8,10 +9,13 @@ from jinja2 import Environment, StrictUndefined
 
 from ...config import LOCALES_DIR, SUPPORTED_LOCALES
 
+logger = logging.getLogger(__name__)
+
 
 class I18N:
 
     def __init__(self) -> None:
+        logger.info("Initializing i18n")
         self.jinja_env = Environment(
             autoescape=True,
             lstrip_blocks=True,
@@ -23,15 +27,22 @@ class I18N:
 
     def _load_all_locales(self) -> t.Dict[str, t.Dict[str, t.Any]]:
         if not LOCALES_DIR.is_dir():
+            logger.error(f"Locales directory is missing: {str(LOCALES_DIR)}")
             raise FileNotFoundError(
                 f"Locales directory '{LOCALES_DIR}' does not exist or is not a directory."
             )
 
         locales_data: t.Dict[str, t.Dict[str, t.Any]] = {}
         for locale in SUPPORTED_LOCALES:
-            file_path = self._resolve_locale_file(locale)
-            raw_data = self._load_yaml_file(file_path)
-            locales_data[locale] = self._expand_dotted_keys(raw_data)
+            try:
+                file_path = self._resolve_locale_file(locale)
+                raw_data = self._load_yaml_file(file_path)
+                expanded = self._expand_dotted_keys(raw_data)
+                locales_data[locale] = expanded
+                logger.info(f"Locale loaded: '{locale}'")
+            except Exception:
+                logger.error(f"Failed to load locale: '{locale}'")
+                raise
 
         return locales_data
 
@@ -51,8 +62,13 @@ class I18N:
             with file_path.open(encoding="utf-8") as f:
                 data = yaml.safe_load(f)
         except yaml.YAMLError as e:
+            logger.error(f"YAML parse error: 'file={str(file_path)}'")
             raise ValueError(f"Failed to parse YAML file '{file_path}': {e}") from e
         if not isinstance(data, dict):
+            logger.error(
+                "Invalid locale structure: "
+                f"'file={str(file_path)}, type={type(data).__name__}'",
+            )
             raise TypeError(
                 f"Locale file '{file_path}' must contain a top-level dictionary"
             )

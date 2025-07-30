@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+import logging
 import typing as t
 from datetime import datetime, timedelta
-from typing import Any, Optional
 
 from jinja2 import Environment
 from sulguk import RenderResult
+
+logger = logging.getLogger(__name__)
 
 
 class Localizer:
@@ -59,8 +61,11 @@ class Localizer:
 
     @classmethod
     def _get_nested(
-        cls, data: t.Dict[str, t.Any], dotted_key: str, default: Optional[Any] = None
-    ) -> Any:
+        cls,
+        data: t.Dict[str, t.Any],
+        dotted_key: str,
+        default: t.Optional[t.Any] = None,
+    ) -> t.Any:
         keys = dotted_key.split(".")
         current = data
 
@@ -71,10 +76,15 @@ class Localizer:
                 return default
         return current
 
-    def _get_locale(self, key: str, default: Optional[str] = None) -> Optional[str]:
+    def _get_locale(self, key: str, default: t.Optional[str] = None) -> t.Optional[str]:
         if key in self.locale_data:
             return self.locale_data[key]
-        return self._get_nested(self.locale_data, key, default)
+
+        result = self._get_nested(self.locale_data, key, default)
+        if result is default:
+            logger.info(f"Localization key not found: 'key={key}'")
+
+        return result
 
     def render_sync(self, key: str, **kwargs) -> str:
         template_str = self._get_locale(key)
@@ -85,14 +95,15 @@ class Localizer:
 
     async def __call__(
         self,
-        key: Optional[str] = None,
+        key: t.Optional[str] = None,
         *,
-        default: Optional[str] = None,
+        default: t.Optional[str] = None,
         **kwargs: t.Any,
     ) -> t.Union[str, RenderResult]:
         if key is not None:
             template_str = self._get_locale(key)
             if template_str is None:
+                logger.warning(f"Missing localization key: 'key={key}'")
                 raise KeyError(f"Localization key '{key}' not found in locale data.")
         elif default is not None:
             template_str = default
@@ -103,5 +114,7 @@ class Localizer:
             template = self.jinja_env.from_string(template_str)
             text = await template.render_async(**kwargs)
         except (Exception,):
+            logger.warning(f"Template rendering failed: 'key={key}'")
             return template_str
+
         return text

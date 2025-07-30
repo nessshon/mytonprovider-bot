@@ -24,10 +24,6 @@ class DbSessionMiddleware(BaseMiddleware):
     ) -> t.Optional[t.Any]:
         user: t.Optional[User] = data.get("event_from_user")
         ctx: t.Optional[Context] = data.get("ctx")
-
-        if not ctx:
-            raise RuntimeError("Context is not available in middleware data")
-
         uow = UnitOfWork(ctx.db.session_factory)
 
         async with uow:

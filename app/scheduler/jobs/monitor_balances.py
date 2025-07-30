@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import typing as t
 from collections import defaultdict
 from dataclasses import dataclass
@@ -11,6 +12,8 @@ from ...database import UnitOfWork
 from ...database.models.provider import ProviderWalletHistoryModel
 from ...utils.toncenter import TONCenterAPI
 from ...utils.toncenter.models import Transaction
+
+logger = logging.getLogger(__name__)
 
 PROOF_STORAGE_OPCODE = "0x48f548ce"
 REWARD_WITHDRAWAL_OPCODE = "0xa91baf56"
@@ -109,61 +112,77 @@ async def monitor_balances_job(ctx: Context) -> None:
     uow = UnitOfWork(ctx.db.session_factory)
     toncenterapi: TONCenterAPI = ctx.toncenterapi
 
-    async with toncenterapi:
-        async with uow:
-            providers = await uow.provider.all()
+    async with uow:
+        providers = await uow.provider.all()
 
         for provider in providers:
-            async with uow:
-                last_record = await uow.provider_wallet_history.get(
+            last_record = await uow.provider_wallet_history.get(
+                provider_pubkey=provider.pubkey,
+                order_by=ProviderWalletHistoryModel.last_lt.desc(),
+            )
+
+            from_lt = last_record.last_lt if last_record else None
+            previous_balance = last_record.balance if last_record else 0
+
+            try:
+                async with toncenterapi:
+                    transactions = await collect_transactions(
+                        toncenterapi=toncenterapi,
+                        address=provider.address,
+                        from_lt=from_lt,
+                    )
+            except Exception:
+                logger.exception(
+                    f"Failed to collect transactions for {provider.pubkey}"
+                )
+                raise
+
+            if not transactions:
+                continue
+
+            logger.info(
+                f"Retrieved {len(transactions)} new transactions for {provider.pubkey} "
+                f"from_lt {from_lt}"
+            )
+
+            transactions_by_date: dict[date, list[Transaction]] = defaultdict(list)
+            for tx in transactions:
+                tx_date = datetime.fromtimestamp(tx.now, tz=TIMEZONE).date()
+                transactions_by_date[tx_date].append(tx)
+
+            for tx_date in sorted(transactions_by_date):
+                metrics = WalletMetrics()
+                txs = transactions_by_date[tx_date]
+                for tx in txs:
+                    metrics.add(extract_tx_metrics(tx))
+
+                last_lt_for_day = max(tx.lt for tx in txs)
+                previous_balance += metrics.balance
+                updated_at = datetime.now(TIMEZONE)
+
+                logger.info(
+                    f"Provider {provider.pubkey}, date {tx_date}, "
+                    f"earned {metrics.earned / 1e9:.9f}, balance {previous_balance / 1e9:.9f}, txs {len(txs)}"
+                )
+
+                existing = await uow.provider_wallet_history.get(
                     provider_pubkey=provider.pubkey,
-                    order_by=ProviderWalletHistoryModel.last_lt.desc(),
+                    date=tx_date,
                 )
-
-                from_lt = last_record.last_lt if last_record else None
-                previous_balance = last_record.balance if last_record else 0
-
-                transactions = await collect_transactions(
-                    toncenterapi=toncenterapi,
-                    address=provider.address,
-                    from_lt=from_lt,
-                )
-                if not transactions:
-                    continue
-
-                transactions_by_date: dict[date, list[Transaction]] = defaultdict(list)
-                for tx in transactions:
-                    tx_date = datetime.fromtimestamp(tx.now, tz=TIMEZONE).date()
-                    transactions_by_date[tx_date].append(tx)
-
-                for tx_date in sorted(transactions_by_date):
-                    metrics = WalletMetrics()
-                    txs = transactions_by_date[tx_date]
-                    for tx in txs:
-                        metrics.add(extract_tx_metrics(tx))
-
-                    last_lt_for_day = max(tx.lt for tx in txs)
-                    previous_balance += metrics.balance
-                    updated_at = datetime.now(TIMEZONE)
-
-                    existing = await uow.provider_wallet_history.get(
+                if existing:
+                    existing.updated_at = updated_at
+                    existing.balance = previous_balance
+                    existing.earned += metrics.earned
+                    existing.last_lt = last_lt_for_day
+                    await uow.provider_wallet_history.upsert(existing)
+                else:
+                    model = ProviderWalletHistoryModel(
                         provider_pubkey=provider.pubkey,
                         date=tx_date,
+                        address=provider.address,
+                        updated_at=updated_at,
+                        balance=previous_balance,
+                        earned=metrics.earned,
+                        last_lt=last_lt_for_day,
                     )
-                    if existing:
-                        existing.updated_at = updated_at
-                        existing.balance = previous_balance
-                        existing.earned += metrics.earned
-                        existing.last_lt = last_lt_for_day
-                        await uow.provider_wallet_history.upsert(existing)
-                    else:
-                        model = ProviderWalletHistoryModel(
-                            provider_pubkey=provider.pubkey,
-                            date=tx_date,
-                            address=provider.address,
-                            updated_at=updated_at,
-                            balance=previous_balance,
-                            earned=metrics.earned,
-                            last_lt=last_lt_for_day,
-                        )
-                        await uow.provider_wallet_history.upsert(model)
+                    await uow.provider_wallet_history.upsert(model)

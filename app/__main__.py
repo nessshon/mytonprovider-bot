@@ -3,7 +3,7 @@ from contextlib import suppress
 
 from aiogram import Dispatcher, Bot
 from aiogram.client.default import DefaultBotProperties
-from aiogram.exceptions import TelegramBadRequest, TelegramRetryAfter
+from aiogram.exceptions import TelegramRetryAfter
 from aiogram.fsm.storage.base import DefaultKeyBuilder
 from aiogram.fsm.storage.redis import RedisStorage
 from aiogram_dialog import setup_dialogs
@@ -18,6 +18,7 @@ from .bot import (
     Broadcaster,
 )
 from .config import BOT_TOKEN, REDIS_URL
+from .config import setup_logging
 from .context import Context, set_context
 from .database import Database
 from .scheduler import Scheduler
@@ -25,8 +26,13 @@ from .utils.i18n import I18N
 from .utils.mtpapi import MyTONProviderAPI
 from .utils.toncenter import TONCenterAPI
 
+setup_logging()
+logger = logging.getLogger("app.main")
+
 
 async def on_startup(ctx: Context) -> None:
+    logger.info("App startup initiated...")
+
     await ctx.db.start()
     await ctx.scheduler.start()
 
@@ -38,8 +44,12 @@ async def on_startup(ctx: Context) -> None:
     with suppress(TelegramRetryAfter):
         await commands.setup(ctx)
 
+    logger.info("App startup complete")
+
 
 async def on_shutdown(ctx: Context) -> None:
+    logger.info("App shutdown initiated...")
+
     with suppress(TelegramRetryAfter):
         await commands.delete(ctx)
     await ctx.bot.session.close()
@@ -47,8 +57,12 @@ async def on_shutdown(ctx: Context) -> None:
     await ctx.scheduler.shutdown()
     await ctx.db.shutdown()
 
+    logger.info("App shutdown complete")
+
 
 async def main() -> None:
+    logger.info("Preparing app...")
+
     ctx = Context()
 
     ctx.db = Database()
@@ -82,8 +96,4 @@ async def main() -> None:
 if __name__ == "__main__":
     import asyncio
 
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    )
     asyncio.run(main())

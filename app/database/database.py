@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import logging
+
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
@@ -9,6 +11,8 @@ from sqlalchemy.ext.asyncio import (
 
 from .models import BaseModel
 from ..config import DB_URL
+
+logger = logging.getLogger(__name__)
 
 
 class Database:
@@ -25,8 +29,18 @@ class Database:
         )
 
     async def start(self) -> None:
-        async with self.engine.begin() as conn:
-            await conn.run_sync(BaseModel.metadata.create_all)
+        try:
+            async with self.engine.begin() as conn:
+                await conn.run_sync(BaseModel.metadata.create_all)
+            logger.info("Database schema initialized")
+        except Exception:
+            logger.error("Failed to initialize database")
+            raise
 
     async def shutdown(self) -> None:
-        await self.engine.dispose()
+        try:
+            await self.engine.dispose()
+            logger.info("Database shutdown complete")
+        except Exception:
+            logger.error("Failed to shutdown database")
+            raise
