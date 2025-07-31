@@ -96,7 +96,15 @@ class Telemetry(BaseModel):
     cpu_is_virtual: t.Optional[bool]
 
 
+class Location(BaseModel):
+    country: t.Optional[str]
+    country_iso: t.Optional[str]
+    city: t.Optional[str]
+    time_zone: t.Optional[str]
+
+
 class Provider(BaseModel):
+    location: t.Optional[Location]
     status: t.Optional[int]
     pubkey: str
     address: str

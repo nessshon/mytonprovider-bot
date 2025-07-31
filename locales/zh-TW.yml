@@ -40,6 +40,7 @@ messages:
       <b>• 價格</b>: <code>{{ provider.ui.price }}</code><br>
       <b>• 地址</b>: <a href="https://tonviewer.com/{{ provider.address }}">{{ provider.ui.short_address }}</a><br>
       <b>• 運行時間</b>: <code>{{ provider.working_time | durationformat }}</code><br>
+      <b>• 位置</b>：<code>{{ provider.ui.location }}</code><br>
       <b>• 註冊時間：</b> <code>{{ provider.reg_time | datetimeformat }}</code><br>
 
     wallet: |

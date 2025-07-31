@@ -40,6 +40,7 @@ messages:
       <b>• Price</b>: <code>{{ provider.ui.price }}</code><br>
       <b>• Address</b>: <a href="https://tonviewer.com/{{ provider.address }}">{{ provider.ui.short_address }}</a><br>
       <b>• Uptime</b>: <code>{{ provider.working_time | durationformat }}</code><br>
+      <b>• Location</b>: <code>{{ provider.ui.location }}</code><br>
       <b>• Registered:</b> <code>{{ provider.reg_time | datetimeformat }}</code><br>
 
     wallet: |

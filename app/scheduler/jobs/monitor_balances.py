@@ -47,9 +47,9 @@ class WalletMetrics:
 
 
 async def collect_transactions(
-    toncenterapi: TONCenterAPI,
-    address: str,
-    from_lt: t.Optional[int] = None,
+        toncenterapi: TONCenterAPI,
+        address: str,
+        from_lt: t.Optional[int] = None,
 ) -> list[Transaction]:
     limit = 100
     result: list[Transaction] = []
@@ -115,42 +115,44 @@ async def monitor_balances_job(ctx: Context) -> None:
     async with uow:
         providers = await uow.provider.all()
 
-        for provider in providers:
+    for provider in providers:
+        async with uow:
             last_record = await uow.provider_wallet_history.get(
                 provider_pubkey=provider.pubkey,
                 order_by=ProviderWalletHistoryModel.last_lt.desc(),
             )
 
-            from_lt = last_record.last_lt if last_record else None
-            previous_balance = last_record.balance if last_record else 0
+        from_lt = last_record.last_lt if last_record else None
+        previous_balance = last_record.balance if last_record else 0
 
-            try:
-                async with toncenterapi:
-                    transactions = await collect_transactions(
-                        toncenterapi=toncenterapi,
-                        address=provider.address,
-                        from_lt=from_lt,
-                    )
-            except Exception:
-                logger.exception(
-                    f"Failed to collect transactions for {provider.pubkey}"
+        try:
+            async with toncenterapi:
+                transactions = await collect_transactions(
+                    toncenterapi=toncenterapi,
+                    address=provider.address,
+                    from_lt=from_lt,
                 )
-                raise
-
-            if not transactions:
-                continue
-
-            logger.info(
-                f"Retrieved {len(transactions)} new transactions for {provider.pubkey} "
-                f"from_lt {from_lt}"
+        except Exception:
+            logger.exception(
+                f"Failed to collect transactions for {provider.pubkey}"
             )
+            raise
 
-            transactions_by_date: dict[date, list[Transaction]] = defaultdict(list)
-            for tx in transactions:
-                tx_date = datetime.fromtimestamp(tx.now, tz=TIMEZONE).date()
-                transactions_by_date[tx_date].append(tx)
+        if not transactions:
+            continue
 
-            for tx_date in sorted(transactions_by_date):
+        logger.info(
+            f"Retrieved {len(transactions)} new transactions for {provider.pubkey} "
+            f"from_lt {from_lt}"
+        )
+
+        transactions_by_date: dict[date, list[Transaction]] = defaultdict(list)
+        for tx in transactions:
+            tx_date = datetime.fromtimestamp(tx.now, tz=TIMEZONE).date()
+            transactions_by_date[tx_date].append(tx)
+
+        for tx_date in sorted(transactions_by_date):
+            async with uow:
                 metrics = WalletMetrics()
                 txs = transactions_by_date[tx_date]
                 for tx in txs:
