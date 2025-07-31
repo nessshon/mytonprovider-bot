@@ -91,8 +91,9 @@ class ProviderModel(BaseModel):
 
     pubkey: Mapped[str] = mapped_column(String(64), primary_key=True)
     address: Mapped[str] = mapped_column(String(64), nullable=False)
-    status: Mapped[t.Optional[int]] = mapped_column(Integer)
 
+    location: Mapped[t.Optional[dict[str, str]]] = mapped_column(JSON)
+    status: Mapped[t.Optional[int]] = mapped_column(Integer)
     uptime: Mapped[float] = mapped_column(Float, nullable=False)
     working_time: Mapped[int] = mapped_column(BigInteger, nullable=False)
     rating: Mapped[float] = mapped_column(Float, nullable=False)
@@ -132,9 +133,9 @@ class ProviderUI:
 
     @staticmethod
     def _format_or_dash(
-        value: t.Optional[t.Union[float, int, str]],
-        fmt: str = "{}",
-        default: str = "N/A",
+            value: t.Optional[t.Union[float, int, str]],
+            fmt: str = "{}",
+            default: str = "N/A",
     ) -> str:
         if value is None:
             return default
@@ -159,6 +160,15 @@ class ProviderUI:
     def short_address(self) -> str:
         addr = self.provider.address
         return self._format_or_dash(f"{addr[:5]}...{addr[-6:]}" if addr else None)
+
+    @property
+    def location(self) -> str:
+        loc = self.provider.location or {}
+        country = loc.get("country")
+        city = loc.get("city")
+
+        location_str = ", ".join(part for part in [country, city] if part)
+        return self._format_or_dash(location_str or None)
 
     @property
     def uptime(self) -> str:
@@ -205,9 +215,7 @@ class ProviderUI:
     @property
     def cpu_name(self) -> str:
         name = self._get_telemetry("cpu_name")
-        if name:
-            return f"{name[:10]}...{name[-10:]}" if len(name) > 20 else name
-        return "N/A"
+        return self._format_or_dash(name)
 
     @property
     def cpu_number(self) -> str:
