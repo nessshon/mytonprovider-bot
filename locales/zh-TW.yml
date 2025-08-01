@@ -98,37 +98,52 @@ messages:
 
 alerts:
   monthly_report:
-    text: |
+    info: |
       ...
 
   service_restarted:
-    text: |
+    info: |
       ...
 
   cpu_high:
-    text: |
-      ❗️ <b>CPU 負載過高</b><br><br>
-      <b>提供者：</b> <code>{{ provider.ui.short_pubkey }}</code><br>
+    detected: |
+      ❗️ <b>CPU | 偵測到高負載</b><br><br>
+      <b>提供者</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
+    resolved: |
+      🔰 <b>CPU | 負載已恢復正常</b><br><br>
+      <b>提供者</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
 
   ram_high:
-    text: |
-      ❗️ <b>RAM 負載過高</b><br><br>
-      <b>提供者：</b> <code>{{ provider.ui.short_pubkey }}</code><br>
+    detected: |
+      ❗️ <b>RAM | 偵測到高負載</b><br><br>
+      <b>提供者</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
+    resolved: |
+      🔰 <b>RAM | 負載已恢復正常</b><br><br>
+      <b>提供者</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
 
   disk_load_high:
-    text: |
-      ❗️ <b>磁碟負載過高</b><br><br>
-      <b>提供者：</b> <code>{{ provider.ui.short_pubkey }}</code><br>
+    detected: |
+      ❗️ <b>磁碟 | 偵測到高負載</b><br><br>
+      <b>提供者</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
+    resolved: |
+      🔰 <b>磁碟 | 負載已恢復正常</b><br><br>
+      <b>提供者</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
 
   network_high:
-    text: |
-      ❗️ <b>網路負載過高</b><br><br>
-      <b>提供者：</b> <code>{{ provider.ui.short_pubkey }}</code><br>
+    detected: |
+      ❗️ <b>網路 | 偵測到高負載</b><br><br>
+      <b>提供者</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
+    resolved: |
+      🔰 <b>網路 | 負載已恢復正常</b><br><br>
+      <b>提供者</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
 
   disk_space_low:
-    text: |
-      ❗️ <b>磁碟空間不足</b><br><br>
-      <b>提供者：</b> <code>{{ provider.ui.short_pubkey }}</code><br>
+    detected: |
+      ❗️ <b>磁碟 | 可用空間即將耗盡</b><br><br>
+      <b>提供者</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
+    resolved: |
+      🔰 <b>磁碟 | 可用空間已恢復</b><br><br>
+      <b>提供者</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
 
 inlines:
   list_providers:
