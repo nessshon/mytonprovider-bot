@@ -98,36 +98,51 @@ messages:
 
 alerts:
   monthly_report:
-    text: |
+    info: |
       ...
 
   service_restarted:
-    text: |
+    info: |
       ...
 
   cpu_high:
-    text: |
-      ❗️ <b>High CPU Load</b><br><br>
+    detected: |
+      ❗️ <b>CPU | High load detected</b><br><br>
+      <b>Provider</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
+    resolved: |
+      🔰 <b>CPU | Load normalized</b><br><br>
       <b>Provider</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
 
   ram_high:
-    text: |
-      ❗️ <b>High RAM Load</b><br><br>
+    detected: |
+      ❗️ <b>RAM | High load detected</b><br><br>
+      <b>Provider</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
+    resolved: |
+      🔰 <b>RAM | Load normalized</b><br><br>
       <b>Provider</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
 
   disk_load_high:
-    text: |
-      ❗️ <b>High Disk Load</b><br><br>
+    detected: |
+      ❗️ <b>Disk | High load detected</b><br><br>
+      <b>Provider</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
+    resolved: |
+      🔰 <b>Disk | Load normalized</b><br><br>
       <b>Provider</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
 
   network_high:
-    text: |
-      ❗️ <b>High Network Load</b><br><br>
+    detected: |
+      ❗️ <b>Network | High load detected</b><br><br>
+      <b>Provider</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
+    resolved: |
+      🔰 <b>Network | Load normalized</b><br><br>
       <b>Provider</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
 
   disk_space_low:
-    text: |
-      ❗️ <b>Disk | Low Allocated Space</b><br><br>
+    detected: |
+      ❗️ <b>Disk | Low available space</b><br><br>
+      <b>Provider</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
+    resolved: |
+      🔰 <b>Disk | Available space restored</b><br><br>
       <b>Provider</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
 
 inlines:
