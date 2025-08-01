@@ -57,11 +57,11 @@ class BenchmarkInfo(BaseModel):
 class TelemetryRequest(BaseModel):
     storage: StorageInfo
     git_hashes: t.Dict[str, str]
-    net_load: t.Optional[t.List[float]] = None
-    disks_load: t.Optional[t.Dict[str, t.List[float]]] = None
-    disks_load_percent: t.Optional[t.Dict[str, t.List[float]]] = None
-    iops: t.Optional[t.Dict[str, t.List[float]]] = None
-    pps: t.Optional[t.List[float]] = None
+    net_load: t.Optional[t.List[t.Optional[float]]] = None
+    disks_load: t.Optional[t.Dict[str, t.List[t.Optional[float]]]] = None
+    disks_load_percent: t.Optional[t.Dict[str, t.List[t.Optional[float]]]] = None
+    iops: t.Optional[t.Dict[str, t.List[t.Optional[float]]]] = None
+    pps: t.Optional[t.List[t.Optional[float]]] = None
     ram: t.Optional[MemoryInfo] = None
     swap: t.Optional[MemoryInfo] = None
     uname: t.Optional[UnameInfo] = None
