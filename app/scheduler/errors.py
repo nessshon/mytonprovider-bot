@@ -19,9 +19,9 @@ async def _on_job_error(event: JobExecutionEvent, ctx: Context) -> None:
     job_id = event.job_id or "unknown"
 
     logger.error(
-        "Unhandled error in scheduler job\n"
-        f"Job ID: {job_id}\n"
-        f"Exception Type: {exc_type}\n"
+        "Unhandled error in scheduler job. "
+        f"Job ID: {job_id}; "
+        f"Exception Type: {exc_type}; "
         f"Exception: {exc_text}"
     )
 
