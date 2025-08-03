@@ -63,7 +63,8 @@ class OverloadDetector:
     def is_disk_load_high(self) -> bool:
         disk_load_percent = self.telemetry.disks_load_percent or {}
         for loads in disk_load_percent.values():
-            if any(load > self.thresholds.disk_load_percent for load in loads):
+            filtered = [load for load in loads if isinstance(load, (int, float))]
+            if any(load > self.thresholds.disk_load_percent for load in filtered):
                 return True
         return False
 
