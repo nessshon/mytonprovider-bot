@@ -41,42 +41,82 @@ class OverloadDetector:
         return set(alerts)
 
     def is_cpu_high(self) -> bool:
-        cpu_load = self.telemetry.cpu_info.get("cpu_load", [])
-        cpu_count = self.telemetry.cpu_info.get("cpu_count", 1)
-        return any(
-            (load / cpu_count) * 100 > self.thresholds.cpu_percent for load in cpu_load
-        )
+        cpu_info = self.telemetry.cpu_info or {}
+        cpu_load = cpu_info.get("cpu_load", [])
+        cpu_count = cpu_info.get("cpu_count", 1)
+        threshold_percent = self.thresholds.cpu_percent
+
+        if not isinstance(cpu_load, list):
+            return False
+        if not isinstance(cpu_count, (int, float)) or cpu_count <= 0:
+            return False
+
+        filtered = [load for load in cpu_load if isinstance(load, (int, float))]
+        if not filtered:
+            return False
+
+        return any((load / cpu_count) * 100 > threshold_percent for load in filtered)
 
     def is_ram_high(self) -> bool:
-        ram_usage_percent = self.telemetry.ram.get("usage_percent")
-        return (
-            ram_usage_percent is not None
-            and ram_usage_percent > self.thresholds.ram_percent
-        )
+        ram = self.telemetry.ram or {}
+        usage = ram.get("usage_percent")
+        threshold_percent = self.thresholds.ram_percent
+
+        if isinstance(usage, (int, float)):
+            if usage > threshold_percent:
+                return True
+
+        return False
 
     def is_disk_space_low(self) -> bool:
-        used = self.telemetry.storage.get("used_disk_space", 0.0)
-        total = self.telemetry.storage.get("total_disk_space", 1.0)
+        storage = self.telemetry.storage or {}
+        used = storage.get("used_disk_space", 0.0)
+        total = storage.get("total_disk_space", 1.0)
+        threshold_percent = self.thresholds.disk_space_percent
+
+        if (
+            not isinstance(used, (int, float))
+            or not isinstance(total, (int, float))
+            or total <= 0
+        ):
+            return False
+
         usage_percent = (used / total) * 100
-        return usage_percent > self.thresholds.disk_space_percent
+        return usage_percent > threshold_percent
 
     def is_disk_load_high(self) -> bool:
-        disk_load_percent = self.telemetry.disks_load_percent or {}
-        for loads in disk_load_percent.values():
+        loads_dict = self.telemetry.disks_load_percent or {}
+        threshold_percent = self.thresholds.disk_load_percent
+
+        if not isinstance(loads_dict, dict):
+            return False
+
+        for loads in loads_dict.values():
+            if not isinstance(loads, list):
+                continue
             filtered = [load for load in loads if isinstance(load, (int, float))]
-            if any(load > self.thresholds.disk_load_percent for load in filtered):
+            if any(load > threshold_percent for load in filtered):
                 return True
+
         return False
 
     def is_network_high(self) -> bool:
         net_load = self.telemetry.net_load or []
-        speed_bytes = self.provider.telemetry.speedtest_download
+        threshold_percent = self.thresholds.network_percent
 
-        if speed_bytes is None or speed_bytes == 0:
+        if not isinstance(net_load, list):
+            return False
+
+        filtered = [load for load in net_load if isinstance(load, (int, float))]
+        if not filtered:
+            return False
+
+        speed_bytes = self.provider.telemetry.speedtest_download
+        if not isinstance(speed_bytes, (int, float)) or speed_bytes <= 0:
             return False
 
         speed_mbit = speed_bytes / 125_000
-        max_usage = max(net_load, default=0.0)
+        max_usage = max(filtered, default=0.0)
         usage_percent = (max_usage / speed_mbit) * 100
 
-        return usage_percent > self.thresholds.network_percent
+        return usage_percent > threshold_percent
