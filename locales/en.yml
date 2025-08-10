@@ -1,35 +1,46 @@
 messages:
   main:
     menu: |
-      🤖 <b>Monitor provider status</b> –  
-      telemetry, alerts, and more.<br><br>
+      🤖 <b>Track provider status</b> –  
+      telemetry, alerts, and much more.<br><br>
 
       📘 <b>How to find a provider:</b><br>
-      • Click “List of Providers”<br>
-      • Or send the public key in chat<br>
+      • Click “Provider list”<br>
+      • Or send a public key in the chat<br>
 
     not_found: |
       ⚠️ <b>Provider not found</b><br><br>
-      Please make sure the public key is correct.
+      Make sure you sent the correct public key.
 
     invalid_input: |
       ❗️ <b>Invalid public key format</b><br><br>
-      Please check the input and try again.
+      Please check your input and try again.
 
   alert_settings:
-    menu: |
-      🔔 <b>Alert Settings</b><br><br>
-      Choose the events you'd like to be notified about.
+    types_menu: |
+      📢 <b>Select notification types</b><br><br>
+      Choose which events you want to receive alerts about.
+
+    thresholds_menu: |
+      ⚙️ <b>Notification trigger thresholds</b><br><br>
+      Set the threshold values at which alerts will be sent.
+
+    edit_threshold:
+      title: |
+        ⚙️ <b>Threshold: {{ threshold_name }}</b><br><br>
+      hint: |
+        Current value: <b>{{ threshold_value }}%</b><br>
+        Set the desired threshold using the buttons below.
 
   language:
     menu: |
-      🌐 <b>Language Selection</b><br><br>
-      Choose your preferred interface language.
+      🌐 <b>Select language</b><br><br>
+      Choose the interface language that’s most convenient for you.
 
   help:
     menu: |
-      ℹ️ <b>About the Bot</b><br><br>
-      This bot helps monitor provider status,
+      ℹ️ <b>About the bot</b><br><br>
+      This bot helps track provider status,
       receive alerts, and manage subscriptions.
 
   provider:
@@ -39,22 +50,22 @@ messages:
       <b>• Rating</b>: <code>{{ provider.ui.rating }}</code><br>
       <b>• Price</b>: <code>{{ provider.ui.price }}</code><br>
       <b>• Address</b>: <a href="https://tonviewer.com/{{ provider.address }}">{{ provider.ui.short_address }}</a><br>
-      <b>• Uptime</b>: <code>{{ provider.working_time | durationformat }}</code><br>
+      <b>• In operation</b>: <code>{{ provider.working_time | durationformat }}</code><br>
       <b>• Location</b>: <code>{{ provider.ui.location }}</code><br>
-      <b>• Registered:</b> <code>{{ provider.reg_time | datetimeformat }}</code><br>
+      <b>• Registration date:</b> <code>{{ provider.reg_time | datetimeformat }}</code><br>
 
     wallet: |
       <h2>Wallet</h2>
       <blockquote>
       <b>• Balance:</b> <code>{{ provider_wallet_metrics.get('balance') | toamount }} TON</code><br>
       <b>• Earned today:</b> <code>{{ provider_wallet_metrics.get('earned_today') | toamount }} TON</code><br>
-      <b>• Earned in 7 days:</b> <code>{{ provider_wallet_metrics.get('earned_week') | toamount }} TON</code><br>
-      <b>• Earned in 30 days:</b> <code>{{ provider_wallet_metrics.get('earned_month') | toamount }} TON</code><br>
+      <b>• Earned in last 7 days:</b> <code>{{ provider_wallet_metrics.get('earned_week') | toamount }} TON</code><br>
+      <b>• Earned in last 30 days:</b> <code>{{ provider_wallet_metrics.get('earned_month') | toamount }} TON</code><br>
       <b>• Total earned:</b> <code>{{ provider_wallet_metrics.get('earned_total') | toamount }} TON</code><br>
       <b>• Updated:</b> <code>{{ provider_wallet_metrics.get('updated_at') | datetimeformat }}</code><br>
       </blockquote>
 
-    storage:
+    storage: |
       <h2>Storage</h2>
       <blockquote>
       <b>• Max bag size:</b> <code>{{ provider.ui.max_bag_size }}</code><br>
@@ -62,34 +73,34 @@ messages:
       <b>• Min storage time:</b> <code>{{ provider.min_span | durationformat }}</code><br>
       </blockquote>
 
-    hardware:
+    hardware: |
       <h2>Hardware</h2>
       <blockquote>
       <b>• CPU:</b> <code>{{ provider.ui.cpu_name }}</code><br>
-      <b>• Cores:</b> <code>{{ provider.ui.cpu_number }}</code><br>
+      <b>• Number of cores:</b> <code>{{ provider.ui.cpu_number }}</code><br>
       <b>• Virtual CPU:</b> <code>{{ provider.ui.cpu_is_virtual }}</code><br>
       <b>• RAM:</b> <code>{{ provider.ui.ram }}</code><br>
       <b>• Storage capacity:</b> <code>{{ provider.ui.storage }}</code><br>
       </blockquote>
 
-    benchmarks:
+    benchmarks: |
       <h2>Benchmarks</h2>
       <blockquote>
       <b>• Disk read speed:</b> <code>{{ provider.ui.disk_read_speed }}</code><br>
       <b>• Disk write speed:</b> <code>{{ provider.ui.disk_write_speed }}</code><br>
       </blockquote>
 
-    network:
+    network: |
       <h2>Network</h2>
       <blockquote>
-      <b>• Download:</b> <code>{{ provider.ui.speed_download }}</code><br>
-      <b>• Upload:</b> <code>{{ provider.ui.speed_upload }}</code><br>
+      <b>• Download speed:</b> <code>{{ provider.ui.speed_download }}</code><br>
+      <b>• Upload speed:</b> <code>{{ provider.ui.speed_upload }}</code><br>
       <b>• Ping:</b> <code>{{ provider.ui.ping }}</code><br>
       <b>• Country:</b> <code>{{ provider.ui.country }}</code><br>
       <b>• ISP:</b> <code>{{ provider.ui.isp }}</code><br>
       </blockquote>
 
-    software:
+    software: |
       <h2>Software</h2>
       <blockquote>
       <b>• Storage Git hash:</b> <code>{{ provider.ui.storage_git_hash }}</code><br>
@@ -149,14 +160,14 @@ inlines:
   list_providers:
     title: "{{ provider.ui.status_emoji }} Provider: {{ provider.ui.short_pubkey }}"
     description: |
-      uptime:  {{ provider.ui.uptime }} • active for: {{ provider.working_time | durationformat }}
+      uptime: {{ provider.ui.uptime }} • in operation: {{ provider.working_time | durationformat }}
       rating: {{ provider.ui.rating }} • price: {{ provider.ui.price }}
     thumbnail_url: "https://mytonprovider.org/logo_48x48.png"
 
   my_providers:
     title: "{{ provider.ui.status_emoji }} Provider: {{ provider.ui.short_pubkey }}"
     description: |
-      uptime:  {{ provider.ui.uptime }} • active for: {{ provider.working_time | durationformat }}
+      uptime: {{ provider.ui.uptime }} • in operation: {{ provider.working_time | durationformat }}
       rating: {{ provider.ui.rating }} • price: {{ provider.ui.price }}
     thumbnail_url: "https://mytonprovider.org/logo_48x48.png"
 
@@ -166,46 +177,59 @@ buttons:
     hide: "× Hide"
 
   main_menu:
-    my_providers: "My Providers {{ my_providers_count }}"
-    list_providers: "All Providers {{ list_providers_count }}"
-    statuses: "Provider Statuses"
+    my_providers: "My providers {{ my_providers_count }}"
+    list_providers: "All providers {{ list_providers_count}}"
+    statuses: "Provider statuses"
     language: "Language"
     help: "About"
 
   help_menu:
     open_website:
-      text: "Project Website"
+      text: "Project website"
       url: "https://mytonprovider.org"
     open_chat:
-      text: "Community Chat"
+      text: "Community chat"
       url: "https://t.me/mytonprovider_chat"
     become_provider:
-      text: "Become a Provider"
-      url: "https://github.com/igroman787/mytonprovider/blob/master/README.ru.md"
-
-  alert_state:
-    enabled: "Disable Alerts"
-    disabled: "Enable Alerts"
+      text: "Become a provider"
+      url: "https://github.com/igroman787/mytonprovider/blob/master/README.en.md"
 
   alert_settings:
-    text: "Configure Alerts"
-    options:
-      service_restarted: "Service Restarted"
-      monthly_report: "Monthly Report"
-      cpu_high: "High CPU Load"
-      ram_high: "High RAM Load"
-      network_high: "High Network Load"
-      disk_load_high: "High Disk Load"
-      disk_space_low: "Low Disk Space"
+    text: "Configure notifications"
+
     state:
-      enabled: "◉ "
-      disabled: "⭘ "
-    enable_all: "Enable All"
-    disable_all: "Disable All"
+      enabled: "Disable notifications"
+      disabled: "Enable notifications"
+
+    tab:
+      types: "Select type"
+      thresholds: "Set threshold"
+
+    types:
+      state:
+        enabled: "◉ "
+        disabled: "⭘ "
+      options:
+        service_restarted: "Service restarted"
+        monthly_report: "Monthly report"
+        cpu_high: "High CPU load"
+        ram_high: "High RAM load"
+        network_high: "High network load"
+        disk_load_high: "High disk load"
+        disk_space_low: "Low disk space"
+      enable_all: "Enable all"
+      disable_all: "Disable all"
+
+    thresholds:
+      cpu_high: "CPU load: ≥ {{ thresholds_data.get('cpu_high') }}%"
+      ram_high: "RAM load: ≥ {{ thresholds_data.get('ram_high') }}%"
+      network_high: "Network load: ≥ {{ thresholds_data.get('network_high') }}%"
+      disk_load_high: "Disk load: ≥ {{ thresholds_data.get('disk_load_high') }}%"
+      disk_space_low: "Disk usage: ≥ {{ thresholds_data.get('disk_space_low') }}%"
 
   provider:
-    copy_pubkey: "Copy Public Key"
-    copy_address: "Copy Wallet Address"
+    copy_pubkey: "Copy public key"
+    copy_address: "Copy wallet address"
     subscribe: "+ Subscribe"
     unsubscribe: "× Unsubscribe"
     tab:
