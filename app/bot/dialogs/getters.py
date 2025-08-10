@@ -2,10 +2,12 @@ from datetime import datetime
 
 from aiogram_dialog import DialogManager
 
-from .consts import DEFAULT_PROVIDER_TAB
+from .consts import DEFAULT_PROVIDER_TAB, DEFAULT_ALERT_TAB
 from ...config import TIMEZONE
 from ...database import UnitOfWork
 from ...database.models import UserModel
+from ...utils.alerts.overload import DEFAULT_THRESHOLDS
+from ...utils.i18n import Localizer
 
 
 async def main_menu(dialog_manager: DialogManager, **_):
@@ -62,4 +64,30 @@ async def provider_menu(dialog_manager: DialogManager, **_):
 async def alert_settings_menu(dialog_manager: DialogManager, **_):
     user_model: UserModel = dialog_manager.middleware_data["user_model"]
 
-    return {"user_model": user_model}
+    alert_tab = dialog_manager.dialog_data.get("alert_tab", DEFAULT_ALERT_TAB)
+    dialog_manager.current_context().widget_data["alert_tab"] = alert_tab
+    thresholds_data = user_model.alert_settings.thresholds_data or DEFAULT_THRESHOLDS
+
+    return {
+        "user_model": user_model,
+        "alert_tab": alert_tab,
+        "thresholds_data": thresholds_data,
+    }
+
+
+async def alert_settings_set_threshold(
+    dialog_manager: DialogManager,
+    localizer: Localizer,
+    **_,
+):
+    user_model: UserModel = dialog_manager.middleware_data["user_model"]
+
+    key = dialog_manager.dialog_data.get("edit_threshold_key")
+    name = await localizer(f"buttons.alert_settings.types.options.{key}")
+    value = int(dialog_manager.dialog_data.get("edit_threshold_value", 0))
+    return {
+        "user_model": user_model,
+        "threshold_key": key,
+        "threshold_name": name,
+        "threshold_value": value,
+    }

@@ -8,6 +8,7 @@ from ...database.models import (
     UserModel,
     UserSubscriptionModel,
 )
+from ...utils.alerts.overload import DEFAULT_THRESHOLDS
 from ...utils.alerts.types import AlertTypes
 from ...utils.i18n import Localizer
 
@@ -46,6 +47,37 @@ async def toggle_subscription(
 
     manager.dialog_data["is_subscribed"] = not is_subscribed
     await manager.show()
+
+
+async def select_language(
+    _,
+    __,
+    manager: DialogManager,
+    item_id: str,
+) -> None:
+    ctx: Context = manager.middleware_data["ctx"]
+    uow: UnitOfWork = manager.middleware_data["uow"]
+    user_model = manager.middleware_data["user_model"]
+
+    user_model.language_code = item_id
+    locale_data = ctx.i18n.locales_data.get(item_id)
+    manager.middleware_data["localizer"] = Localizer(
+        jinja_env=ctx.i18n.jinja_env,
+        locale_data=locale_data,
+    )
+
+    await uow.session.flush()
+    await manager.start(states.MainMenu.MAIN)
+
+
+async def change_alert_tab(
+    _,
+    __,
+    manager: DialogManager,
+    item_id: str,
+) -> None:
+    manager.dialog_data["alert_tab"] = item_id
+    await manager.switch_to(manager.current_context().state)
 
 
 async def toggle_alerts(
@@ -90,22 +122,59 @@ async def toggle_alert_type(
     await manager.show()
 
 
-async def select_language(
+async def apply_thresholds(
     _,
     __,
     manager: DialogManager,
-    item_id: str,
 ) -> None:
-    ctx: Context = manager.middleware_data["ctx"]
-    uow: UnitOfWork = manager.middleware_data["uow"]
-    user_model = manager.middleware_data["user_model"]
+    await manager.show()
 
-    user_model.language_code = item_id
-    locale_data = ctx.i18n.locales_data.get(item_id)
-    manager.middleware_data["localizer"] = Localizer(
-        jinja_env=ctx.i18n.jinja_env,
-        locale_data=locale_data,
+
+async def reset_thresholds(
+    _,
+    __,
+    manager: DialogManager,
+) -> None:
+    """Stub: reset thresholds later."""
+    await manager.show()
+
+
+async def open_threshold_editor(
+    _,
+    button: Button,
+    manager: DialogManager,
+) -> None:
+    user_model: UserModel = manager.middleware_data["user_model"]
+    key = button.widget_id.removeprefix("threshold_")
+    threshold_data = user_model.alert_settings.thresholds_data or DEFAULT_THRESHOLDS
+    current = threshold_data.get(key)
+
+    manager.dialog_data.update(
+        {
+            "edit_threshold_key": key,
+            "edit_threshold_value": int(current),
+        }
     )
+    await manager.next()
+
+
+async def adjust_threshold(_, button, manager):
+    uow: UnitOfWork = manager.middleware_data["uow"]
+    user: UserModel = manager.middleware_data["user_model"]
+
+    key = manager.dialog_data.get("edit_threshold_key")
+    value = int(manager.dialog_data.get("edit_threshold_value", 0))
+
+    raw = button.widget_id.removeprefix("step_")
+    sign = -1 if raw.startswith("m") else 1
+    step = int(raw[1:])
+
+    new_value = max(30, min(100, value + sign * step))
+    manager.dialog_data["edit_threshold_value"] = new_value
+
+    data = dict(user.alert_settings.thresholds_data or {})
+    data[key] = new_value
+    user.alert_settings.thresholds_data = data
 
     await uow.session.flush()
-    await manager.start(states.MainMenu.MAIN)
+    await manager.show()

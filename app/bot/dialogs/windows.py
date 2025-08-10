@@ -1,3 +1,4 @@
+from aiogram import F
 from aiogram_dialog import Window
 from aiogram_dialog.widgets.text import Case
 
@@ -27,10 +28,25 @@ main_invalid_input = Window(
 )
 
 allert_settings_menu = Window(
-    I18NJinja("messages.alert_settings.menu"),
+    I18NJinja(
+        "messages.alert_settings.types_menu",
+        when=F["alert_tab"].contains("types"),
+    ),
+    I18NJinja(
+        "messages.alert_settings.thresholds_menu",
+        when=F["alert_tab"].contains("thresholds"),
+    ),
     keyboards.alert_settings_menu,
     getter=getters.alert_settings_menu,
     state=states.AlertSettingsMenu.MAIN,
+)
+
+alert_settings_set_threshold = Window(
+    I18NJinja("messages.alert_settings.edit_threshold.title"),
+    I18NJinja("messages.alert_settings.edit_threshold.hint"),
+    keyboards.alert_settings_set_threshold,
+    getter=getters.alert_settings_set_threshold,
+    state=states.AlertSettingsMenu.SET_THRESHOLD,
 )
 
 provider_menu = Window(

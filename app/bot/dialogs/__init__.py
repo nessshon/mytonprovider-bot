@@ -18,7 +18,10 @@ def register(dp: Dispatcher) -> None:
             launch_mode=LaunchMode.ROOT,
         ),
         Dialog(windows.provider_menu),
-        Dialog(windows.allert_settings_menu),
+        Dialog(
+            windows.allert_settings_menu,
+            windows.alert_settings_set_threshold,
+        ),
         Dialog(windows.language_menu),
         Dialog(windows.help_menu),
     )
