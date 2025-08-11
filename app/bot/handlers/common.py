@@ -1,7 +1,4 @@
-from contextlib import suppress
-
 from aiogram.enums import ContentType
-from aiogram.exceptions import TelegramBadRequest
 from aiogram.types import (
     Message,
     InlineQuery,
@@ -13,8 +10,9 @@ from aiogram.types import (
 from aiogram_dialog import DialogManager, ShowMode
 
 from ..dialogs import states
+from ..utils import delete_message, generate_password_hash
 from ...database import UnitOfWork
-from ...database.models import ProviderModel, UserModel
+from ...database.models import ProviderModel, UserModel, UserSubscriptionModel
 from ...utils.i18n import Localizer
 
 
@@ -78,8 +76,53 @@ async def providers_inline(
 
 
 async def hide_callback_query(call: CallbackQuery) -> None:
-    with suppress(TelegramBadRequest):
-        await call.message.delete()
+    await delete_message(call.message)
+
+
+async def enter_password_message(
+    message: Message,
+    dialog_manager: DialogManager,
+    uow: UnitOfWork,
+) -> None:
+    if message.content_type != ContentType.TEXT:
+        await delete_message(message)
+        return
+
+    user: UserModel = dialog_manager.middleware_data["user_model"]
+    pubkey = dialog_manager.dialog_data.get("provider_pubkey")
+    telemetry = await uow.telemetry.get(provider_pubkey=pubkey)
+    telemetry_pass = telemetry.telemetry_pass if telemetry else None
+    user_telemetry_pass = generate_password_hash(message.text)
+
+    if user_telemetry_pass != telemetry_pass:
+        dialog_manager.dialog_data["incorrect_password"] = True
+        await dialog_manager.show(show_mode=ShowMode.DELETE_AND_SEND)
+        return
+
+    dialog_manager.dialog_data["incorrect_password"] = False
+
+    subscription = next(
+        (s for s in user.subscriptions or [] if s.provider_pubkey == pubkey),
+        None,
+    )
+    if subscription is not None:
+        user.subscriptions.remove(subscription)
+
+    user.subscriptions.append(
+        UserSubscriptionModel(
+            user_id=user.id,
+            provider_pubkey=pubkey,
+            telemetry_pass=user_telemetry_pass,
+        )
+    )
+    await uow.session.flush()
+    await delete_message(message)
+
+    await dialog_manager.start(
+        state=states.ProviderMenu.MAIN,
+        show_mode=ShowMode.DELETE_AND_SEND,
+        data={"provider_pubkey": pubkey},
+    )
 
 
 async def default_message(
@@ -119,5 +162,4 @@ async def default_message(
             show_mode=ShowMode.EDIT,
         )
 
-    with suppress(TelegramBadRequest):
-        await message.delete()
+    await delete_message(message)

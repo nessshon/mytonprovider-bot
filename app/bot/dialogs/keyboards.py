@@ -1,6 +1,5 @@
 from aiogram import F
 from aiogram_dialog.widgets import kbd
-from aiogram_dialog.widgets.kbd import Button
 from aiogram_dialog.widgets.text import Case, Multi, Const, Format
 
 from . import states, on_clicks
@@ -74,6 +73,13 @@ provider_menu = kbd.Group(
             on_click=on_clicks.change_provider_tab,
         ),
         width=3,
+        when=F["access_granted"].is_(True),
+    ),
+    kbd.SwitchTo(
+        id="update_password",
+        text=I18NJinja("buttons.provider.update_password"),
+        state=states.ProviderMenu.ENTER_PASSWORD,
+        when=F["password_invalid"].is_(True),
     ),
     kbd.CopyText(
         text=I18NJinja("buttons.provider.copy_pubkey"),
@@ -83,16 +89,17 @@ provider_menu = kbd.Group(
         text=I18NJinja("buttons.provider.copy_address"),
         copy_text=Format("{provider_address}"),
     ),
-    Button(
-        id="toggle_subscription",
-        text=Case(
-            {
-                True: I18NJinja("buttons.provider.unsubscribe"),
-                False: I18NJinja("buttons.provider.subscribe"),
-            },
-            selector=F["is_subscribed"],
-        ),
-        on_click=on_clicks.toggle_subscription,
+    kbd.Button(
+        id="unsubscribe",
+        text=I18NJinja("buttons.provider.unsubscribe"),
+        on_click=on_clicks.unsubscribe,
+        when=F["is_subscribed"].is_(True),
+    ),
+    kbd.Next(
+        id="subscribe",
+        text=I18NJinja("buttons.provider.subscribe"),
+        when=F["is_subscribed"].is_(False),
+        on_click=on_clicks.subscribe,
     ),
     to_main,
 )
@@ -111,7 +118,7 @@ alert_settings_menu = kbd.Group(
     ),
     kbd.Group(
         *[
-            Button(
+            kbd.Button(
                 id=f"toggle_alert_{opt.value}",
                 text=Multi(
                     Case(
@@ -139,12 +146,12 @@ alert_settings_menu = kbd.Group(
             for opt in AlertTypes
         ],
         kbd.Row(
-            Button(
+            kbd.Button(
                 id="enable_all_alerts",
                 text=I18NJinja("buttons.alert_settings.types.enable_all"),
                 on_click=on_clicks.toggle_alert_type,
             ),
-            Button(
+            kbd.Button(
                 id="disable_all_alerts",
                 text=I18NJinja("buttons.alert_settings.types.disable_all"),
                 on_click=on_clicks.toggle_alert_type,
@@ -153,27 +160,27 @@ alert_settings_menu = kbd.Group(
         when=F["alert_tab"].contains("types"),
     ),
     kbd.Group(
-        Button(
+        kbd.Button(
             id="threshold_cpu_high",
             text=I18NJinja("buttons.alert_settings.thresholds.cpu_high"),
             on_click=on_clicks.open_threshold_editor,
         ),
-        Button(
+        kbd.Button(
             id="threshold_ram_high",
             text=I18NJinja("buttons.alert_settings.thresholds.ram_high"),
             on_click=on_clicks.open_threshold_editor,
         ),
-        Button(
+        kbd.Button(
             id="threshold_network_high",
             text=I18NJinja("buttons.alert_settings.thresholds.network_high"),
             on_click=on_clicks.open_threshold_editor,
         ),
-        Button(
+        kbd.Button(
             id="threshold_disk_load_high",
             text=I18NJinja("buttons.alert_settings.thresholds.disk_load_high"),
             on_click=on_clicks.open_threshold_editor,
         ),
-        Button(
+        kbd.Button(
             id="threshold_disk_space_low",
             text=I18NJinja("buttons.alert_settings.thresholds.disk_space_low"),
             on_click=on_clicks.open_threshold_editor,

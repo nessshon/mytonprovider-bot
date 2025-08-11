@@ -1,16 +1,16 @@
-from contextlib import suppress
-
 from aiogram import Dispatcher
-from aiogram.exceptions import TelegramBadRequest
 from aiogram.filters import Command
+from aiogram.fsm.state import State
 from aiogram.types import Message
 from aiogram_dialog import DialogManager, StartMode, ShowMode
+
+from ..utils import delete_message
 
 
 def register_command(
     dp: Dispatcher,
     command: str,
-    state,
+    state: State,
 ) -> None:
     async def handler(message: Message, dialog_manager: DialogManager) -> None:
         await dialog_manager.start(
@@ -18,7 +18,6 @@ def register_command(
             mode=StartMode.RESET_STACK,
             show_mode=ShowMode.DELETE_AND_SEND,
         )
-        with suppress(TelegramBadRequest):
-            await message.delete()
+        await delete_message(message)
 
     dp.message.register(handler, Command(command))

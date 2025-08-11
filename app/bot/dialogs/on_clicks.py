@@ -6,7 +6,6 @@ from ...context import Context
 from ...database import UnitOfWork
 from ...database.models import (
     UserModel,
-    UserSubscriptionModel,
 )
 from ...utils.alerts.overload import DEFAULT_THRESHOLDS
 from ...utils.alerts.types import AlertTypes
@@ -23,30 +22,33 @@ async def change_provider_tab(
     await manager.switch_to(manager.current_context().state)
 
 
-async def toggle_subscription(
+async def unsubscribe(
     _,
     __,
     manager: DialogManager,
 ) -> None:
-    user = manager.middleware_data["user_model"]
+    user: UserModel = manager.middleware_data["user_model"]
     uow: UnitOfWork = manager.middleware_data["uow"]
     pubkey = manager.start_data.get("provider_pubkey")
 
-    is_subscribed = await uow.user_subscription.exists(
-        user_id=user.id, provider_pubkey=pubkey
+    subscription = next(
+        (s for s in user.subscriptions or [] if s.provider_pubkey == pubkey),
+        None,
     )
-    if is_subscribed:
-        await uow.user_subscription.delete(user_id=user.id, provider_pubkey=pubkey)
-    else:
-        await uow.user_subscription.create(
-            UserSubscriptionModel(
-                user_id=user.id,
-                provider_pubkey=pubkey,
-            )
-        )
+    if subscription:
+        user.subscriptions.remove(subscription)
+        await uow.session.flush()
 
-    manager.dialog_data["is_subscribed"] = not is_subscribed
+    manager.dialog_data["is_subscribed"] = False
     await manager.show()
+
+
+async def subscribe(
+    _,
+    __,
+    manager: DialogManager,
+) -> None:
+    manager.dialog_data.update(incorrect_password=False)
 
 
 async def select_language(

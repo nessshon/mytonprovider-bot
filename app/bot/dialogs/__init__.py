@@ -17,7 +17,10 @@ def register(dp: Dispatcher) -> None:
             windows.main_invalid_input,
             launch_mode=LaunchMode.ROOT,
         ),
-        Dialog(windows.provider_menu),
+        Dialog(
+            windows.provider_menu,
+            windows.provider_enter_password,
+        ),
         Dialog(
             windows.allert_settings_menu,
             windows.alert_settings_set_threshold,

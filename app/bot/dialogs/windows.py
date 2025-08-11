@@ -1,5 +1,6 @@
 from aiogram import F
 from aiogram_dialog import Window
+from aiogram_dialog.widgets import kbd
 from aiogram_dialog.widgets.text import Case
 
 from . import getters
@@ -54,11 +55,31 @@ provider_menu = Window(
     Case(
         {i: I18NJinja(f"messages.provider.{i}") for i in PROVIDER_TABS},
         selector="provider_tab",
+        when=F["access_granted"].is_(True),
+    ),
+    I18NJinja(
+        "messages.provider.password_invalid",
+        when=F["password_invalid"].is_(True),
     ),
     keyboards.provider_menu,
     getter=getters.provider_menu,
     state=states.ProviderMenu.MAIN,
 )
+
+provider_enter_password = Window(
+    I18NJinja(
+        "messages.provider.enter_password",
+        when=F["incorrect_password"].is_(False),
+    ),
+    I18NJinja(
+        "messages.provider.incorrect_password",
+        when=F["incorrect_password"].is_(True),
+    ),
+    kbd.Back(I18NJinja("buttons.common.to_main")),
+    getter=getters.provider_enter_password,
+    state=states.ProviderMenu.ENTER_PASSWORD,
+)
+
 
 language_menu = Window(
     I18NJinja("messages.language.menu"),
