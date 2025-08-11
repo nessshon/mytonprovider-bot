@@ -61,6 +61,7 @@ class UserSubscriptionModel(BaseModel):
         ForeignKey("providers.pubkey", ondelete="CASCADE"),
         nullable=False,
     )
+    telemetry_pass: Mapped[t.Optional[str]] = mapped_column(String)
 
     user: Mapped[UserModel] = relationship(
         back_populates="subscriptions",
