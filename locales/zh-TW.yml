@@ -54,6 +54,18 @@ messages:
       <b>• 位置</b>: <code>{{ provider.ui.location }}</code><br>
       <b>• 註冊日期：</b> <code>{{ provider.reg_time | datetimeformat }}</code><br>
 
+    enter_password: |
+      🔐 <b>輸入密碼</b><br><br>
+      要訂閱此提供者，請傳送您的密碼：
+
+    incorrect_password: |
+      ❗️ <b>密碼不正確</b><br><br>
+      請檢查輸入後再試一次：
+
+    password_invalid: |
+      <h3>⚠️ 密碼已變更</h3>
+      進階資料的存取權限已受限。請更新您的密碼以恢復存取。
+
     wallet: |
       <h2>錢包</h2>
       <blockquote>
@@ -230,16 +242,17 @@ buttons:
   provider:
     copy_pubkey: "複製公鑰"
     copy_address: "複製錢包地址"
+    update_password: "⟳ 更新密碼"
     subscribe: "+ 訂閱"
     unsubscribe: "× 取消訂閱"
     tab:
-      storage: 儲存
-      hardware: 硬體
-      benchmarks: 效能測試
-      disk: 磁碟
-      network: 網路
-      software: 軟體
-      wallet: 錢包
+      storage: "儲存"
+      hardware: "硬體"
+      benchmarks: "效能測試"
+      disk: "磁碟"
+      network: "網路"
+      software: "軟體"
+      wallet: "錢包"
 
 commands:
   start:

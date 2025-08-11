@@ -54,6 +54,18 @@ messages:
       <b>• Location</b>: <code>{{ provider.ui.location }}</code><br>
       <b>• Registration date:</b> <code>{{ provider.reg_time | datetimeformat }}</code><br>
 
+    enter_password: |
+      🔐 <b>Enter your password</b><br><br>
+      To subscribe to the provider, send your password:
+
+    incorrect_password: |
+      ❗️ <b>Incorrect password</b><br><br>
+      Check your input and try again:
+
+    password_invalid: |
+      <h3>⚠️ Password changed</h3>
+      Access to extended data is restricted. Update your password to restore access.
+
     wallet: |
       <h2>Wallet</h2>
       <blockquote>
@@ -230,16 +242,17 @@ buttons:
   provider:
     copy_pubkey: "Copy public key"
     copy_address: "Copy wallet address"
+    update_password: "⟳ Update password"
     subscribe: "+ Subscribe"
     unsubscribe: "× Unsubscribe"
     tab:
-      storage: Storage
-      hardware: Hardware
-      benchmarks: Benchmarks
-      disk: Disk
-      network: Network
-      software: Software
-      wallet: Wallet
+      storage: "Storage"
+      hardware: "Hardware"
+      benchmarks: "Benchmarks"
+      disk: "Disk"
+      network: "Network"
+      software: "Software"
+      wallet: "Wallet"
 
 commands:
   start:
