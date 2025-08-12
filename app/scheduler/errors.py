@@ -6,7 +6,7 @@ from aiogram.utils.markdown import hbold, hcode
 from apscheduler.events import JobExecutionEvent
 
 from ..bot import Broadcaster
-from ..config import DEV_ID, ADMIN_IDS
+from ..config import DEV_ID
 from ..context import Context, get_context
 
 logger = logging.getLogger(__name__)
@@ -32,9 +32,8 @@ async def _on_job_error(event: JobExecutionEvent, ctx: Context) -> None:
     filename = f"error_{job_id}.txt"
     document = BufferedInputFile(traceback_text.encode(), filename=filename)
 
-    for user_id in {DEV_ID, *ADMIN_IDS}:
-        await broadcaster.send_document(user_id, document, caption=caption)
-        await asyncio.sleep(0.3)
+    await broadcaster.send_document(DEV_ID, document, caption=caption)
+    await asyncio.sleep(0.3)
 
 
 def on_job_error(event: JobExecutionEvent) -> None:
