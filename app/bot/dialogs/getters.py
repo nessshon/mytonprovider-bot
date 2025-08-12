@@ -57,7 +57,9 @@ async def provider_menu(
     provider_wallet_metrics = await uow.get_provider_wallet_metrics(
         pubkey=pubkey, today=today
     )
-
+    provider_traffic_metrics = await uow.get_provider_traffic_metrics(
+        pubkey=pubkey, today=today
+    )
     if telemetry and telemetry.telemetry_pass:
         user_pass_hash = next(
             (
@@ -83,6 +85,7 @@ async def provider_menu(
         "provider_pubkey": pubkey,
         "provider_address": provider.address,
         "provider_wallet_metrics": provider_wallet_metrics,
+        "provider_traffic_metrics": provider_traffic_metrics,
     }
 
 
