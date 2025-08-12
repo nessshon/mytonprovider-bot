@@ -1,3 +1,4 @@
+import typing as t
 from enum import Enum
 
 
@@ -16,3 +17,6 @@ class AlertStages(str, Enum):
     DETECTED = "detected"
     RESOLVED = "resolved"
     INFO = "info"
+
+
+ServiceRestartedAlert = tuple[AlertTypes, dict[str, t.Any]]
