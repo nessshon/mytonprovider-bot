@@ -13,6 +13,7 @@ class LanguageMenu(StatesGroup):
 
 class AlertSettingsMenu(StatesGroup):
     MAIN = State()
+    SET_THRESHOLD = State()
 
 
 class HelpMenu(StatesGroup):
@@ -21,3 +22,4 @@ class HelpMenu(StatesGroup):
 
 class ProviderMenu(StatesGroup):
     MAIN = State()
+    ENTER_PASSWORD = State()

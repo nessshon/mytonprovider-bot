@@ -68,6 +68,7 @@ class TelemetryRequest(BaseModel):
     cpu_info: t.Optional[CPUInfo] = None
     pings: t.Optional[t.Dict[str, float]] = None
     benchmark: t.Optional[BenchmarkInfo] = None
+    telemetry_pass: t.Optional[str] = None
     x_real_ip: str
 
 

@@ -19,6 +19,7 @@ from sqlalchemy.orm import (
 )
 
 from ._base import BaseModel
+from ...utils.alerts.overload import DEFAULT_THRESHOLDS
 
 
 class UserModel(BaseModel):
@@ -60,6 +61,7 @@ class UserSubscriptionModel(BaseModel):
         ForeignKey("providers.pubkey", ondelete="CASCADE"),
         nullable=False,
     )
+    telemetry_pass: Mapped[t.Optional[str]] = mapped_column(String)
 
     user: Mapped[UserModel] = relationship(
         back_populates="subscriptions",
@@ -76,6 +78,10 @@ class UserAlertSettingModel(BaseModel):
     )
     enabled: Mapped[bool] = mapped_column(default=True, nullable=False, index=True)
     types: Mapped[t.List[str]] = mapped_column(JSON, default=list)
+    thresholds_data: Mapped[dict[str, float]] = mapped_column(
+        JSON,
+        default=lambda: DEFAULT_THRESHOLDS,
+    )
 
     user: Mapped[UserModel] = relationship(back_populates="alert_settings")
 

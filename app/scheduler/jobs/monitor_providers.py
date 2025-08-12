@@ -8,7 +8,7 @@ from ...database.models import (
     ProviderTelemetryModel,
 )
 from ...database.models import TelemetryModel
-from ...utils.alerts import AlertManager
+from ...utils.alerts.manager import AlertManager
 from ...utils.mtpapi import MyTONProviderAPI
 from ...utils.mtpapi.models import Provider, ProviderSearchPayload
 

@@ -44,9 +44,8 @@ class TelemetryModel(BaseModel):
     cpu_info: Mapped[t.Optional[dict]] = mapped_column(JSON)
     pings: Mapped[t.Optional[dict[str, float]]] = mapped_column(JSON)
     benchmark: Mapped[t.Optional[dict]] = mapped_column(JSON)
-
+    telemetry_pass: Mapped[t.Optional[str]] = mapped_column(String)
     x_real_ip: Mapped[str] = mapped_column(String, nullable=False)
-
     raw: Mapped[t.Optional[dict]] = mapped_column(JSON)
 
     @property
