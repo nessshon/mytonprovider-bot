@@ -1,6 +1,11 @@
 import typing as t
 
-from pydantic import BaseModel
+from pydantic import BaseModel as PydanticBaseModel
+from pydantic import ConfigDict
+
+
+class BaseModel(PydanticBaseModel):
+    model_config = ConfigDict(extra="ignore")
 
 
 class ProviderInfo(BaseModel):
@@ -8,6 +13,7 @@ class ProviderInfo(BaseModel):
     used_provider_space: float
     total_provider_space: float
     max_bag_size_bytes: int
+    service_uptime: t.Optional[int] = None
 
 
 class StorageInfo(BaseModel):
@@ -17,6 +23,7 @@ class StorageInfo(BaseModel):
     used_disk_space: float
     free_disk_space: float
     provider: ProviderInfo
+    service_uptime: t.Optional[int] = None
 
 
 class MemoryInfo(BaseModel):
@@ -40,36 +47,27 @@ class CPUInfo(BaseModel):
     is_virtual: bool
 
 
-class BenchmarkLevel(BaseModel):
-    read_speed: t.Optional[float] = None
-    write_speed: t.Optional[float] = None
-    read_iops: t.Optional[float] = None
-    write_iops: t.Optional[float] = None
-    random_ops: t.Optional[float] = None
-
-
-class BenchmarkInfo(BaseModel):
-    lite: BenchmarkLevel
-    hard: BenchmarkLevel
-    full: BenchmarkLevel
-
-
 class TelemetryRequest(BaseModel):
     storage: StorageInfo
     git_hashes: t.Dict[str, str]
+
     net_load: t.Optional[t.List[t.Optional[float]]] = None
     disks_load: t.Optional[t.Dict[str, t.List[t.Optional[float]]]] = None
     disks_load_percent: t.Optional[t.Dict[str, t.List[t.Optional[float]]]] = None
     iops: t.Optional[t.Dict[str, t.List[t.Optional[float]]]] = None
     pps: t.Optional[t.List[t.Optional[float]]] = None
+
     ram: t.Optional[MemoryInfo] = None
     swap: t.Optional[MemoryInfo] = None
     uname: t.Optional[UnameInfo] = None
     cpu_info: t.Optional[CPUInfo] = None
     pings: t.Optional[t.Dict[str, float]] = None
-    benchmark: t.Optional[BenchmarkInfo] = None
+    bytes_recv: t.Optional[int] = None
+    bytes_sent: t.Optional[int] = None
+    net_recv: t.Optional[t.List[t.Optional[float]]] = None
+    net_sent: t.Optional[t.List[t.Optional[float]]] = None
     telemetry_pass: t.Optional[str] = None
-    x_real_ip: str
+    timestamp: t.Optional[int] = None
 
 
 class TelemetryResponse(BaseModel):
