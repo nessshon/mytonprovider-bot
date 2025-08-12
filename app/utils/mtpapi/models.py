@@ -18,10 +18,10 @@ class ProviderInfo(BaseModel):
 
 class StorageInfo(BaseModel):
     pubkey: str
-    disk_name: str
-    total_disk_space: float
-    used_disk_space: float
-    free_disk_space: float
+    disk_name: t.Optional[str] = None
+    total_disk_space: t.Optional[float] = None
+    used_disk_space: t.Optional[float] = None
+    free_disk_space: t.Optional[float] = None
     provider: ProviderInfo
     service_uptime: t.Optional[int] = None
 
