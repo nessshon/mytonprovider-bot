@@ -125,8 +125,9 @@ alerts:
       ...
 
   service_restarted:
-    info: |
-      ...
+    detected: |
+      ⚠️️ <b>Сервис {{ service_name }} перезапущен</b><br><br>
+      <b>Провайдер</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
 
   cpu_high:
     detected: |
