@@ -52,6 +52,8 @@ messages:
       <b>• 地址</b>: <a href="https://tonviewer.com/{{ provider.address }}">{{ provider.ui.short_address }}</a><br>
       <b>• 運行時間</b>: <code>{{ provider.working_time | durationformat }}</code><br>
       <b>• 位置</b>: <code>{{ provider.ui.location }}</code><br>
+      <b>• 儲存 Git 雜湊值：</b> <code>{{ provider.ui.storage_git_hash }}</code><br>
+      <b>• 供應商 Git 雜湊值：</b> <code>{{ provider.ui.provider_git_hash }}</code><br>
       <b>• 註冊日期：</b> <code>{{ provider.reg_time | datetimeformat }}</code><br>
 
     enter_password: |
@@ -112,11 +114,23 @@ messages:
       <b>• 網路供應商：</b> <code>{{ provider.ui.isp }}</code><br>
       </blockquote>
 
-    software: |
-      <h2>軟體</h2>
+    traffic: |
+      <h2>流量</h2>
+      {% set m = provider_traffic_metrics %}
+      {% set rows = [
+        ("今天", "traffic_today_in","traffic_today_out","traffic_today_total"),
+        ("最近 7 天", "traffic_week_in","traffic_week_out","traffic_week_total"),
+        ("最近 30 天", "traffic_month_in","traffic_month_out","traffic_month_total"),
+        ("總計", "traffic_total_in","traffic_total_out","traffic_total"),
+      ] %}
       <blockquote>
-      <b>• 儲存 Git 雜湊值：</b> <code>{{ provider.ui.storage_git_hash }}</code><br>
-      <b>• 供應商 Git 雜湊值：</b> <code>{{ provider.ui.provider_git_hash }}</code><br>
+      <b>格式:（進 / 出 / 總計）</b><br>
+      {% for label, i, o, t in rows -%}
+        {% set total = (m.get(t) if t else ((m.get(i) or 0) + (m.get(o) or 0))) %}
+        <b>• {{ label }}：</b>
+        <code>{{ (m.get(i) or 0) | sizeformat }}</code> / <code>{{ (m.get(o) or 0) | sizeformat }}</code> / <code>{{ total | sizeformat }}</code><br>
+      {%- endfor %}
+      <b>• 更新時間：</b> <code>{{ m.get('updated_at') | datetimeformat }}</code><br>
       </blockquote>
 
 alerts:
@@ -252,7 +266,7 @@ buttons:
       benchmarks: "效能測試"
       disk: "磁碟"
       network: "網路"
-      software: "軟體"
+      traffic: "流量"
       wallet: "錢包"
 
 commands:
