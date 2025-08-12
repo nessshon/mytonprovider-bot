@@ -7,7 +7,7 @@ from ...database import UnitOfWork
 from ...database.models import (
     UserModel,
 )
-from ...utils.alerts.overload import DEFAULT_THRESHOLDS
+from ...utils.alerts.detector import DEFAULT_THRESHOLDS
 from ...utils.alerts.types import AlertTypes
 from ...utils.i18n import Localizer
 

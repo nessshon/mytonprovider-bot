@@ -133,9 +133,9 @@ class ProviderUI:
 
     @staticmethod
     def _format_or_dash(
-            value: t.Optional[t.Union[float, int, str]],
-            fmt: str = "{}",
-            default: str = "N/A",
+        value: t.Optional[t.Union[float, int, str]],
+        fmt: str = "{}",
+        default: str = "N/A",
     ) -> str:
         if value is None:
             return default

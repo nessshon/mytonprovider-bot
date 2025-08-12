@@ -6,7 +6,7 @@ from .consts import DEFAULT_PROVIDER_TAB, DEFAULT_ALERT_TAB
 from ...config import TIMEZONE
 from ...database import UnitOfWork
 from ...database.models import UserModel
-from ...utils.alerts.overload import DEFAULT_THRESHOLDS
+from ...utils.alerts.detector import DEFAULT_THRESHOLDS
 from ...utils.i18n import Localizer
 
 
