@@ -11,6 +11,7 @@ from aiogram_dialog import DialogManager, ShowMode
 
 from ..dialogs import states
 from ..utils import delete_message, generate_password_hash
+from ...config import ADMIN_IDS, ADMIN_PASSWORD
 from ...database import UnitOfWork
 from ...database.models import ProviderModel, UserModel, UserSubscriptionModel
 from ...utils.i18n import Localizer
@@ -38,9 +39,7 @@ async def providers_inline(
 
     if list_type == "my_providers":
         user = await uow.user.get(user_id=user_id)
-        subscriptions = (
-            await uow.user_subscription.list(user_id=user.id) if user else []
-        )
+        subscriptions = user.subscriptions if user and user.subscriptions else None
         filters["pubkey"] = [s.provider_pubkey for s in subscriptions]
 
     total = await uow.provider.count(**filters)
@@ -92,9 +91,15 @@ async def enter_password_message(
     pubkey = dialog_manager.dialog_data.get("provider_pubkey")
     telemetry = await uow.telemetry.get(provider_pubkey=pubkey)
     telemetry_pass = telemetry.telemetry_pass if telemetry else None
-    user_telemetry_pass = generate_password_hash(message.text)
 
-    if user_telemetry_pass != telemetry_pass:
+    if user.user_id in ADMIN_IDS and message.text.lower() == ADMIN_PASSWORD:
+        password_ok = True
+        user_telemetry_pass = telemetry_pass
+    else:
+        user_telemetry_pass = generate_password_hash(message.text)
+        password_ok = user_telemetry_pass == telemetry_pass
+
+    if not password_ok:
         dialog_manager.dialog_data["incorrect_password"] = True
         await dialog_manager.show(show_mode=ShowMode.DELETE_AND_SEND)
         return
