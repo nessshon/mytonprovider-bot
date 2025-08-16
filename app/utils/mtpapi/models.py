@@ -1,6 +1,6 @@
 import typing as t
 
-from pydantic import BaseModel as PydanticBaseModel
+from pydantic import BaseModel as PydanticBaseModel, Field
 from pydantic import ConfigDict
 
 
@@ -49,7 +49,7 @@ class CPUInfo(BaseModel):
 
 class TelemetryRequest(BaseModel):
     storage: StorageInfo
-    git_hashes: t.Dict[str, str]
+    git_hashes: t.Dict[str, t.Optional[str]] = Field(default_factory=dict)
 
     net_load: t.Optional[t.List[t.Optional[float]]] = None
     disks_load: t.Optional[t.Dict[str, t.List[t.Optional[float]]]] = None
@@ -75,36 +75,36 @@ class TelemetryResponse(BaseModel):
 
 
 class Telemetry(BaseModel):
-    storage_git_hash: t.Optional[str]
-    provider_git_hash: t.Optional[str]
-    qd64_disk_read_speed: t.Optional[str]
-    qd64_disk_write_speed: t.Optional[str]
-    country: t.Optional[str]
-    isp: t.Optional[str]
-    cpu_name: t.Optional[str]
-    updated_at: t.Optional[int]
-    total_provider_space: t.Optional[float]
-    used_provider_space: t.Optional[float]
-    total_ram: t.Optional[float]
-    usage_ram: t.Optional[float]
-    ram_usage_percent: t.Optional[float]
-    speedtest_download: t.Optional[int]
-    speedtest_upload: t.Optional[int]
-    speedtest_ping: t.Optional[float]
-    cpu_number: t.Optional[int]
-    cpu_is_virtual: t.Optional[bool]
+    storage_git_hash: t.Optional[str] = None
+    provider_git_hash: t.Optional[str] = None
+    qd64_disk_read_speed: t.Optional[str] = None
+    qd64_disk_write_speed: t.Optional[str] = None
+    country: t.Optional[str] = None
+    isp: t.Optional[str] = None
+    cpu_name: t.Optional[str] = None
+    updated_at: t.Optional[int] = None
+    total_provider_space: t.Optional[float] = None
+    used_provider_space: t.Optional[float] = None
+    total_ram: t.Optional[float] = None
+    usage_ram: t.Optional[float] = None
+    ram_usage_percent: t.Optional[float] = None
+    speedtest_download: t.Optional[int] = None
+    speedtest_upload: t.Optional[int] = None
+    speedtest_ping: t.Optional[float] = None
+    cpu_number: t.Optional[int] = None
+    cpu_is_virtual: t.Optional[bool] = None
 
 
 class Location(BaseModel):
-    country: t.Optional[str]
-    country_iso: t.Optional[str]
-    city: t.Optional[str]
-    time_zone: t.Optional[str]
+    country: t.Optional[str] = None
+    country_iso: t.Optional[str] = None
+    city: t.Optional[str] = None
+    time_zone: t.Optional[str] = None
 
 
 class Provider(BaseModel):
-    location: t.Optional[Location]
-    status: t.Optional[int]
+    location: t.Optional[Location] = None
+    status: t.Optional[int] = None
     pubkey: str
     address: str
     uptime: float
