@@ -5,10 +5,7 @@ from .provider import (
     ProviderWalletHistoryModel,
     ProviderTrafficHistoryModel,
 )
-from .telemetry import (
-    TelemetryModel,
-    TelemetryHistoryModel,
-)
+from .telemetry import TelemetryModel
 from .user import (
     UserModel,
     UserSubscriptionModel,
@@ -23,7 +20,6 @@ __all__ = [
     "ProviderWalletHistoryModel",
     "ProviderTrafficHistoryModel",
     "TelemetryModel",
-    "TelemetryHistoryModel",
     "UserModel",
     "UserSubscriptionModel",
     "UserAlertSettingModel",

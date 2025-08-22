@@ -14,7 +14,6 @@ from sqlalchemy.ext.asyncio import (
 from .models import (
     ProviderModel,
     TelemetryModel,
-    TelemetryHistoryModel,
     UserSubscriptionModel,
     UserModel,
     UserAlertSettingModel,
@@ -36,7 +35,6 @@ class UnitOfWork:
     provider_traffic_history: BRepo[ProviderTrafficHistoryModel]
     provider_telemetry: BRepo[ProviderTelemetryModel]
     telemetry: BRepo[TelemetryModel]
-    telemetry_history: BRepo[TelemetryHistoryModel]
     user_subscription: BRepo[UserSubscriptionModel]
     user: BRepo[UserModel]
     user_alert_setting: BRepo[UserAlertSettingModel]
@@ -54,7 +52,6 @@ class UnitOfWork:
         self.provider_traffic_history = BRepo(ProviderTrafficHistoryModel, self.session)
 
         self.telemetry = BRepo(TelemetryModel, self.session)
-        self.telemetry_history = BRepo(TelemetryHistoryModel, self.session)
 
         self.user = BRepo(UserModel, self.session)
         self.user_subscription = BRepo(UserSubscriptionModel, self.session)

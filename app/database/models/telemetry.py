@@ -1,15 +1,12 @@
 from __future__ import annotations
 
 import typing as t
-from datetime import date
 
 from sqlalchemy import (
     String,
     ForeignKey,
     JSON,
     Integer,
-    Float,
-    Date,
     BigInteger,
 )
 from sqlalchemy.orm import (
@@ -56,16 +53,3 @@ class TelemetryModel(BaseModel):
     @property
     def raw_model(self) -> Telemetry:
         return Telemetry(**self.raw)
-
-
-class TelemetryHistoryModel(BaseModel):
-    __tablename__ = "telemetry.history"
-
-    provider_pubkey: Mapped[str] = mapped_column(String(64), primary_key=True)
-    date: Mapped[date] = mapped_column(Date, primary_key=True)
-
-    total_provider_space: Mapped[float] = mapped_column(Float)
-    used_provider_space: Mapped[float] = mapped_column(Float)
-    bags_count: Mapped[int] = mapped_column(Integer)
-    traffic_in: Mapped[float] = mapped_column(Float)
-    traffic_out: Mapped[float] = mapped_column(Float)
