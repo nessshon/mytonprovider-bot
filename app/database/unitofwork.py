@@ -217,3 +217,37 @@ class UnitOfWork:
             "traffic_total_out": total_out,
             "traffic_total": total_in + total_out,
         }
+
+    async def sum_wallet_earned_between(
+        self,
+        pubkey: str,
+        start_date: date,
+        end_date: date,
+    ) -> int:
+        stmt = select(func.sum(ProviderWalletHistoryModel.earned)).where(
+            ProviderWalletHistoryModel.provider_pubkey == pubkey,
+            ProviderWalletHistoryModel.date >= start_date,
+            ProviderWalletHistoryModel.date <= end_date,
+        )
+        res = await self.session.execute(stmt)
+        return int(res.scalar() or 0)
+
+    async def sum_traffic_between(
+        self,
+        pubkey: str,
+        start_date: date,
+        end_date: date,
+    ) -> tuple[int, int]:
+        stmt = select(
+            func.sum(ProviderTrafficHistoryModel.traffic_in),
+            func.sum(ProviderTrafficHistoryModel.traffic_out),
+        ).where(
+            ProviderTrafficHistoryModel.provider_pubkey == pubkey,
+            ProviderTrafficHistoryModel.date >= start_date,
+            ProviderTrafficHistoryModel.date <= end_date,
+        )
+        res = await self.session.execute(stmt)
+        row = res.first()
+        s_in = int((row[0] or 0) if row else 0)
+        s_out = int((row[1] or 0) if row else 0)
+        return s_in, s_out
