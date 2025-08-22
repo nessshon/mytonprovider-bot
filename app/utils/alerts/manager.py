@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import logging
 import typing as t
 from datetime import datetime
@@ -83,7 +84,7 @@ class AlertManager:
         prev_telemetry: TelemetryModel,
     ) -> None:
         uow = UnitOfWork(self.ctx.db.session_factory)
-        users = await self._get_subscribed_users(uow, provider.pubkey)
+        users = await self.get_subscribed_users(uow, provider.pubkey)
         if not users:
             return
 
@@ -140,9 +141,10 @@ class AlertManager:
                 alert_type.name,
                 e,
             )
+        await asyncio.sleep(0.025)
 
     @staticmethod
-    async def _get_subscribed_users(
+    async def get_subscribed_users(
         uow: UnitOfWork,
         provider_pubkey: str,
     ) -> t.List[UserModel]:
