@@ -136,7 +136,13 @@ messages:
 alerts:
   monthly_report:
     info: |
-      ...
+      📊 <b>每月報告</b><br><br>
+      <b>提供者:</b> <code>{{ report.provider.ui.short_pubkey }}</code><br>
+      <b>期間:</b> <code>{{ report.start_date }}</code> • <code>{{ report.end_date }}</code><br><br>
+      
+      <b>• 收益:</b> <code>{{ report.earned_nanoton | toamount }} TON</code><br>
+      <b>• 已使用儲存空間:</b> <code>{{ report.used_space_bytes | sizeformat }}</code> / <code>{{ report.total_space_bytes | sizeformat }}</code><br>
+      <b>• 已使用流量:</b> <code>↓ {{ report.traffic_in_bytes | sizeformat }}</code> / <code>↑ {{ report.traffic_out_bytes | sizeformat }}</code><br>
 
   service_restarted:
     detected: |
