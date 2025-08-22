@@ -2,14 +2,14 @@ import logging
 
 from aiogram import F, Dispatcher
 from aiogram.enums import ChatType
-from aiogram.filters import ExceptionTypeFilter
+from aiogram.filters import ExceptionTypeFilter, Command
 from aiogram_dialog.api.exceptions import (
     UnknownIntent,
     UnknownState,
 )
 from aiogram_dialog.context.intent_filter import IntentFilter
 
-from .commands import register_command
+from .commands import register_command, monthly_report_command
 from .common import (
     default_message,
     hide_callback_query,
@@ -30,6 +30,7 @@ def register(dp: Dispatcher) -> None:
     register_command(dp, "start", states.MainMenu.MAIN)
     register_command(dp, "help", states.HelpMenu.MAIN)
     register_command(dp, "lang", states.LanguageMenu.MAIN)
+    dp.message.register(monthly_report_command, Command("monthly_report"))
 
     dp.errors.register(
         on_unknown_intent,
@@ -49,7 +50,9 @@ def register(dp: Dispatcher) -> None:
         enter_password_message,
         IntentFilter(states.ProviderMenu),
     )
-    dp.message.register(default_message)
+    dp.message.register(
+        default_message,
+    )
     dp.my_chat_member.register(my_chat_memeber)
     dp.callback_query.register(hide_callback_query, F.data == "hide")
 

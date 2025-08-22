@@ -19,7 +19,7 @@ from sqlalchemy.orm import (
 )
 
 from ._base import BaseModel
-from ...utils.alerts.overload import DEFAULT_THRESHOLDS
+from ...utils.alerts.detector import DEFAULT_THRESHOLDS
 
 
 class UserModel(BaseModel):

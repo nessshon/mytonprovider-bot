@@ -72,8 +72,8 @@ async def sync_providers(
 async def sync_telemetries(
     uow: UnitOfWork,
     mtpapi: MyTONProviderAPI,
-) -> t.List[TelemetryModel]:
-    telemetries = []
+) -> t.List[t.Tuple[t.Optional[TelemetryModel], TelemetryModel]]:
+    telemetries: list[tuple[t.Optional[TelemetryModel], TelemetryModel]] = []
     response = await mtpapi.telemetry()
     total_from_api = len(response.providers)
 
@@ -82,13 +82,21 @@ async def sync_telemetries(
         telemetry_raw_data = telemetry.model_dump()
 
         async with uow:
-            model = TelemetryModel(
-                **telemetry_raw_data,
-                raw=telemetry_raw_data,
-                provider_pubkey=pubkey,
+            prev_telemetry = await uow.telemetry.get(provider_pubkey=pubkey)
+            if prev_telemetry is not None:
+                prev_telemetry_dict = prev_telemetry.model_dump()
+                prev_telemetry = TelemetryModel(**prev_telemetry_dict)
+
+        async with uow:
+            curr_telemetry = await uow.telemetry.upsert(
+                TelemetryModel(
+                    **telemetry_raw_data,
+                    raw=telemetry_raw_data,
+                    provider_pubkey=pubkey,
+                )
             )
-            telemetry_model = await uow.telemetry.upsert(model)
-        telemetries.append(telemetry_model)
+
+        telemetries.append((prev_telemetry, curr_telemetry))
 
     logger.info(
         f"Retrieved {total_from_api} telemetry from API, "
@@ -118,15 +126,18 @@ async def monitor_providers_job(ctx: Context) -> None:
         logger.exception(f"Failed to connect or sync via MTP API")
         raise
 
-    telemetry_map: t.Dict[str, TelemetryModel] = {
-        telemetry.provider_pubkey: telemetry for telemetry in telemetries
-    }
-    provider_telemetry_pairs: t.List[t.Tuple[ProviderModel, TelemetryModel]] = [
+    telemetry_map = {curr.provider_pubkey: (prev, curr) for (prev, curr) in telemetries}
+
+    provider_telemetry_pairs = [
         (provider, telemetry_map[provider.pubkey])
         for provider in providers
         if provider.pubkey in telemetry_map
     ]
 
-    for provider, telemetry in provider_telemetry_pairs:
+    for provider, (prev_telemetry, curr_telemetry) in provider_telemetry_pairs:
         alert_manager = AlertManager(ctx)
-        await alert_manager.dispatch(provider, telemetry)
+        await alert_manager.dispatch(
+            provider=provider,
+            curr_telemetry=curr_telemetry,
+            prev_telemetry=prev_telemetry,
+        )

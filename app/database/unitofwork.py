@@ -14,13 +14,13 @@ from sqlalchemy.ext.asyncio import (
 from .models import (
     ProviderModel,
     TelemetryModel,
-    TelemetryHistoryModel,
     UserSubscriptionModel,
     UserModel,
     UserAlertSettingModel,
     UserTriggeredAlertModel,
     ProviderTelemetryModel,
     ProviderWalletHistoryModel,
+    ProviderTrafficHistoryModel,
 )
 from .repository import BaseRepository as BRepo
 
@@ -32,9 +32,9 @@ class UnitOfWork:
 
     provider: BRepo[ProviderModel]
     provider_wallet_history: BRepo[ProviderWalletHistoryModel]
+    provider_traffic_history: BRepo[ProviderTrafficHistoryModel]
     provider_telemetry: BRepo[ProviderTelemetryModel]
     telemetry: BRepo[TelemetryModel]
-    telemetry_history: BRepo[TelemetryHistoryModel]
     user_subscription: BRepo[UserSubscriptionModel]
     user: BRepo[UserModel]
     user_alert_setting: BRepo[UserAlertSettingModel]
@@ -49,9 +49,9 @@ class UnitOfWork:
         self.provider = BRepo(ProviderModel, self.session)
         self.provider_telemetry = BRepo(ProviderTelemetryModel, self.session)
         self.provider_wallet_history = BRepo(ProviderWalletHistoryModel, self.session)
+        self.provider_traffic_history = BRepo(ProviderTrafficHistoryModel, self.session)
 
         self.telemetry = BRepo(TelemetryModel, self.session)
-        self.telemetry_history = BRepo(TelemetryHistoryModel, self.session)
 
         self.user = BRepo(UserModel, self.session)
         self.user_subscription = BRepo(UserSubscriptionModel, self.session)
@@ -138,3 +138,116 @@ class UnitOfWork:
             "earned_month": earned_month.scalar() or 0,
             "earned_total": earned_total.scalar() or 0,
         }
+
+    async def get_provider_traffic_metrics(
+        self,
+        pubkey: str,
+        today: date,
+    ) -> dict:
+        latest_stmt = (
+            select(
+                ProviderTrafficHistoryModel.updated_at,
+                ProviderTrafficHistoryModel.last_bytes_recv,
+                ProviderTrafficHistoryModel.last_bytes_sent,
+            )
+            .where(ProviderTrafficHistoryModel.provider_pubkey == pubkey)
+            .order_by(ProviderTrafficHistoryModel.date.desc())
+            .limit(1)
+        )
+        latest_res = await self.session.execute(latest_stmt)
+        latest = latest_res.first()
+        updated_at = latest[0] if latest else None
+        last_bytes_recv = latest[1] if latest else None
+        last_bytes_sent = latest[2] if latest else None
+
+        week_start = today - timedelta(days=7)
+        month_start = today - timedelta(days=30)
+
+        def sum_stmt(start: date | None):
+            stmt = select(
+                func.sum(ProviderTrafficHistoryModel.traffic_in),
+                func.sum(ProviderTrafficHistoryModel.traffic_out),
+            ).where(ProviderTrafficHistoryModel.provider_pubkey == pubkey)
+            if start is not None:
+                stmt = stmt.where(
+                    ProviderTrafficHistoryModel.date >= start,
+                    ProviderTrafficHistoryModel.date <= today,
+                )
+            return stmt
+
+        stmt_today = sum_stmt(today)
+        stmt_week = sum_stmt(week_start)
+        stmt_month = sum_stmt(month_start)
+        stmt_total = sum_stmt(None)
+
+        res_today, res_week, res_month, res_total = await asyncio.gather(
+            *(
+                self.session.execute(s)
+                for s in (stmt_today, stmt_week, stmt_month, stmt_total)
+            )
+        )
+
+        def parse_two_sums(exec_result) -> tuple[int, int]:
+            row = exec_result.first()
+            if not row:
+                return 0, 0
+            s_in = row[0] or 0
+            s_out = row[1] or 0
+            return int(s_in), int(s_out)
+
+        today_in, today_out = parse_two_sums(res_today)
+        week_in, week_out = parse_two_sums(res_week)
+        month_in, month_out = parse_two_sums(res_month)
+        total_in, total_out = parse_two_sums(res_total)
+
+        return {
+            "updated_at": updated_at,
+            "last_bytes_recv": last_bytes_recv,
+            "last_bytes_sent": last_bytes_sent,
+            "traffic_today_in": today_in,
+            "traffic_today_out": today_out,
+            "traffic_today_total": today_in + today_out,
+            "traffic_week_in": week_in,
+            "traffic_week_out": week_out,
+            "traffic_week_total": week_in + week_out,
+            "traffic_month_in": month_in,
+            "traffic_month_out": month_out,
+            "traffic_month_total": month_in + month_out,
+            "traffic_total_in": total_in,
+            "traffic_total_out": total_out,
+            "traffic_total": total_in + total_out,
+        }
+
+    async def sum_wallet_earned_between(
+        self,
+        pubkey: str,
+        start_date: date,
+        end_date: date,
+    ) -> int:
+        stmt = select(func.sum(ProviderWalletHistoryModel.earned)).where(
+            ProviderWalletHistoryModel.provider_pubkey == pubkey,
+            ProviderWalletHistoryModel.date >= start_date,
+            ProviderWalletHistoryModel.date <= end_date,
+        )
+        res = await self.session.execute(stmt)
+        return int(res.scalar() or 0)
+
+    async def sum_traffic_between(
+        self,
+        pubkey: str,
+        start_date: date,
+        end_date: date,
+    ) -> tuple[int, int]:
+        stmt = select(
+            func.sum(ProviderTrafficHistoryModel.traffic_in),
+            func.sum(ProviderTrafficHistoryModel.traffic_out),
+        ).where(
+            ProviderTrafficHistoryModel.provider_pubkey == pubkey,
+            ProviderTrafficHistoryModel.date >= start_date,
+            ProviderTrafficHistoryModel.date <= end_date,
+        )
+        res = await self.session.execute(stmt)
+        row = res.first()
+        s_in = int((row[0] or 0) if row else 0)
+        s_out = int((row[1] or 0) if row else 0)
+        return s_in, s_out

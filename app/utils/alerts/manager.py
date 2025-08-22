@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import logging
 import typing as t
 from datetime import datetime
@@ -9,7 +10,7 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
-from .overload import OverloadDetector
+from .detector import OverloadDetector, ServiceRestartedDetector
 from .types import AlertTypes, AlertStages
 from ..i18n import Localizer
 from ...config import TIMEZONE
@@ -35,7 +36,7 @@ class AlertManager:
         self,
         uow: UnitOfWork,
         user: UserModel,
-        triggered_alerts: t.Set[AlertTypes],
+        triggered_alerts: list[tuple[AlertTypes, dict]],
         provider: ProviderModel,
         telemetry: TelemetryModel,
     ) -> None:
@@ -43,21 +44,28 @@ class AlertManager:
         pubkey = provider.pubkey
 
         active_alerts = await self._get_user_active_alerts(uow, user_id, pubkey)
+        triggered_alert_types = {a[0] for a in triggered_alerts}
 
-        new_alerts = triggered_alerts - active_alerts
-        resolved_alerts = active_alerts - triggered_alerts
+        new_alerts = [
+            (ta, extra) for ta, extra in triggered_alerts if ta not in active_alerts
+        ]
+        resolved_alerts = [
+            (ta, {}) for ta in active_alerts if ta not in triggered_alert_types
+        ]
 
-        for alert_type in new_alerts:
+        for alert_type, extra in new_alerts:
             await self.notify(
                 user=user,
                 alert_type=alert_type,
                 alert_stage=AlertStages.DETECTED,
                 provider=provider,
                 telemetry=telemetry,
+                **extra,
             )
-            await self._create_alert_record(uow, user_id, alert_type, pubkey)
+            if alert_type != AlertTypes.SERVICE_RESTARTED:
+                await self._create_alert_record(uow, user_id, alert_type, pubkey)
 
-        for alert_type in resolved_alerts:
+        for alert_type, extra in resolved_alerts:
             if await self._exists_alert_record(uow, user_id, alert_type, pubkey):
                 await self.notify(
                     user=user,
@@ -65,31 +73,44 @@ class AlertManager:
                     alert_stage=AlertStages.RESOLVED,
                     provider=provider,
                     telemetry=telemetry,
+                    **extra,
                 )
                 await self._delete_alert_record(uow, user_id, alert_type, pubkey)
 
     async def dispatch(
         self,
         provider: ProviderModel,
-        telemetry: TelemetryModel,
+        curr_telemetry: TelemetryModel,
+        prev_telemetry: TelemetryModel,
     ) -> None:
         uow = UnitOfWork(self.ctx.db.session_factory)
-        users = await self._get_subscribed_users(uow, provider.pubkey)
+        users = await self.get_subscribed_users(uow, provider.pubkey)
         if not users:
             return
 
         for user in users:
-            detector = OverloadDetector(
+            triggered_alerts: list[tuple[AlertTypes, dict]] = []
+            user_enabled_alerts = user.alert_settings.types or []
+
+            overload_detector = OverloadDetector(
                 provider=provider,
-                telemetry=telemetry,
+                telemetry=curr_telemetry,
                 thresholds=user.alert_settings.thresholds_data,
             )
-            triggered = detector.get_triggered_alerts()
-            enabled_types = set(user.alert_settings.types or [])
-            triggered_alerts = {a for a in triggered if a.value in enabled_types}
+            for alert_type in overload_detector.get_triggered_alerts():
+                if alert_type.value in user_enabled_alerts:
+                    triggered_alerts.append((alert_type, {}))
+
+            if prev_telemetry and AlertTypes.SERVICE_RESTARTED in user_enabled_alerts:
+                restart_detector = ServiceRestartedDetector()
+                triggered_alerts.extend(
+                    restart_detector.get_triggered_alerts(
+                        prev_telemetry, curr_telemetry
+                    )
+                )
 
             await self._process_user_alerts(
-                uow, user, triggered_alerts, provider, telemetry
+                uow, user, triggered_alerts, provider, curr_telemetry
             )
 
     async def notify(
@@ -120,9 +141,10 @@ class AlertManager:
                 alert_type.name,
                 e,
             )
+        await asyncio.sleep(0.025)
 
     @staticmethod
-    async def _get_subscribed_users(
+    async def get_subscribed_users(
         uow: UnitOfWork,
         provider_pubkey: str,
     ) -> t.List[UserModel]:

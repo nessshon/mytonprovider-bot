@@ -86,6 +86,29 @@ class ProviderWalletHistoryModel(BaseModel):
     )
 
 
+class ProviderTrafficHistoryModel(BaseModel):
+    __tablename__ = "providers.traffic_history"
+
+    provider_pubkey: Mapped[str] = mapped_column(
+        ForeignKey("providers.pubkey"),
+        primary_key=True,
+    )
+    date: Mapped[date] = mapped_column(primary_key=True)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+
+    # Bytes per day (integers for precision)
+    traffic_in: Mapped[int] = mapped_column(BigInteger, nullable=False, default=0)
+    traffic_out: Mapped[int] = mapped_column(BigInteger, nullable=False, default=0)
+
+    # Last seen counters from telemetry; nullable for the very first sample
+    last_bytes_recv: Mapped[t.Optional[int]] = mapped_column(BigInteger)
+    last_bytes_sent: Mapped[t.Optional[int]] = mapped_column(BigInteger)
+
+    __table_args__ = (
+        Index("ix_traffic_history_provider_date", "provider_pubkey", "date"),
+    )
+
+
 class ProviderModel(BaseModel):
     __tablename__ = "providers"
 
@@ -133,9 +156,9 @@ class ProviderUI:
 
     @staticmethod
     def _format_or_dash(
-            value: t.Optional[t.Union[float, int, str]],
-            fmt: str = "{}",
-            default: str = "N/A",
+        value: t.Optional[t.Union[float, int, str]],
+        fmt: str = "{}",
+        default: str = "N/A",
     ) -> str:
         if value is None:
             return default

@@ -5,7 +5,7 @@ PROVIDER_TABS = [
     "storage",
     "benchmarks",
     "network",
-    "software",
+    "traffic",
     "wallet",
 ]
 DEFAULT_PROVIDER_TAB = "hardware"

@@ -1,15 +1,13 @@
 from __future__ import annotations
 
 import typing as t
-from datetime import date
 
 from sqlalchemy import (
     String,
     ForeignKey,
     JSON,
     Integer,
-    Float,
-    Date,
+    BigInteger,
 )
 from sqlalchemy.orm import (
     Mapped,
@@ -43,24 +41,15 @@ class TelemetryModel(BaseModel):
     uname: Mapped[t.Optional[dict]] = mapped_column(JSON)
     cpu_info: Mapped[t.Optional[dict]] = mapped_column(JSON)
     pings: Mapped[t.Optional[dict[str, float]]] = mapped_column(JSON)
-    benchmark: Mapped[t.Optional[dict]] = mapped_column(JSON)
+    bytes_recv: Mapped[t.Optional[int]] = mapped_column(BigInteger)
+    bytes_sent: Mapped[t.Optional[int]] = mapped_column(BigInteger)
+    net_recv: Mapped[t.Optional[list[float]]] = mapped_column(JSON)
+    net_sent: Mapped[t.Optional[list[float]]] = mapped_column(JSON)
     telemetry_pass: Mapped[t.Optional[str]] = mapped_column(String)
-    x_real_ip: Mapped[str] = mapped_column(String, nullable=False)
+    timestamp: Mapped[t.Optional[int]] = mapped_column(Integer)
+
     raw: Mapped[t.Optional[dict]] = mapped_column(JSON)
 
     @property
     def raw_model(self) -> Telemetry:
         return Telemetry(**self.raw)
-
-
-class TelemetryHistoryModel(BaseModel):
-    __tablename__ = "telemetry.history"
-
-    provider_pubkey: Mapped[str] = mapped_column(String(64), primary_key=True)
-    date: Mapped[date] = mapped_column(Date, primary_key=True)
-
-    total_provider_space: Mapped[float] = mapped_column(Float)
-    used_provider_space: Mapped[float] = mapped_column(Float)
-    bags_count: Mapped[int] = mapped_column(Integer)
-    traffic_in: Mapped[float] = mapped_column(Float)
-    traffic_out: Mapped[float] = mapped_column(Float)

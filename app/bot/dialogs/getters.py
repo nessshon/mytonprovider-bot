@@ -3,10 +3,10 @@ from datetime import datetime
 from aiogram_dialog import DialogManager
 
 from .consts import DEFAULT_PROVIDER_TAB, DEFAULT_ALERT_TAB
-from ...config import TIMEZONE
+from ...config import TIMEZONE, ADMIN_IDS
 from ...database import UnitOfWork
 from ...database.models import UserModel
-from ...utils.alerts.overload import DEFAULT_THRESHOLDS
+from ...utils.alerts.detector import DEFAULT_THRESHOLDS
 from ...utils.i18n import Localizer
 
 
@@ -51,26 +51,31 @@ async def provider_menu(
     provider = await uow.provider.get(pubkey=pubkey)
     telemetry = await uow.telemetry.get(provider_pubkey=pubkey)
 
-    is_subscribed = await uow.user_subscription.exists(
-        user_id=user.id, provider_pubkey=pubkey
+    subscription = next(
+        (
+            uta
+            for uta in (user.subscriptions or [])
+            if uta and uta.provider_pubkey == pubkey
+        ),
+        None,
     )
+    is_subscribed = subscription is not None
+
     provider_wallet_metrics = await uow.get_provider_wallet_metrics(
         pubkey=pubkey, today=today
     )
-
+    provider_traffic_metrics = await uow.get_provider_traffic_metrics(
+        pubkey=pubkey, today=today
+    )
     if telemetry and telemetry.telemetry_pass:
-        user_pass_hash = next(
-            (
-                uta.telemetry_pass
-                for uta in (user.subscriptions or [])
-                if uta and uta.provider_pubkey == pubkey
-            ),
-            "N/A",
-        )
+        user_pass_hash = subscription.telemetry_pass if subscription else "N/A"
         access_granted = user_pass_hash == telemetry.telemetry_pass
         password_invalid = is_subscribed and not access_granted
     else:
-        access_granted = False
+        if subscription and user.user_id in ADMIN_IDS:
+            access_granted = True
+        else:
+            access_granted = False
         password_invalid = None
 
     return {
@@ -83,6 +88,7 @@ async def provider_menu(
         "provider_pubkey": pubkey,
         "provider_address": provider.address,
         "provider_wallet_metrics": provider_wallet_metrics,
+        "provider_traffic_metrics": provider_traffic_metrics,
     }
 
 

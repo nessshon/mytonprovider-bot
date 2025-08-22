@@ -3,7 +3,7 @@ from __future__ import annotations
 import math
 import typing as t
 
-from .types import AlertTypes
+from .types import AlertTypes, ServiceRestartedAlert
 from ...database.models import ProviderModel, TelemetryModel
 
 DEFAULT_THRESHOLDS: dict[str, float] = {
@@ -181,3 +181,60 @@ class OverloadDetector:
             return 0.0
 
         return max(candidates) / 125_000.0
+
+
+class ServiceRestartedDetector:
+
+    @staticmethod
+    def _to_uptime(x: t.Any) -> t.Optional[int]:
+        try:
+            v = int(x)
+            return v if v >= 0 else None
+        except (Exception,):
+            return None
+
+    @staticmethod
+    def _detect_restart(
+        prev_uptime: t.Optional[int],
+        curr_uptime: t.Optional[int],
+    ) -> bool:
+        if prev_uptime is None or curr_uptime is None:
+            return False
+        return curr_uptime < prev_uptime
+
+    def get_triggered_alerts(
+        self,
+        prev_telemetry: t.Optional[TelemetryModel],
+        curr_telemetry: t.Optional[TelemetryModel],
+    ) -> list[ServiceRestartedAlert]:
+        if prev_telemetry is None or curr_telemetry is None:
+            return []
+
+        def g(obj: t.Any, *path: str) -> t.Any:
+            for p in path:
+                obj = getattr(obj, p, None) if not isinstance(obj, dict) else obj.get(p)
+                if obj is None:
+                    return None
+            return obj
+
+        prev_mtp_uptime = self._to_uptime(
+            g(prev_telemetry.storage, "provider", "service_uptime")
+        )
+        curr_mtp_uptime = self._to_uptime(
+            g(curr_telemetry.storage, "provider", "service_uptime")
+        )
+
+        prev_ts_uptime = self._to_uptime(g(prev_telemetry.storage, "service_uptime"))
+        curr_ts_uptime = self._to_uptime(g(curr_telemetry.storage, "service_uptime"))
+
+        alerts: list[ServiceRestartedAlert] = []
+        if self._detect_restart(prev_mtp_uptime, curr_mtp_uptime):
+            alerts.append(
+                (AlertTypes.SERVICE_RESTARTED, {"service_name": "mytonproviderd"})
+            )
+        if self._detect_restart(prev_ts_uptime, curr_ts_uptime):
+            alerts.append(
+                (AlertTypes.SERVICE_RESTARTED, {"service_name": "ton-storage"})
+            )
+
+        return alerts

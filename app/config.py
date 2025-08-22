@@ -31,6 +31,7 @@ BOT_TOKEN: str = ENV.str("BOT_TOKEN")
 TONCENTER_API_KEY = ENV.str("TONCENTER_API_KEY")
 MYTONPROVIDER_API_KEY = ENV.str("MYTONPROVIDER_API_KEY")
 TELEMETRY_URL_SALT = "https://mytonprovider.org/api/v1/providers"
+ADMIN_PASSWORD = ENV.str("ADMIN_PASSWORD")
 
 
 def setup_logging(

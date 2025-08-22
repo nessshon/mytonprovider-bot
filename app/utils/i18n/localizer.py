@@ -21,6 +21,7 @@ class Localizer:
         self.locale_data = locale_data
 
         self.jinja_env.filters["toamount"] = self._toamount_filter
+        self.jinja_env.filters["sizeformat"] = self._sizeformat_filter
         self.jinja_env.filters["datetimeformat"] = self._datetimeformat_filter
         self.jinja_env.filters["durationformat"] = self._durationformat_filter
 
@@ -58,6 +59,40 @@ class Localizer:
         elif days > 0:
             return f"{days}{await l('day')} {hours}{await l('hour')}"
         return f"{hours}{await l('hour')}"
+
+    @staticmethod
+    async def _sizeformat_filter(value: t.Optional[t.Union[int, float]]) -> str:
+        if value is None:
+            return "0MB"
+
+        try:
+            b = float(value)
+        except (Exception,):
+            return "0MB"
+
+        sign = "-" if b < 0 else ""
+        b = abs(b)
+
+        units = [
+            ("MB", 1e6),
+            ("GB", 1e9),
+            ("TB", 1e12),
+            ("PB", 1e15),
+            ("EB", 1e18),
+            ("ZB", 1e21),
+            ("YB", 1e24),
+        ]
+
+        for name, factor in reversed(units):
+            if b >= factor:
+                num = b / factor
+                break
+        else:
+            name, factor = units[0]
+            num = b / factor
+
+        s = f"{num:.2f}".rstrip("0").rstrip(".")
+        return f"{sign}{s}{name}"
 
     @classmethod
     def _get_nested(

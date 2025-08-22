@@ -1,5 +1,5 @@
-from apiq import AsyncClientAPI, async_endpoint, AsyncAPINamespace
-from apiq.types import HTTPMethod
+from pyapiq import AsyncClientAPI, async_endpoint, AsyncAPINamespace
+from pyapiq.types import HTTPMethod
 
 from .models import (
     ProvidersResponse,

@@ -52,6 +52,8 @@ messages:
       <b>• Address</b>: <a href="https://tonviewer.com/{{ provider.address }}">{{ provider.ui.short_address }}</a><br>
       <b>• In operation</b>: <code>{{ provider.working_time | durationformat }}</code><br>
       <b>• Location</b>: <code>{{ provider.ui.location }}</code><br>
+      <b>• Storage Git hash:</b> <code>{{ provider.ui.storage_git_hash }}</code><br>
+      <b>• Provider Git hash:</b> <code>{{ provider.ui.provider_git_hash }}</code><br>
       <b>• Registration date:</b> <code>{{ provider.reg_time | datetimeformat }}</code><br>
 
     enter_password: |
@@ -112,21 +114,40 @@ messages:
       <b>• ISP:</b> <code>{{ provider.ui.isp }}</code><br>
       </blockquote>
 
-    software: |
-      <h2>Software</h2>
+    traffic: |
+      <h2>Traffic</h2>
+      {% set m = provider_traffic_metrics %}
+      {% set rows = [
+        ("Today", "traffic_today_in","traffic_today_out","traffic_today_total"),
+        ("Last 7 days", "traffic_week_in","traffic_week_out","traffic_week_total"),
+        ("Last 30 days", "traffic_month_in","traffic_month_out","traffic_month_total"),
+        ("Total", "traffic_total_in","traffic_total_out","traffic_total"),
+      ] %}
       <blockquote>
-      <b>• Storage Git hash:</b> <code>{{ provider.ui.storage_git_hash }}</code><br>
-      <b>• Provider Git hash:</b> <code>{{ provider.ui.provider_git_hash }}</code><br>
+      <b>Format: (in / out / total)</b><br>
+      {% for label, i, o, t in rows -%}
+        {% set total = (m.get(t) if t else ((m.get(i) or 0) + (m.get(o) or 0))) %}
+        <b>• {{ label }}:</b>
+        <code>{{ (m.get(i) or 0) | sizeformat }}</code> / <code>{{ (m.get(o) or 0) | sizeformat }}</code> / <code>{{ total | sizeformat }}</code><br>
+      {%- endfor %}
+      <b>• Updated:</b> <code>{{ m.get('updated_at') | datetimeformat }}</code><br>
       </blockquote>
 
 alerts:
   monthly_report:
     info: |
-      ...
+      📊 <b>Monthly Report</b><br><br>
+      <b>Provider:</b> <code>{{ report.provider.ui.short_pubkey }}</code><br>
+      <b>Period:</b> <code>{{ report.start_date }}</code> • <code>{{ report.end_date }}</code><br><br>
+      
+      <b>• Earned:</b> <code>{{ report.earned_nanoton | toamount }} TON</code><br>
+      <b>• Storage used:</b> <code>{{ report.used_space_bytes | sizeformat }}</code> / <code>{{ report.total_space_bytes | sizeformat }}</code><br>
+      <b>• Traffic used:</b> <code>↓ {{ report.traffic_in_bytes | sizeformat }}</code> / <code>↑ {{ report.traffic_out_bytes | sizeformat }}</code><br>
 
   service_restarted:
-    info: |
-      ...
+    detected: |
+      ⚠️️ <b>Service {{ service_name }} has restarted</b><br><br>
+      <b>Provider</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
 
   cpu_high:
     detected: |
@@ -251,7 +272,7 @@ buttons:
       benchmarks: "Benchmarks"
       disk: "Disk"
       network: "Network"
-      software: "Software"
+      traffic: "Traffic"
       wallet: "Wallet"
 
 commands:
