@@ -1,7 +1,7 @@
 import typing as t
 
-from apiq import AsyncClientAPI, async_endpoint
-from apiq.types import HTTPMethod
+from pyapiq import AsyncClientAPI, async_endpoint
+from pyapiq.types import HTTPMethod
 
 from .models import TransactionList
 from ...config import TONCENTER_API_KEY
