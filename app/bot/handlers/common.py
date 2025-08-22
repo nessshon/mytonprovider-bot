@@ -10,7 +10,7 @@ from aiogram.types import (
 from aiogram_dialog import DialogManager, ShowMode
 
 from ..dialogs import states
-from ..utils import delete_message, generate_password_hash
+from ..utils import delete_message, generate_password_hash, is_valid_pubkey
 from ...config import ADMIN_IDS, ADMIN_PASSWORD
 from ...database import UnitOfWork
 from ...database.models import ProviderModel, UserModel, UserSubscriptionModel
@@ -140,15 +140,6 @@ async def default_message(
         if message.content_type == ContentType.TEXT
         else None
     )
-
-    def is_valid_pubkey(_pubkey: str) -> bool:
-        if len(_pubkey) != 64:
-            return False
-        try:
-            bytes.fromhex(_pubkey)
-            return True
-        except ValueError:
-            return False
 
     if not pubkey or not is_valid_pubkey(pubkey):
         await dialog_manager.start(
