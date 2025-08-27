@@ -33,8 +33,9 @@ class Scheduler:
 
         for job_func, interval in [
             (jobs.monitor_providers_job, 60),
-            (jobs.monitor_balances_job, 90),
-            (jobs.monitor_traffics_job, 120),
+            (jobs.monitor_storage_job, 80),
+            (jobs.monitor_traffics_job, 100),
+            (jobs.monitor_balances_job, 120),
         ]:
             job_id = job_func.__name__
             self.async_scheduler.add_job(
@@ -70,6 +71,7 @@ class Scheduler:
             jobs.monitor_providers_job.__name__,
             jobs.monitor_balances_job.__name__,
             jobs.monitor_traffics_job.__name__,
+            jobs.monitor_storage_job.__name__,
             jobs.monthly_report_job.__name__,
         ):
             self.async_scheduler.remove_job(job_id)
