@@ -67,6 +67,9 @@ async def provider_menu(
     provider_traffic_metrics = await uow.get_provider_traffic_metrics(
         pubkey=pubkey, today=today
     )
+    provider_storage_metrics = await uow.get_provider_storage_metrics(
+        pubkey=pubkey, today=today
+    )
     if telemetry and telemetry.telemetry_pass:
         user_pass_hash = subscription.telemetry_pass if subscription else "N/A"
         access_granted = user_pass_hash == telemetry.telemetry_pass
@@ -89,6 +92,7 @@ async def provider_menu(
         "provider_address": provider.address,
         "provider_wallet_metrics": provider_wallet_metrics,
         "provider_traffic_metrics": provider_traffic_metrics,
+        "provider_storage_metrics": provider_storage_metrics,
     }
 
 
