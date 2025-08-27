@@ -39,7 +39,7 @@ async def monitor_traffics_job(ctx: Context) -> None:
             logger.info(f"Skipped {pubkey} — no traffic counters")
             continue
 
-        async with UnitOfWork(ctx.db.session_factory) as uow:
+        async with uow:
             last_row = await uow.provider_traffic_history.get(
                 order_by=ProviderTrafficHistoryModel.date.desc(),
                 provider_pubkey=pubkey,
