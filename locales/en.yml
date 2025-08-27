@@ -83,8 +83,27 @@ messages:
       <h2>Storage</h2>
       <blockquote>
       <b>• Max bag size:</b> <code>{{ provider.ui.max_bag_size }}</code><br>
-      <b>• Max storage time:</b> <code>{{ provider.max_span | durationformat }}</code><br>
-      <b>• Min storage time:</b> <code>{{ provider.min_span | durationformat }}</code><br>
+      <b>• Max retention period:</b> <code>{{ provider.max_span | durationformat }}</code><br>
+      <b>• Min retention period:</b> <code>{{ provider.min_span | durationformat }}</code><br>
+      <b>• Space usage:</b><br>
+      {% set m = provider_storage_metrics %}
+      {% set rows = [
+        ("Today", "used_today"),
+        ("Last 7 days", "used_week"),
+        ("Last 30 days", "used_month"),
+        ("Total", "used_total"),
+      ] %}
+      <b>&nbsp;&nbsp;Format: (used / occupied / total)</b><br>
+      {% for label, k in rows -%}
+        {% set used_delta_bytes = ((m.get(k) or 0.0) * 1_000_000_000) %}
+        {% set used_eom_bytes = ((m.get('used_provider_space') or 0.0) * 1_000_000_000) %}
+        {% set total_eom_bytes = ((m.get('total_provider_space') or 0.0) * 1_000_000_000) %}
+        <b>&nbsp;&nbsp;&nbsp;• {{ label }}:</b>
+        <code>{{ used_delta_bytes | sizeformat }}</code>
+        / <code>{{ used_eom_bytes | sizeformat }}</code>
+        / <code>{{ total_eom_bytes | sizeformat }}</code><br>
+      {%- endfor %}
+      <b>&nbsp;&nbsp;&nbsp;• Updated:</b> <code>{{ m.get('updated_at') | datetimeformat }}</code><br>
       </blockquote>
 
     hardware: |
@@ -140,8 +159,8 @@ alerts:
       <b>Provider:</b> <code>{{ report.provider.ui.short_pubkey }}</code><br>
       <b>Period:</b> <code>{{ report.start_date }}</code> • <code>{{ report.end_date }}</code><br><br>
       
-      <b>• Earned:</b> <code>{{ report.earned_nanoton | toamount }} TON</code><br>
-      <b>• Storage used:</b> <code>{{ report.used_space_bytes | sizeformat }}</code> / <code>{{ report.total_space_bytes | sizeformat }}</code><br>
+      <b>• Earned:</b> <code>+{{ report.earned_nanoton | toamount }} TON</code><br>
+      <b>• Storage used:</b> <code>+{{ report.used_space_bytes | sizeformat }}</code><br>
       <b>• Traffic used:</b> <code>↓ {{ report.traffic_in_bytes | sizeformat }}</code> / <code>↑ {{ report.traffic_out_bytes | sizeformat }}</code><br>
 
   service_restarted:
