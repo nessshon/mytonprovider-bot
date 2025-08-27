@@ -109,6 +109,28 @@ class ProviderTrafficHistoryModel(BaseModel):
     )
 
 
+class ProviderStorageHistoryModel(BaseModel):
+    __tablename__ = "providers.storage_history"
+
+    provider_pubkey: Mapped[str] = mapped_column(
+        ForeignKey("providers.pubkey"),
+        primary_key=True,
+    )
+    date: Mapped[date] = mapped_column(primary_key=True)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+
+    # Snapshots from API (GB)
+    total_provider_space: Mapped[t.Optional[float]] = mapped_column(Float)
+    used_provider_space: Mapped[t.Optional[float]] = mapped_column(Float)
+
+    # Net change for this calendar day
+    used_daily_space: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
+
+    __table_args__ = (
+        Index("ix_storage_history_provider_date", "provider_pubkey", "date"),
+    )
+
+
 class ProviderModel(BaseModel):
     __tablename__ = "providers"
 
@@ -151,6 +173,7 @@ class ProviderModel(BaseModel):
 
 
 class ProviderUI:
+
     def __init__(self, provider: ProviderModel) -> None:
         self.provider = provider
 
