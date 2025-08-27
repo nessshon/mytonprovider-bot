@@ -34,18 +34,18 @@ class MemoryInfo(BaseModel):
 
 
 class UnameInfo(BaseModel):
-    sysname: str
-    release: str
-    version: str
-    machine: str
+    sysname: t.Optional[str] = None
+    release: t.Optional[str] = None
+    version: t.Optional[str] = None
+    machine: t.Optional[str] = None
 
 
 class CPUInfo(BaseModel):
-    cpu_load: t.List[float]
-    cpu_count: int
-    cpu_name: str
-    product_name: str
-    is_virtual: bool
+    cpu_load: t.Optional[t.List[float]] = None
+    cpu_count: t.Optional[int] = None
+    cpu_name: t.Optional[str] = None
+    product_name: t.Optional[str] = None
+    is_virtual: t.Optional[bool] = None
 
 
 class TelemetryRequest(BaseModel):
