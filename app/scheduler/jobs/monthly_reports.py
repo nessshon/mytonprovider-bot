@@ -22,12 +22,19 @@ async def aggregate_for_provider(
     today = datetime.now(TIMEZONE).date()
     start_d, end_d, label = prev_month_range(today)
 
-    telemetry = provider.telemetry
-    used_space_gb = float(telemetry.used_provider_space or 0.0) if telemetry else 0.0
-    total_space_gb = float(telemetry.total_provider_space or 0.0) if telemetry else 0.0
+    used_sum_gb, total_gb_eom, used_gb_eom = await uow.sum_storage_used_between(
+        provider.pubkey, start_d, end_d
+    )
 
-    used_space_bytes = int(used_space_gb * 1_000_000_000)
-    total_space_bytes = int(total_space_gb * 1_000_000_000)
+    telemetry = provider.telemetry
+    if total_gb_eom is None and telemetry:
+        total_gb_eom = float(telemetry.total_provider_space or 0.0)
+    if used_gb_eom is None and telemetry:
+        used_gb_eom = float(telemetry.used_provider_space or 0.0)
+
+    used_space_bytes = int(used_sum_gb * 1_000_000_000)
+    total_space_bytes = int((total_gb_eom or 0.0) * 1_000_000_000)
+    used_space_eom_bytes = int((used_gb_eom or 0.0) * 1_000_000_000)
 
     earned = await uow.sum_wallet_earned_between(provider.pubkey, start_d, end_d)
     traffic_in, traffic_out = await uow.sum_traffic_between(
@@ -40,6 +47,7 @@ async def aggregate_for_provider(
         end_date=end_d,
         used_space_bytes=used_space_bytes,
         total_space_bytes=total_space_bytes,
+        used_space_eom_bytes=used_space_eom_bytes,
         traffic_in_bytes=int(traffic_in or 0),
         traffic_out_bytes=int(traffic_out or 0),
         earned_nanoton=int(earned or 0),
