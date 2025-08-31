@@ -30,6 +30,7 @@ class MonthlyReport:
     end_date: date
     used_space_bytes: int
     total_space_bytes: int
+    used_space_eom_bytes: int
     traffic_in_bytes: int
     traffic_out_bytes: int
     earned_nanoton: int

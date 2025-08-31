@@ -21,6 +21,7 @@ from .models import (
     ProviderTelemetryModel,
     ProviderWalletHistoryModel,
     ProviderTrafficHistoryModel,
+    ProviderStorageHistoryModel,
 )
 from .repository import BaseRepository as BRepo
 
@@ -33,6 +34,7 @@ class UnitOfWork:
     provider: BRepo[ProviderModel]
     provider_wallet_history: BRepo[ProviderWalletHistoryModel]
     provider_traffic_history: BRepo[ProviderTrafficHistoryModel]
+    provider_storage_history: BRepo[ProviderStorageHistoryModel]
     provider_telemetry: BRepo[ProviderTelemetryModel]
     telemetry: BRepo[TelemetryModel]
     user_subscription: BRepo[UserSubscriptionModel]
@@ -50,6 +52,7 @@ class UnitOfWork:
         self.provider_telemetry = BRepo(ProviderTelemetryModel, self.session)
         self.provider_wallet_history = BRepo(ProviderWalletHistoryModel, self.session)
         self.provider_traffic_history = BRepo(ProviderTrafficHistoryModel, self.session)
+        self.provider_storage_history = BRepo(ProviderStorageHistoryModel, self.session)
 
         self.telemetry = BRepo(TelemetryModel, self.session)
 
@@ -218,6 +221,77 @@ class UnitOfWork:
             "traffic_total": total_in + total_out,
         }
 
+    async def get_provider_storage_metrics(
+        self,
+        pubkey: str,
+        today: date,
+    ) -> dict:
+        latest_stmt = (
+            select(
+                ProviderStorageHistoryModel.updated_at,
+                ProviderStorageHistoryModel.total_provider_space,
+                ProviderStorageHistoryModel.used_provider_space,
+            )
+            .where(ProviderStorageHistoryModel.provider_pubkey == pubkey)
+            .order_by(ProviderStorageHistoryModel.date.desc())
+            .limit(1)
+        )
+        latest_res = await self.session.execute(latest_stmt)
+        latest = latest_res.first()
+
+        updated_at = latest[0] if latest else None
+        total_provider_space = (
+            float(latest[1]) if latest and latest[1] is not None else None
+        )
+        used_provider_space = (
+            float(latest[2]) if latest and latest[2] is not None else None
+        )
+
+        week_start = today - timedelta(days=7)
+        month_start = today - timedelta(days=30)
+
+        def sum_stmt(start: date | None):
+            stmt = select(func.sum(ProviderStorageHistoryModel.used_daily_space)).where(
+                ProviderStorageHistoryModel.provider_pubkey == pubkey
+            )
+            if start is not None:
+                stmt = stmt.where(
+                    ProviderStorageHistoryModel.date >= start,
+                    ProviderStorageHistoryModel.date <= today,
+                )
+            return stmt
+
+        stmt_today = sum_stmt(today)
+        stmt_week = sum_stmt(week_start)
+        stmt_month = sum_stmt(month_start)
+        stmt_total = sum_stmt(None)
+
+        res_today, res_week, res_month, res_total = await asyncio.gather(
+            *(
+                self.session.execute(s)
+                for s in (stmt_today, stmt_week, stmt_month, stmt_total)
+            )
+        )
+
+        def parse_sum(exec_result) -> float:
+            row = exec_result.first()
+            return float(row[0] or 0.0) if row else 0.0
+
+        used_today = parse_sum(res_today)
+        used_week = parse_sum(res_week)
+        used_month = parse_sum(res_month)
+        used_total = parse_sum(res_total)
+
+        return {
+            "updated_at": updated_at,
+            "total_provider_space": total_provider_space,
+            "used_provider_space": used_provider_space,
+            "used_today": used_today,
+            "used_week": used_week,
+            "used_month": used_month,
+            "used_total": used_total,
+        }
+
     async def sum_wallet_earned_between(
         self,
         pubkey: str,
@@ -251,3 +325,37 @@ class UnitOfWork:
         s_in = int((row[0] or 0) if row else 0)
         s_out = int((row[1] or 0) if row else 0)
         return s_in, s_out
+
+    async def sum_storage_used_between(
+        self,
+        pubkey: str,
+        start_date: date,
+        end_date: date,
+    ) -> t.Tuple[float, t.Optional[float], t.Optional[float]]:
+        sum_stmt = select(func.sum(ProviderStorageHistoryModel.used_daily_space)).where(
+            ProviderStorageHistoryModel.provider_pubkey == pubkey,
+            ProviderStorageHistoryModel.date >= start_date,
+            ProviderStorageHistoryModel.date <= end_date,
+        )
+        res = await self.session.execute(sum_stmt)
+        used_sum_gb = float(res.scalar() or 0.0)
+
+        snapshot_stmt = (
+            select(
+                ProviderStorageHistoryModel.total_provider_space,
+                ProviderStorageHistoryModel.used_provider_space,
+            )
+            .where(
+                ProviderStorageHistoryModel.provider_pubkey == pubkey,
+                ProviderStorageHistoryModel.date <= end_date,
+            )
+            .order_by(ProviderStorageHistoryModel.date.desc())
+            .limit(1)
+        )
+        snap_res = await self.session.execute(snapshot_stmt)
+        snap = snap_res.first()
+
+        total_gb = float(snap[0]) if snap and snap[0] is not None else None
+        used_gb = float(snap[1]) if snap and snap[1] is not None else None
+
+        return used_sum_gb, total_gb, used_gb

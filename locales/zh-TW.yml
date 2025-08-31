@@ -82,9 +82,28 @@ messages:
     storage: |
       <h2>儲存</h2>
       <blockquote>
-      <b>• 最大包大小：</b> <code>{{ provider.ui.max_bag_size }}</code><br>
-      <b>• 最長儲存時間：</b> <code>{{ provider.max_span | durationformat }}</code><br>
-      <b>• 最短儲存時間：</b> <code>{{ provider.min_span | durationformat }}</code><br>
+      <b>• 最大袋大小:</b> <code>{{ provider.ui.max_bag_size }}</code><br>
+      <b>• 最長保存期限:</b> <code>{{ provider.max_span | durationformat }}</code><br>
+      <b>• 最短保存期限:</b> <code>{{ provider.min_span | durationformat }}</code><br>
+      <b>• 空間使用情況:</b><br>
+      {% set m = provider_storage_metrics %}
+      {% set rows = [
+        ("今天", "used_today"),
+        ("過去 7 天", "used_week"),
+        ("過去 30 天", "used_month"),
+        ("總計", "used_total"),
+      ] %}
+      <b>&nbsp;&nbsp;格式: (本期使用量 / 已佔用 / 總容量)</b><br>
+      {% for label, k in rows -%}
+        {% set used_delta_bytes = ((m.get(k) or 0.0) * 1_000_000_000) %}
+        {% set used_eom_bytes = ((m.get('used_provider_space') or 0.0) * 1_000_000_000) %}
+        {% set total_eom_bytes = ((m.get('total_provider_space') or 0.0) * 1_000_000_000) %}
+        <b>&nbsp;&nbsp;&nbsp;• {{ label }}:</b>
+        <code>{{ used_delta_bytes | sizeformat }}</code>
+        / <code>{{ used_eom_bytes | sizeformat }}</code>
+        / <code>{{ total_eom_bytes | sizeformat }}</code><br>
+      {%- endfor %}
+      <b>&nbsp;&nbsp;&nbsp;• 更新時間:</b> <code>{{ m.get('updated_at') | datetimeformat }}</code><br>
       </blockquote>
 
     hardware: |
@@ -140,8 +159,8 @@ alerts:
       <b>提供者:</b> <code>{{ report.provider.ui.short_pubkey }}</code><br>
       <b>期間:</b> <code>{{ report.start_date }}</code> • <code>{{ report.end_date }}</code><br><br>
       
-      <b>• 收益:</b> <code>{{ report.earned_nanoton | toamount }} TON</code><br>
-      <b>• 已使用儲存空間:</b> <code>{{ report.used_space_bytes | sizeformat }}</code> / <code>{{ report.total_space_bytes | sizeformat }}</code><br>
+      <b>• 獲得收益:</b> <code>+{{ report.earned_nanoton | toamount }} TON</code><br>
+      <b>• 已使用空間:</b> <code>+{{ report.used_space_bytes | sizeformat }}</code><br>
       <b>• 已使用流量:</b> <code>↓ {{ report.traffic_in_bytes | sizeformat }}</code> / <code>↑ {{ report.traffic_out_bytes | sizeformat }}</code><br>
 
   service_restarted:

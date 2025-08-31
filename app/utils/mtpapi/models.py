@@ -1,7 +1,8 @@
 import typing as t
+from typing import Any
 
-from pydantic import BaseModel as PydanticBaseModel, Field
-from pydantic import ConfigDict
+from pydantic import BaseModel as PydanticBaseModel
+from pydantic import ConfigDict, Field
 
 
 class BaseModel(PydanticBaseModel):
@@ -33,18 +34,18 @@ class MemoryInfo(BaseModel):
 
 
 class UnameInfo(BaseModel):
-    sysname: str
-    release: str
-    version: str
-    machine: str
+    sysname: t.Optional[str] = None
+    release: t.Optional[str] = None
+    version: t.Optional[str] = None
+    machine: t.Optional[str] = None
 
 
 class CPUInfo(BaseModel):
-    cpu_load: t.List[float]
-    cpu_count: int
-    cpu_name: str
-    product_name: str
-    is_virtual: bool
+    cpu_load: t.Optional[t.List[float]] = None
+    cpu_count: t.Optional[int] = None
+    cpu_name: t.Optional[str] = None
+    product_name: t.Optional[str] = None
+    is_virtual: t.Optional[bool] = None
 
 
 class TelemetryRequest(BaseModel):
@@ -88,11 +89,17 @@ class Telemetry(BaseModel):
     total_ram: t.Optional[float] = None
     usage_ram: t.Optional[float] = None
     ram_usage_percent: t.Optional[float] = None
-    speedtest_download: t.Optional[int] = None
-    speedtest_upload: t.Optional[int] = None
+    speedtest_download: t.Optional[t.Union[float, int]] = None
+    speedtest_upload: t.Optional[t.Union[float, int]] = None
     speedtest_ping: t.Optional[float] = None
     cpu_number: t.Optional[int] = None
     cpu_is_virtual: t.Optional[bool] = None
+
+    def model_post_init(self, context: Any, /) -> None:
+        if isinstance(self.speedtest_upload, float):
+            self.speedtest_upload = int(self.speedtest_upload)
+        if isinstance(self.speedtest_download, float):
+            self.speedtest_download = int(self.speedtest_download)
 
 
 class Location(BaseModel):
