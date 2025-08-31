@@ -52,8 +52,8 @@ messages:
       <b>• Адрес</b>: <a href="https://tonviewer.com/{{ provider.address }}">{{ provider.ui.short_address }}</a><br>
       <b>• В работе</b>: <code>{{ provider.working_time | durationformat }}</code><br>
       <b>• Расположение</b>: <code>{{ provider.ui.location }}</code><br>
-      <b>• Git хеш хранилища:</b> <code>{{ provider.ui.storage_git_hash }}</code><br>
-      <b>• Git хеш провайдера:</b> <code>{{ provider.ui.provider_git_hash }}</code><br>
+      <b>• Git-хеш хранилища:</b> <code>{{ provider.ui.storage_git_hash }}</code><br>
+      <b>• Git-хеш провайдера:</b> <code>{{ provider.ui.provider_git_hash }}</code><br>
       <b>• Дата регистрации:</b> <code>{{ provider.reg_time | datetimeformat }}</code><br>
 
     enter_password: |
@@ -62,14 +62,14 @@ messages:
 
     incorrect_password: |
       ❗️ <b>Неверный пароль</b><br><br>
-      Проверьте ввод и попробуйте ещё раз:
+      Проверьте ввод и попробуйте ещё раз.
 
     password_invalid: |
       <h3>⚠️ Пароль изменён</h3>
       Доступ к расширенным данным закрыт. Обновите пароль, чтобы восстановить доступ.
 
     wallet: |
-      <h2>Кошелек</h2>
+      <h2>Кошелёк</h2>
       <blockquote>
       <b>• Баланс:</b> <code>{{ provider_wallet_metrics.get('balance') | toamount }} TON</code><br>
       <b>• Заработано сегодня:</b> <code>{{ provider_wallet_metrics.get('earned_today') | toamount }} TON</code><br>
@@ -82,7 +82,7 @@ messages:
     storage: |
       <h2>Хранилище</h2>
       <blockquote>
-      <b>• Макс. размер бага:</b> <code>{{ provider.ui.max_bag_size }}</code><br>
+      <b>• Макс. размер bag’а:</b> <code>{{ provider.ui.max_bag_size }}</code><br>
       <b>• Макс. срок хранения:</b> <code>{{ provider.max_span | durationformat }}</code><br>
       <b>• Мин. срок хранения:</b> <code>{{ provider.min_span | durationformat }}</code><br>
       <b>• Использовано место:</b><br>
@@ -106,24 +106,24 @@ messages:
       <b>&nbsp;&nbsp;&nbsp;• Обновлено:</b> <code>{{ m.get('updated_at') | datetimeformat }}</code><br>
       </blockquote>
 
-    hardware:
+    hardware: |
       <h2>Железо</h2>
       <blockquote>
       <b>• CPU:</b> <code>{{ provider.ui.cpu_name }}</code><br>
       <b>• Количество ядер:</b> <code>{{ provider.ui.cpu_number }}</code><br>
-      <b>• Виртуальный CPU.:</b> <code>{{ provider.ui.cpu_is_virtual }}</code><br>
+      <b>• Виртуальный CPU:</b> <code>{{ provider.ui.cpu_is_virtual }}</code><br>
       <b>• RAM:</b> <code>{{ provider.ui.ram }}</code><br>
       <b>• Объём хранилища:</b> <code>{{ provider.ui.storage }}</code><br>
       </blockquote>
 
-    benchmarks:
+    benchmarks: |
       <h2>Бенчмарки</h2>
       <blockquote>
       <b>• Чтение диска:</b> <code>{{ provider.ui.disk_read_speed }}</code><br>
       <b>• Запись диска:</b> <code>{{ provider.ui.disk_write_speed }}</code><br>
       </blockquote>
 
-    network:
+    network: |
       <h2>Сеть</h2>
       <blockquote>
       <b>• Загрузка:</b> <code>{{ provider.ui.speed_download }}</code><br>
@@ -247,7 +247,7 @@ buttons:
       url: "https://github.com/igroman787/mytonprovider/blob/master/README.ru.md"
 
   alert_settings:
-    text: "Настроить уведолмения"
+    text: "Настроить уведомления"
 
     state:
       enabled: "Отключить уведомления"
@@ -269,15 +269,15 @@ buttons:
         network_high: "Высокая сетевая нагрузка"
         disk_load_high: "Высокая нагрузка на диск"
         disk_space_low: "Недостаточно свободного места"
-      enable_all: "Включить всe"
-      disable_all: "Отключить всe"
+      enable_all: "Включить всё"
+      disable_all: "Отключить всё"
 
     thresholds:
       cpu_high: "Нагрузка на CPU: ≥ {{ thresholds_data.get('cpu_high') }}%"
       ram_high: "Нагрузка на RAM: ≥ {{ thresholds_data.get('ram_high') }}%"
       network_high: "Нагрузка на сеть: ≥ {{ thresholds_data.get('network_high') }}%"
       disk_load_high: "Нагрузка на диск: ≥ {{ thresholds_data.get('disk_load_high') }}%"
-      disk_space_low: "Заполнено места: ≥ {{ thresholds_data.get('disk_space_low') }}%"
+      disk_space_low: "Заполненность диска: ≥ {{ thresholds_data.get('disk_space_low') }}%"
 
   provider:
     copy_pubkey: "Скопировать публичный ключ"
@@ -292,13 +292,13 @@ buttons:
       disk: "Диск"
       network: "Сеть"
       traffic: "Трафик"
-      wallet: "Кошелек"
+      wallet: "Кошелёк"
 
 commands:
   start:
     description: "Запустить бота"
   help:
-    description: "Вывести информация"
+    description: "Вывести информацию"
   lang:
     description: "Сменить язык интерфейса"
 
