@@ -60,6 +60,12 @@ main_menu = kbd.Group(
             state=states.LanguageMenu.MAIN,
         ),
     ),
+    kbd.Start(
+        id="to_stats",
+        state=states.StatsMenu.MAIN,
+        text=I18NJinja("buttons.common.stats"),
+        when=F["is_admin"].is_(True),
+    ),
 )
 
 provider_menu = kbd.Group(

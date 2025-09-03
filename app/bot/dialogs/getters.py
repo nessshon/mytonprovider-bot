@@ -24,6 +24,7 @@ async def main_menu(
     return {
         "user": dialog_manager.event.from_user,
         "user_model": user_model,
+        "is_admin": user_model.user_id in ADMIN_IDS,
         "toggle_alerts": "enabled" if enabled_alerts else "disabled",
         "has_subscriptions": dialog_manager.middleware_data["has_subscriptions"],
         "list_providers_count": (
@@ -33,6 +34,15 @@ async def main_menu(
             f"[{my_providers_count}]" if my_providers_count > 0 else ""
         ),
     }
+
+
+async def stats_menu(
+    dialog_manager: DialogManager,
+    **_,
+):
+    uow: UnitOfWork = dialog_manager.middleware_data["uow"]
+    stats = await uow.get_stats_summary()
+    return {"stats": stats}
 
 
 async def provider_menu(
