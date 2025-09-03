@@ -16,6 +16,29 @@ messages:
       ❗️ <b>Неверный формат публичного ключа</b><br><br>
       Пожалуйста, проверьте ввод и попробуйте снова.
 
+  stats:
+    menu: |
+      📊 <b>Статистика бота</b><br><br>
+      👥 <b>Пользователи</b><br>
+      • Всего: <code>{{ stats.users_total }}</code><br>
+      • Активные: <code>{{ stats.users_active }}</code><br>
+      • Неактивные: <code>{{ stats.users_inactive }}</code><br><br>
+
+      🗂 <b>Провайдеры</b><br>
+      • Всего: <code>{{ stats.providers_total }}</code><br>
+      • С телеметрией: <code>{{ stats.providers_with_telemetry }}</code><br>
+      • С установленным паролем: <code>{{ stats.providers_with_password }}</code><br><br>
+
+      🧩 <b>Версии storage git hash</b><br>
+      {% for h, c in stats.storage_git_hashes|dictsort(by='value', reverse=True) %}
+      • <code>{{ h }}</code> - провайдеров: <code>{{ c }}</code><br>
+      {% endfor %}<br>
+
+      🧩 <b>Версии provider git hash</b><br>
+      {% for h, c in stats.provider_git_hashes|dictsort(by='value', reverse=True) %}
+      • <code>{{ h }}</code> - провайдеров: <code>{{ c }}</code><br>
+      {% endfor %}
+
   alert_settings:
     types_menu: |
       📢 <b>Выбор типов уведомлений</b><br><br>
@@ -208,6 +231,14 @@ alerts:
       🔰 <b>Диск | Доступное место восстановлено</b><br><br>
       <b>Провайдер</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
 
+  provider_offline:
+    detected: |
+      ❗️ <b>Сервер провайдера не отвечает</b><br><br>
+      <b>Провайдер</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
+    resolved: |
+      🔰 <b>Сервер провайдера восстановил работу</b><br><br>
+      <b>Провайдер</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
+
 inlines:
   list_providers:
     title: "{{ provider.ui.status_emoji }} Провайдер: {{ provider.ui.short_pubkey }}"
@@ -227,6 +258,7 @@ buttons:
   common:
     to_main: "‹ Назад"
     hide: "× Скрыть"
+    stats: "Статистика бота"
 
   main_menu:
     my_providers: "Мои провайдеры {{ my_providers_count }}"
@@ -262,6 +294,7 @@ buttons:
         enabled: "◉ "
         disabled: "⭘ "
       options:
+        provider_offline: "Сервер недоступен"
         service_restarted: "Перезапуск служб"
         monthly_report: "Ежемесячный отчёт"
         cpu_high: "Высокая нагрузка на CPU"

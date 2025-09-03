@@ -16,6 +16,29 @@ messages:
       ❗️ <b>Invalid public key format</b><br><br>
       Please check your input and try again.
 
+  stats:
+    menu: |
+      📊 <b>Bot Statistics</b><br><br>
+      👥 <b>Users</b><br>
+      • Total: <code>{{ stats.users_total }}</code><br>
+      • Active: <code>{{ stats.users_active }}</code><br>
+      • Inactive: <code>{{ stats.users_inactive }}</code><br><br>
+
+      🗂 <b>Providers</b><br>
+      • Total: <code>{{ stats.providers_total }}</code><br>
+      • With telemetry: <code>{{ stats.providers_with_telemetry }}</code><br>
+      • With password set: <code>{{ stats.providers_with_password }}</code><br><br>
+
+      🧩 <b>Storage git hash versions</b><br>
+      {% for h, c in stats.storage_git_hashes|dictsort(by='value', reverse=True) %}
+      • <code>{{ h }}</code> — providers: <code>{{ c }}</code><br>
+      {% endfor %}<br>
+
+      🧩 <b>Provider git hash versions</b><br>
+      {% for h, c in stats.provider_git_hashes|dictsort(by='value', reverse=True) %}
+      • <code>{{ h }}</code> — providers: <code>{{ c }}</code><br>
+      {% endfor %}
+
   alert_settings:
     types_menu: |
       📢 <b>Select notification types</b><br><br>
@@ -208,6 +231,14 @@ alerts:
       🔰 <b>Disk | Available space restored</b><br><br>
       <b>Provider</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
 
+  provider_offline:
+    detected: |
+      ❗️ <b>Provider server is not responding</b><br><br>
+      <b>Provider</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
+    resolved: |
+      🔰 <b>Provider server is back online</b><br><br>
+      <b>Provider</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
+
 inlines:
   list_providers:
     title: "{{ provider.ui.status_emoji }} Provider: {{ provider.ui.short_pubkey }}"
@@ -227,6 +258,7 @@ buttons:
   common:
     to_main: "‹ Back"
     hide: "× Hide"
+    stats: "Bot Statistics"
 
   main_menu:
     my_providers: "My providers {{ my_providers_count }}"
@@ -262,6 +294,7 @@ buttons:
         enabled: "◉ "
         disabled: "⭘ "
       options:
+        provider_offline: "Server unavailable"
         service_restarted: "Service restarted"
         monthly_report: "Monthly report"
         cpu_high: "High CPU load"

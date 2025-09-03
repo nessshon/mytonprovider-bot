@@ -16,6 +16,29 @@ messages:
       ❗️ <b>公鑰格式無效</b><br><br>
       請檢查您的輸入並重試。
 
+  stats:
+    menu: |
+      📊 <b>機器人統計</b><br><br>
+      👥 <b>使用者</b><br>
+      • 總數: <code>{{ stats.users_total }}</code><br>
+      • 活躍: <code>{{ stats.users_active }}</code><br>
+      • 不活躍: <code>{{ stats.users_inactive }}</code><br><br>
+
+      🗂 <b>提供者</b><br>
+      • 總數: <code>{{ stats.providers_total }}</code><br>
+      • 有遙測: <code>{{ stats.providers_with_telemetry }}</code><br>
+      • 已設密碼: <code>{{ stats.providers_with_password }}</code><br><br>
+
+      🧩 <b>storage git hash 版本</b><br>
+      {% for h, c in stats.storage_git_hashes|dictsort(by='value', reverse=True) %}
+      • <code>{{ h }}</code> — 提供者數量: <code>{{ c }}</code><br>
+      {% endfor %}<br>
+
+      🧩 <b>provider git hash 版本</b><br>
+      {% for h, c in stats.provider_git_hashes|dictsort(by='value', reverse=True) %}
+      • <code>{{ h }}</code> — 提供者數量: <code>{{ c }}</code><br>
+      {% endfor %}
+
   alert_settings:
     types_menu: |
       📢 <b>選擇通知類型</b><br><br>
@@ -208,6 +231,14 @@ alerts:
       🔰 <b>磁碟 | 可用空間已恢復</b><br><br>
       <b>供應商</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
 
+  provider_offline:
+    detected: |
+      ❗️ <b>提供者伺服器無回應</b><br><br>
+      <b>提供者</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
+    resolved: |
+      🔰 <b>提供者伺服器已恢復運作</b><br><br>
+      <b>提供者</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
+
 inlines:
   list_providers:
     title: "{{ provider.ui.status_emoji }} 供應商: {{ provider.ui.short_pubkey }}"
@@ -227,6 +258,7 @@ buttons:
   common:
     to_main: "‹ 返回"
     hide: "× 隱藏"
+    stats: "機器人統計"
 
   main_menu:
     my_providers: "我的供應商 {{ my_providers_count }}"
@@ -262,6 +294,7 @@ buttons:
         enabled: "◉ "
         disabled: "⭘ "
       options:
+        provider_offline: "伺服器無法使用"
         service_restarted: "服務已重新啟動"
         monthly_report: "每月報告"
         cpu_high: "CPU 高負載"
