@@ -9,6 +9,7 @@ from ...database.models import ProviderModel
 class AlertTypes(str, Enum):
     MONTHLY_REPORT = "monthly_report"
     SERVICE_RESTARTED = "service_restarted"
+    PROVIDER_OFFLINE = "provider_offline"
 
     CPU_HIGH = "cpu_high"
     RAM_HIGH = "ram_high"

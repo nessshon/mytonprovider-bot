@@ -7,6 +7,10 @@ class MainMenu(StatesGroup):
     INVALID_INPUT = State()
 
 
+class StatsMenu(StatesGroup):
+    MAIN = State()
+
+
 class LanguageMenu(StatesGroup):
     MAIN = State()
 

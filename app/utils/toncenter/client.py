@@ -12,8 +12,8 @@ class TONCenterAPI(AsyncClientAPI):
     base_url = "https://toncenter.com/api"
     version = "v3"
 
-    max_retries = 5
-    rps = 9
+    max_retries = 10
+    rps = 5
 
     @async_endpoint(
         HTTPMethod.GET,

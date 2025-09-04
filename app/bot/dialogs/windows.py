@@ -28,6 +28,13 @@ main_invalid_input = Window(
     state=states.MainMenu.INVALID_INPUT,
 )
 
+stats_menu = Window(
+    I18NJinja("messages.stats.menu"),
+    keyboards.to_main,
+    getter=getters.stats_menu,
+    state=states.StatsMenu.MAIN,
+)
+
 allert_settings_menu = Window(
     I18NJinja(
         "messages.alert_settings.types_menu",

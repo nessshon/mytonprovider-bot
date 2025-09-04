@@ -25,6 +25,7 @@ def register(dp: Dispatcher) -> None:
             windows.allert_settings_menu,
             windows.alert_settings_set_threshold,
         ),
+        Dialog(windows.stats_menu),
         Dialog(windows.language_menu),
         Dialog(windows.help_menu),
     )

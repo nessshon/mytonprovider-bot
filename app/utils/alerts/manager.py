@@ -38,7 +38,7 @@ class AlertManager:
         user: UserModel,
         triggered_alerts: list[tuple[AlertTypes, dict]],
         provider: ProviderModel,
-        telemetry: TelemetryModel,
+        telemetry: t.Optional[TelemetryModel] = None,
     ) -> None:
         user_id = user.user_id
         pubkey = provider.pubkey
@@ -80,8 +80,8 @@ class AlertManager:
     async def dispatch(
         self,
         provider: ProviderModel,
-        curr_telemetry: TelemetryModel,
-        prev_telemetry: TelemetryModel,
+        curr_telemetry: t.Optional[TelemetryModel] = None,
+        prev_telemetry: t.Optional[TelemetryModel] = None,
     ) -> None:
         uow = UnitOfWork(self.ctx.db.session_factory)
         users = await self.get_subscribed_users(uow, provider.pubkey)

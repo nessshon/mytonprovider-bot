@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import math
+import time
 import typing as t
 
 from .types import AlertTypes, ServiceRestartedAlert
@@ -12,6 +13,7 @@ DEFAULT_THRESHOLDS: dict[str, float] = {
     AlertTypes.NETWORK_HIGH.value: 90.0,  # percent of link capacity
     AlertTypes.DISK_LOAD_HIGH.value: 90.0,  # percent
     AlertTypes.DISK_SPACE_LOW.value: 90.0,  # percent used
+    AlertTypes.PROVIDER_OFFLINE.value: 60.0,  # minutes
 }
 
 
@@ -35,7 +37,7 @@ class OverloadDetector:
     def __init__(
         self,
         provider: ProviderModel,
-        telemetry: TelemetryModel,
+        telemetry: t.Optional[TelemetryModel] = None,
         thresholds: t.Optional[t.Mapping[str, float]] = None,
     ) -> None:
         self.provider = provider
@@ -53,16 +55,19 @@ class OverloadDetector:
     def get_triggered_alerts(self) -> t.Set[AlertTypes]:
         alerts: list[AlertTypes] = []
 
-        if self.is_cpu_high():
-            alerts.append(AlertTypes.CPU_HIGH)
-        if self.is_ram_high():
-            alerts.append(AlertTypes.RAM_HIGH)
-        if self.is_disk_space_low():
-            alerts.append(AlertTypes.DISK_SPACE_LOW)
-        if self.is_disk_load_high():
-            alerts.append(AlertTypes.DISK_LOAD_HIGH)
-        if self.is_network_high():
-            alerts.append(AlertTypes.NETWORK_HIGH)
+        if self.telemetry is not None:
+            if self.is_cpu_high():
+                alerts.append(AlertTypes.CPU_HIGH)
+            if self.is_ram_high():
+                alerts.append(AlertTypes.RAM_HIGH)
+            if self.is_disk_space_low():
+                alerts.append(AlertTypes.DISK_SPACE_LOW)
+            if self.is_disk_load_high():
+                alerts.append(AlertTypes.DISK_LOAD_HIGH)
+            if self.is_network_high():
+                alerts.append(AlertTypes.NETWORK_HIGH)
+        if self.is_stale():
+            alerts.append(AlertTypes.PROVIDER_OFFLINE)
 
         return set(alerts)
 
@@ -156,6 +161,29 @@ class OverloadDetector:
         max_usage_mbit = max(vals) * 8.0
         usage_percent = (max_usage_mbit / link_mbit) * 100.0
         return usage_percent >= thr
+
+    def is_stale(self, now_ts: t.Optional[int] = None) -> bool:
+        is_stale = False
+        if self.telemetry and self.telemetry.timestamp:
+            updated_at = self.telemetry.timestamp
+        elif (
+            self.provider
+            and self.provider.telemetry
+            and self.provider.telemetry.updated_at
+        ):
+            updated_at = self.provider.telemetry.updated_at
+        else:
+            updated_at = None
+        if updated_at is not None:
+            now_s = int(now_ts if now_ts is not None else time.time())
+            age_sec = max(0, now_s - updated_at)
+
+            thr_min = self._thr(AlertTypes.PROVIDER_OFFLINE)
+            thr_sec = int(max(0.0, float(thr_min)) * 60.0)
+            is_stale = age_sec >= thr_sec
+        if is_stale and self.provider.ui.status_text == "Stable":
+            return False
+        return is_stale and self.provider.is_send_telemetry
 
     def _thr(self, key: AlertTypes) -> float:
         """Return user threshold; lower-bounded by 0, NOT capped by 100."""

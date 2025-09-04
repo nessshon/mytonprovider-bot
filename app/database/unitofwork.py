@@ -5,6 +5,7 @@ import logging
 import typing as t
 from datetime import date, timedelta
 
+from aiogram.enums import ChatMemberStatus
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
@@ -359,3 +360,71 @@ class UnitOfWork:
         used_gb = float(snap[1]) if snap and snap[1] is not None else None
 
         return used_sum_gb, total_gb, used_gb
+
+    async def get_stats_summary(self) -> dict[str, t.Any]:
+        stmt_users_total = select(func.count()).select_from(UserModel)
+        stmt_users_active = (
+            select(func.count())
+            .select_from(UserModel)
+            .where(UserModel.state == ChatMemberStatus.MEMBER)
+        )
+        stmt_providers_total = select(func.count()).select_from(ProviderModel)
+        stmt_providers_with_telemetry = select(func.count()).select_from(TelemetryModel)
+        stmt_providers_with_password = (
+            select(func.count())
+            .select_from(TelemetryModel)
+            .where(TelemetryModel.telemetry_pass.isnot(None))
+        )
+
+        stmt_storage_hashes = select(
+            ProviderTelemetryModel.storage_git_hash, func.count()
+        ).group_by(ProviderTelemetryModel.storage_git_hash)
+        stmt_provider_hashes = select(
+            ProviderTelemetryModel.provider_git_hash, func.count()
+        ).group_by(ProviderTelemetryModel.provider_git_hash)
+
+        (
+            users_total_res,
+            users_active_res,
+            providers_total_res,
+            providers_with_telemetry_res,
+            providers_with_password_res,
+            storage_hashes_res,
+            provider_hashes_res,
+        ) = await asyncio.gather(
+            self.session.execute(stmt_users_total),
+            self.session.execute(stmt_users_active),
+            self.session.execute(stmt_providers_total),
+            self.session.execute(stmt_providers_with_telemetry),
+            self.session.execute(stmt_providers_with_password),
+            self.session.execute(stmt_storage_hashes),
+            self.session.execute(stmt_provider_hashes),
+        )
+
+        users_total = int(users_total_res.scalar() or 0)
+        users_active = int(users_active_res.scalar() or 0)
+        users_inactive = max(users_total - users_active, 0)
+        providers_total = int(providers_total_res.scalar() or 0)
+        providers_with_telemetry = int(providers_with_telemetry_res.scalar() or 0)
+        providers_with_password = int(providers_with_password_res.scalar() or 0)
+
+        storage_hashes: dict[str, int] = {}
+        for value, count in storage_hashes_res.all():
+            if value:
+                storage_hashes[value] = int(count)
+
+        provider_hashes: dict[str, int] = {}
+        for value, count in provider_hashes_res.all():
+            if value:
+                provider_hashes[value] = int(count)
+
+        return {
+            "users_total": users_total,
+            "users_active": users_active,
+            "users_inactive": users_inactive,
+            "providers_total": providers_total,
+            "providers_with_telemetry": providers_with_telemetry,
+            "providers_with_password": providers_with_password,
+            "storage_git_hashes": storage_hashes,
+            "provider_git_hashes": provider_hashes,
+        }

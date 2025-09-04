@@ -1,6 +1,8 @@
 import logging
 import typing as t
 
+from sqlalchemy.sql.expression import delete
+
 from ...context import Context
 from ...database import UnitOfWork
 from ...database.models import (
@@ -77,15 +79,19 @@ async def sync_telemetries(
     response = await mtpapi.telemetry()
     total_from_api = len(response.providers)
 
+    async with uow:
+        total_from_db = await uow.telemetry.all()
+
+    db_map = {row.provider_pubkey.lower(): row for row in total_from_db}
+
     for telemetry in response.providers:
         pubkey = telemetry.storage.provider.pubkey.lower()
         telemetry_raw_data = telemetry.model_dump()
 
-        async with uow:
-            prev_telemetry = await uow.telemetry.get(provider_pubkey=pubkey)
-            if prev_telemetry is not None:
-                prev_telemetry_dict = prev_telemetry.model_dump()
-                prev_telemetry = TelemetryModel(**prev_telemetry_dict)
+        prev_telemetry: t.Optional[TelemetryModel] = None
+        if pubkey in db_map:
+            prev_telemetry = TelemetryModel(**db_map[pubkey].model_dump())
+            db_map.pop(pubkey, None)
 
         async with uow:
             curr_telemetry = await uow.telemetry.upsert(
@@ -98,9 +104,21 @@ async def sync_telemetries(
 
         telemetries.append((prev_telemetry, curr_telemetry))
 
+    missing_pubkeys = list(db_map.keys())
+    deleted_count = 0
+    if missing_pubkeys:
+        async with uow:
+            res = await uow.session.execute(
+                delete(TelemetryModel).where(
+                    TelemetryModel.provider_pubkey.in_(missing_pubkeys)
+                )
+            )
+            deleted_count = res.rowcount or 0
+
     logger.info(
-        f"Retrieved {total_from_api} telemetry from API, "
-        f"upserted: {len(telemetries)} into the database"
+        f"Retrieved {total_from_api} providers from API, "
+        f"upserted: {len(telemetries)} into the database, "
+        f"deleted: {deleted_count}"
     )
     return telemetries
 
@@ -129,9 +147,15 @@ async def monitor_providers_job(ctx: Context) -> None:
     telemetry_map = {curr.provider_pubkey: (prev, curr) for (prev, curr) in telemetries}
 
     provider_telemetry_pairs = [
-        (provider, telemetry_map[provider.pubkey])
+        (
+            provider,
+            (
+                telemetry_map[provider.pubkey]
+                if provider.pubkey in telemetry_map
+                else (None, None)
+            ),
+        )
         for provider in providers
-        if provider.pubkey in telemetry_map
     ]
 
     for provider, (prev_telemetry, curr_telemetry) in provider_telemetry_pairs:
