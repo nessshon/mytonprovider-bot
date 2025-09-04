@@ -19,7 +19,7 @@ async def main_menu(
     uow: UnitOfWork = dialog_manager.middleware_data["uow"]
 
     list_providers_count = await uow.provider.count()
-    my_providers_count = await uow.user_subscription.count()
+    my_providers_count = len(user_model.subscriptions or [])
 
     return {
         "user": dialog_manager.event.from_user,
