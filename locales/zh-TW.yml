@@ -81,7 +81,11 @@ messages:
 
     enter_password: |
       🔐 <b>輸入密碼</b><br><br>
-      要訂閱此提供者，請傳送您的密碼：
+      若要訂閱此提供者，請發送密碼。<br><br>
+      <blockquote>
+      您可以在 mytonprovider 主控台中使用以下指令來設定密碼：<br>
+      <code>telemetry_pass &lt;密碼&gt;</code>
+      </blockquote>
 
     incorrect_password: |
       ❗️ <b>密碼不正確</b><br><br>

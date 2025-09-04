@@ -80,8 +80,12 @@ messages:
       <b>• Registration date:</b> <code>{{ provider.reg_time | datetimeformat }}</code><br>
 
     enter_password: |
-      🔐 <b>Enter your password</b><br><br>
-      To subscribe to the provider, send your password:
+      🔐 <b>Enter password</b><br><br>
+      To subscribe to the provider, please send the password.<br><br>
+      <blockquote>
+      You can set the password in the mytonprovider console using the command:<br>
+      <code>telemetry_pass &lt;password&gt;</code>
+      </blockquote>
 
     incorrect_password: |
       ❗️ <b>Incorrect password</b><br><br>
