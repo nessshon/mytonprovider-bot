@@ -1,11 +1,11 @@
-from apscheduler.events import EVENT_JOB_ERROR, EVENT_JOB_MISSED
+from apscheduler.events import EVENT_JOB_ERROR
 from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from apscheduler.triggers.interval import IntervalTrigger
 
 from . import jobs
-from .errors import on_job_event
+from .errors import on_job_error
 from ..config import TIMEZONE, SCHEDULER_URL
 from ..context import get_context
 
@@ -17,10 +17,7 @@ class Scheduler:
 
     async def start(self) -> None:
         self.async_scheduler.add_jobstore(SQLAlchemyJobStore(SCHEDULER_URL))
-        self.async_scheduler.add_listener(
-            on_job_event,
-            mask=EVENT_JOB_ERROR | EVENT_JOB_MISSED,
-        )
+        self.async_scheduler.add_listener(on_job_error, mask=EVENT_JOB_ERROR)
         self.async_scheduler.start()
         self.add_jobs()
 
@@ -32,10 +29,10 @@ class Scheduler:
         ctx = get_context()
 
         for job_func, interval in [
-            (jobs.monitor_providers_job, 60),
-            (jobs.monitor_storage_job, 80),
-            (jobs.monitor_traffics_job, 100),
-            (jobs.monitor_balances_job, 120),
+            (jobs.monitor_providers_job, 59),
+            (jobs.monitor_storage_job, 83),
+            (jobs.monitor_traffics_job, 101),
+            (jobs.monitor_balances_job, 127),
         ]:
             job_id = job_func.__name__
             self.async_scheduler.add_job(
