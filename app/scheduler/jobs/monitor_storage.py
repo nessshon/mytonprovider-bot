@@ -48,7 +48,6 @@ async def monitor_storage_job(ctx: Context) -> None:
                         used_daily_space=used_gb,
                     )
                 )
-                logger.info(f"Created first storage record for {pubkey} (today)")
                 continue
 
             if last_row.date != today:
@@ -63,9 +62,6 @@ async def monitor_storage_job(ctx: Context) -> None:
                         used_provider_space=used_gb,
                         used_daily_space=float(day_delta),
                     )
-                )
-                logger.info(
-                    f"Created storage record for {pubkey}, delta={day_delta:.2f} GB"
                 )
                 continue
 

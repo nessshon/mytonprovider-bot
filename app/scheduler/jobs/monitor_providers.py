@@ -60,8 +60,21 @@ async def sync_providers(
         }
 
         async with uow:
-            model = ProviderModel(**provider_data)
-            provider_model = await uow.provider.upsert(model)
+            existing = await uow.provider.get(pubkey=provider_pubkey)
+
+            if existing:
+                await uow.provider_telemetry.upsert(
+                    ProviderTelemetryModel(**provider_telemetry_data)
+                )
+                provider_data_no_rel = {
+                    k: v for k, v in provider_data.items() if k != "telemetry"
+                }
+                model = ProviderModel(**provider_data_no_rel)
+                provider_model = await uow.provider.upsert(model)
+            else:
+                model = ProviderModel(**provider_data)
+                provider_model = await uow.provider.create(model)
+
         providers.append(provider_model)
 
     logger.info(

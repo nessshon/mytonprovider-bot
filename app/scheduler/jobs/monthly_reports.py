@@ -5,7 +5,11 @@ from ...context import Context
 from ...database import UnitOfWork
 from ...database.models import ProviderModel
 from ...utils.alerts.manager import AlertManager
-from ...utils.alerts.types import MonthlyReport, AlertTypes, AlertStages
+from ...utils.alerts.types import (
+    MonthlyReport,
+    AlertTypes,
+    AlertStages,
+)
 
 
 def prev_month_range(today: date) -> tuple[date, date, str]:
