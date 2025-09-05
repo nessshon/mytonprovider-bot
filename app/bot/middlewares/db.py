@@ -4,7 +4,11 @@ from datetime import datetime
 from aiogram import BaseMiddleware
 from aiogram.types import TelegramObject, User
 
-from ...config import TIMEZONE
+from ...config import (
+    TIMEZONE,
+    SUPPORTED_LOCALES,
+    DEFAULT_LOCALE,
+)
 from ...context import Context
 from ...database.models import (
     UserModel,
@@ -32,10 +36,16 @@ class DbSessionMiddleware(BaseMiddleware):
 
             if user and not user.is_bot:
                 existing = await uow.user.get(user_id=user.id)
+
                 if existing is None:
+                    user_language_code = (
+                        user.language_code
+                        if user.language_code in SUPPORTED_LOCALES
+                        else DEFAULT_LOCALE
+                    )
                     user_model = UserModel(
                         user_id=user.id,
-                        language_code=user.language_code,
+                        language_code=user_language_code,
                         full_name=user.full_name,
                         username=user.username,
                         created_at=datetime.now(TIMEZONE),
@@ -47,8 +57,14 @@ class DbSessionMiddleware(BaseMiddleware):
                     )
                     user_model = await uow.user.create(user_model)
                 else:
+                    existing_language_code = (
+                        existing.language_code
+                        if existing.language_code in SUPPORTED_LOCALES
+                        else DEFAULT_LOCALE
+                    )
                     existing.full_name = user.full_name
                     existing.username = user.username
+                    existing.language_code = existing_language_code
                     user_model = existing
                     await uow.session.flush()
 

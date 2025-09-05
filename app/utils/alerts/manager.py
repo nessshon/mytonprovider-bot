@@ -13,7 +13,11 @@ from sqlalchemy.orm import selectinload
 from .detector import OverloadDetector, ServiceRestartedDetector
 from .types import AlertTypes, AlertStages
 from ..i18n import Localizer
-from ...config import TIMEZONE
+from ...config import (
+    TIMEZONE,
+    SUPPORTED_LOCALES,
+    DEFAULT_LOCALE,
+)
 from ...context import Context
 from ...database.models import (
     UserModel,
@@ -121,9 +125,14 @@ class AlertManager:
         **kwargs: t.Any,
     ) -> None:
         try:
+            language_code = (
+                user.language_code
+                if user.language_code in SUPPORTED_LOCALES
+                else DEFAULT_LOCALE
+            )
             localizer = Localizer(
                 self.ctx.i18n.jinja_env,
-                self.ctx.i18n.locales_data[user.language_code],
+                self.ctx.i18n.locales_data[language_code],
             )
             text = await localizer(f"alerts.{alert_type}.{alert_stage}", **kwargs)
             button = await localizer("buttons.common.hide", **kwargs)
