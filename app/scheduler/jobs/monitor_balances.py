@@ -47,9 +47,9 @@ class WalletMetrics:
 
 
 async def collect_transactions(
-        toncenterapi: TONCenterAPI,
-        address: str,
-        from_lt: t.Optional[int] = None,
+    toncenterapi: TONCenterAPI,
+    address: str,
+    from_lt: t.Optional[int] = None,
 ) -> list[Transaction]:
     limit = 100
     result: list[Transaction] = []
@@ -132,19 +132,14 @@ async def monitor_balances_job(ctx: Context) -> None:
                     address=provider.address,
                     from_lt=from_lt,
                 )
-        except Exception:
+        except Exception as e:
             logger.exception(
-                f"Failed to collect transactions for {provider.pubkey}"
+                f"Failed to collect transactions for {provider.pubkey}: {e}"
             )
             raise
 
         if not transactions:
             continue
-
-        logger.info(
-            f"Retrieved {len(transactions)} new transactions for {provider.pubkey} "
-            f"from_lt {from_lt}"
-        )
 
         transactions_by_date: dict[date, list[Transaction]] = defaultdict(list)
         for tx in transactions:
@@ -161,11 +156,6 @@ async def monitor_balances_job(ctx: Context) -> None:
                 last_lt_for_day = max(tx.lt for tx in txs)
                 previous_balance += metrics.balance
                 updated_at = datetime.now(TIMEZONE)
-
-                logger.info(
-                    f"Provider {provider.pubkey}, date {tx_date}, "
-                    f"earned {metrics.earned / 1e9:.9f}, balance {previous_balance / 1e9:.9f}, txs {len(txs)}"
-                )
 
                 existing = await uow.provider_wallet_history.get(
                     provider_pubkey=provider.pubkey,
