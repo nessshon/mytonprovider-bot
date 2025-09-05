@@ -112,6 +112,7 @@ class Location(BaseModel):
 class Provider(BaseModel):
     location: t.Optional[Location] = None
     status: t.Optional[int] = None
+    status_ratio: t.Optional[float] = None
     pubkey: str
     address: str
     uptime: float

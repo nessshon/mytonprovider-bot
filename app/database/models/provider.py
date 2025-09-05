@@ -139,6 +139,8 @@ class ProviderModel(BaseModel):
 
     location: Mapped[t.Optional[dict[str, str]]] = mapped_column(JSON)
     status: Mapped[t.Optional[int]] = mapped_column(Integer)
+    status_ratio: Mapped[t.Optional[float]] = mapped_column(Float)
+
     uptime: Mapped[float] = mapped_column(Float, nullable=False)
     working_time: Mapped[int] = mapped_column(BigInteger, nullable=False)
     rating: Mapped[float] = mapped_column(Float, nullable=False)
@@ -197,6 +199,20 @@ class ProviderUI:
             else None
         )
 
+    def _get_ratio(self) -> float:
+        r = self.provider.status_ratio
+        if r is None:
+            return 0.0
+        try:
+            r = float(r)
+        except (TypeError, ValueError):
+            return 0.0
+        if r < 0.0:
+            r = 0.0
+        if r > 1.0:
+            r = 1.0
+        return r
+
     @property
     def short_pubkey(self) -> str:
         key = self.provider.pubkey
@@ -236,27 +252,42 @@ class ProviderUI:
 
     @property
     def status_emoji(self) -> str:
-        ratio = self.provider.uptime / 100 if self.provider.uptime else 0
         status = self.provider.status
-        return {
-            None: "⚪️",
-            0: "🔴" if ratio < 0.8 else "🟡" if ratio < 0.99 else "🟢",
-            2: "🟠",
-            3: "🚫",
-            500: "⚫️",
-        }.get(status, "⚪️")
+        if status is None:
+            return "⚪️"  # No Data
+        if status == 0:
+            r = self._get_ratio()
+            return "🔴" if r < 0.8 else ("🟡" if r < 0.99 else "🟢")
+        if status == 2:
+            return "🟠"  # Invalid
+        if status == 3:
+            return "🔴"  # Not Store
+        if status == 500:
+            return "⚫️"  # Not Accessible
+        return "⚪️"  # Unknown
 
     @property
     def status_text(self) -> str:
-        ratio = self.provider.uptime / 100 if self.provider.uptime else 0
         status = self.provider.status
-        return {
-            None: "No Data",
-            0: "Unstable" if ratio < 0.8 else "Partial" if ratio < 0.99 else "Stable",
-            2: "Invalid",
-            3: "Not Store",
-            500: "Not Accessible",
-        }.get(status, "Unknown")
+        if status is None:
+            return "No Data"
+        if status == 0:
+            r = self._get_ratio()
+            if r < 0.8:
+                label = "Unstable"
+            elif r < 0.99:
+                label = "Partial"
+            else:
+                label = "Stable"
+            r_percent = "(100%)" if r == 1.0 else f"({r * 100:.1f}%)"
+            return f"{label} {r_percent}"
+        if status == 2:
+            return "Invalid"
+        if status == 3:
+            return "Not Store"
+        if status == 500:
+            return "Not Accessible"
+        return "Unknown"
 
     @property
     def cpu_name(self) -> str:
