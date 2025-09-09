@@ -54,7 +54,9 @@ class AlertManager:
             (ta, extra) for ta, extra in triggered_alerts if ta not in active_alerts
         ]
         resolved_alerts = [
-            (ta, {}) for ta in active_alerts if ta not in triggered_alert_types
+            (ta, {})
+            for ta in active_alerts
+            if ta not in triggered_alert_types and ta.value in user.alert_settings.types
         ]
 
         for alert_type, extra in new_alerts:
@@ -105,7 +107,10 @@ class AlertManager:
                 if alert_type.value in user_enabled_alerts:
                     triggered_alerts.append((alert_type, {}))
 
-            if prev_telemetry and AlertTypes.SERVICE_RESTARTED in user_enabled_alerts:
+            if (
+                prev_telemetry
+                and AlertTypes.SERVICE_RESTARTED.value in user_enabled_alerts
+            ):
                 restart_detector = ServiceRestartedDetector()
                 triggered_alerts.extend(
                     restart_detector.get_triggered_alerts(
