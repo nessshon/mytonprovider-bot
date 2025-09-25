@@ -122,13 +122,12 @@ def extract_transaction_metrics(tx: Transaction) -> WalletMetrics:
 async def update_wallets_job(ctx: Context) -> None:
     uow = UnitOfWork(ctx.db.session_factory)
 
-    wallet_models = []
-    wallet_history_models = []
-
     async with uow:
         providers = await uow.provider.all()
 
     for provider in providers:
+        wallet_history_models = []
+
         async with uow:
             last_wallet = await uow.wallet.get(provider_pubkey=provider.pubkey)
 
@@ -179,16 +178,14 @@ async def update_wallets_job(ctx: Context) -> None:
                     )
                 )
 
-        wallet_models.append(
-            WalletModel(
-                provider_pubkey=provider.pubkey,
-                address=provider.address,
-                balance=last_wallet_balance,
-                earned=last_wallet_earned,
-                last_lt=last_wallet_lt,
-            )
+        wallet_model = WalletModel(
+            provider_pubkey=provider.pubkey,
+            address=provider.address,
+            balance=last_wallet_balance,
+            earned=last_wallet_earned,
+            last_lt=last_wallet_lt,
         )
 
-    async with uow:
-        await uow.wallet.bulk_upsert(wallet_models)
-        await uow.wallet_history.bulk_upsert(wallet_history_models)
+        async with uow:
+            await uow.wallet.upsert(wallet_model)
+            await uow.wallet_history.bulk_upsert(wallet_history_models)
