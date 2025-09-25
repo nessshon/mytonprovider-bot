@@ -3,15 +3,10 @@ from aiogram_dialog.widgets import kbd
 from aiogram_dialog.widgets.text import Case, Multi, Const, Format
 
 from . import states, on_clicks
-from .consts import (
-    PROVIDER_TABS,
-    ALERT_TABS,
-    STEP_LEFT,
-    STEP_RIGHT,
-)
+from .consts import PROVIDER_TABS, ALERT_TABS, STEP_LEFT, STEP_RIGHT
 from ..widgets import I18NJinja
+from ...alert.types import AlertTypes
 from ...config import SUPPORTED_LOCALES
-from ...utils.alerts.types import AlertTypes
 
 to_main = kbd.Start(
     id="back",

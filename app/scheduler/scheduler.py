@@ -2,7 +2,6 @@ from apscheduler.events import EVENT_JOB_ERROR
 from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
-from apscheduler.triggers.interval import IntervalTrigger
 
 from . import jobs
 from .errors import on_job_error
@@ -28,24 +27,36 @@ class Scheduler:
     def add_jobs(self) -> None:
         ctx = get_context()
 
-        for job_func, interval in [
-            (jobs.monitor_providers_job, 59),
-            (jobs.monitor_storage_job, 83),
-            (jobs.monitor_traffics_job, 101),
-            (jobs.monitor_balances_job, 127),
-        ]:
-            job_id = job_func.__name__
-            self.async_scheduler.add_job(
-                job_func,
-                trigger=IntervalTrigger(seconds=interval),
-                kwargs={"ctx": ctx},
-                id=job_id,
-                misfire_grace_time=30,
-                coalesce=True,
-                max_instances=1,
-                replace_existing=True,
-            )
-
+        self.async_scheduler.add_job(
+            jobs.sync_providers_job,
+            trigger=CronTrigger(minute="*"),
+            kwargs={"ctx": ctx},
+            id=jobs.sync_providers_job.__name__,
+            misfire_grace_time=30,
+            coalesce=True,
+            max_instances=1,
+            replace_existing=True,
+        )
+        self.async_scheduler.add_job(
+            jobs.alerts_dispatch_job,
+            trigger=CronTrigger(minute="*", jitter=30),
+            kwargs={"ctx": ctx},
+            id=jobs.alerts_dispatch_job.__name__,
+            misfire_grace_time=30,
+            coalesce=True,
+            max_instances=1,
+            replace_existing=True,
+        )
+        self.async_scheduler.add_job(
+            jobs.update_wallets_job,
+            trigger=CronTrigger(minute="*/5", jitter=60),
+            kwargs={"ctx": ctx},
+            id=jobs.update_wallets_job.__name__,
+            misfire_grace_time=300,
+            coalesce=True,
+            max_instances=1,
+            replace_existing=True,
+        )
         self.async_scheduler.add_job(
             jobs.monthly_report_job,
             trigger=CronTrigger(
@@ -53,7 +64,6 @@ class Scheduler:
                 hour=12,
                 minute=0,
                 timezone=TIMEZONE,
-                jitter=30,
             ),
             kwargs={"ctx": ctx},
             id=jobs.monthly_report_job.__name__,
@@ -64,11 +74,7 @@ class Scheduler:
         )
 
     def remove_jobs(self) -> None:
-        for job_id in (
-            jobs.monitor_providers_job.__name__,
-            jobs.monitor_balances_job.__name__,
-            jobs.monitor_traffics_job.__name__,
-            jobs.monitor_storage_job.__name__,
-            jobs.monthly_report_job.__name__,
-        ):
-            self.async_scheduler.remove_job(job_id)
+        self.async_scheduler.remove_job(jobs.sync_providers_job.__name__)
+        self.async_scheduler.remove_job(jobs.alerts_dispatch_job.__name__)
+        self.async_scheduler.remove_job(jobs.update_wallets_job.__name__)
+        self.async_scheduler.remove_job(jobs.monthly_report_job.__name__)

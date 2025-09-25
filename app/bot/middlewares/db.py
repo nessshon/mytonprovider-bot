@@ -4,18 +4,11 @@ from datetime import datetime
 from aiogram import BaseMiddleware
 from aiogram.types import TelegramObject, User
 
-from ...config import (
-    TIMEZONE,
-    SUPPORTED_LOCALES,
-    DEFAULT_LOCALE,
-)
+from ...alert.types import AlertTypes
+from ...config import TIMEZONE, SUPPORTED_LOCALES, DEFAULT_LOCALE
 from ...context import Context
-from ...database.models import (
-    UserModel,
-    UserAlertSettingModel,
-)
+from ...database.models import UserModel, UserAlertSettingModel
 from ...database.unitofwork import UnitOfWork
-from ...utils.alerts.types import AlertTypes
 
 
 class DbSessionMiddleware(BaseMiddleware):
@@ -68,9 +61,8 @@ class DbSessionMiddleware(BaseMiddleware):
                     user_model = existing
                     await uow.session.flush()
 
-                has_subscriptions = await uow.user_subscription.exists(
-                    user_id=user_model.id
-                )
+                await uow.session.refresh(user_model)
+                has_subscriptions = len(user_model.subscriptions) > 0  # type: ignore
 
             data["user_model"] = user_model
             data["has_subscriptions"] = has_subscriptions

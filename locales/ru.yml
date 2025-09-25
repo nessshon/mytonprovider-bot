@@ -183,7 +183,7 @@ alerts:
   monthly_report:
     info: |
       📊 <b>Ежемесячный отчёт</b><br><br>
-      <b>Провайдер:</b> <code>{{ report.provider.ui.short_pubkey }}</code><br>
+      <b>Провайдер:</b> <code>{{ provider.ui.short_pubkey }}</code><br>
       <b>Период:</b> <code>{{ report.start_date }}</code> • <code>{{ report.end_date }}</code><br><br>
       
       <b>• Заработано:</b> <code>+{{ report.earned_nanoton | toamount }} TON</code><br>

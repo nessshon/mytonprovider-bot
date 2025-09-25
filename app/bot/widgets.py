@@ -4,7 +4,7 @@ from aiogram_dialog import DialogManager
 from aiogram_dialog.widgets.common import WhenCondition
 from aiogram_dialog.widgets.text import Text
 
-from ..utils.i18n import Localizer
+from .utils.i18n import Localizer
 
 
 class I18NJinja(Text):

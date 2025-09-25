@@ -5,12 +5,12 @@ from aiogram.types import Message
 from aiogram_dialog import DialogManager, StartMode, ShowMode
 
 from ..utils import delete_message, is_valid_pubkey
+from ...alert.manager import AlertManager
+from ...alert.types import AlertTypes, AlertStages
 from ...context import Context
-from ...database import UnitOfWork
+from ...database.metrics import build_monthly_report
 from ...database.models import UserModel
-from ...scheduler.jobs.monthly_reports import aggregate_for_provider
-from ...utils.alerts import AlertTypes, AlertStages
-from ...utils.alerts.manager import AlertManager
+from ...database.unitofwork import UnitOfWork
 
 
 def register_command(
@@ -59,11 +59,12 @@ async def monthly_report_command(
     if not provider:
         return
 
-    report = await aggregate_for_provider(uow, provider)
+    report = await build_monthly_report(uow.session, provider.pubkey)
     alert_manager = AlertManager(ctx)
-    await alert_manager.notify(
+    await alert_manager.send_alert_message(
         user=user_model,
         alert_type=AlertTypes.MONTHLY_REPORT,
         alert_stage=AlertStages.INFO,
+        provider=provider,
         report=report,
     )

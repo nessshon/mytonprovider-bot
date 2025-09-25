@@ -10,21 +10,16 @@ from aiogram_dialog import setup_dialogs
 from redis.asyncio import Redis
 from sulguk import SULGUK_PARSE_MODE
 
-from .bot import (
-    commands,
-    middlewares,
-    handlers,
-    dialogs,
-    Broadcaster,
-)
+from .api.mytonprovider import MytonproviderClient
+from .api.toncenter import ToncenterClient
+from .bot import commands, middlewares, handlers, dialogs
+from .bot.broadcaster import Broadcaster
+from .bot.utils.i18n import I18N
 from .config import BOT_TOKEN, REDIS_URL
-from .config import setup_logging
 from .context import Context, set_context
-from .database import Database
-from .scheduler import Scheduler
-from .utils.i18n import I18N
-from .utils.mtpapi import MyTONProviderAPI
-from .utils.toncenter import TONCenterAPI
+from .database.database import Database
+from .logging import setup_logging
+from .scheduler.scheduler import Scheduler
 
 setup_logging()
 logger = logging.getLogger("app.main")
@@ -43,7 +38,6 @@ async def on_startup(ctx: Context) -> None:
 
     with suppress(TelegramRetryAfter):
         await commands.setup(ctx)
-
     logger.info("App startup complete")
 
 
@@ -56,7 +50,6 @@ async def on_shutdown(ctx: Context) -> None:
 
     await ctx.scheduler.shutdown()
     await ctx.db.shutdown()
-
     logger.info("App shutdown complete")
 
 
@@ -64,7 +57,6 @@ async def main() -> None:
     logger.info("Preparing app...")
 
     ctx = Context()
-
     ctx.db = Database()
     ctx.scheduler = Scheduler()
     ctx.redis = Redis.from_url(url=REDIS_URL)
@@ -81,8 +73,8 @@ async def main() -> None:
     ctx.dp = Dispatcher(storage=storage, ctx=ctx)
 
     ctx.broadcaster = Broadcaster(ctx.bot)
-    ctx.toncenterapi = TONCenterAPI()
-    ctx.mtpapi = MyTONProviderAPI()
+    ctx.toncenter = ToncenterClient()
+    ctx.mytonprovider = MytonproviderClient()
     ctx.i18n = I18N()
 
     ctx.dp.startup.register(on_startup)

@@ -2,14 +2,12 @@ from aiogram_dialog import DialogManager
 from aiogram_dialog.widgets.kbd import Button
 
 from . import states
+from ..utils.i18n import Localizer
+from ...alert.thresholds import THRESHOLDS
+from ...alert.types import AlertTypes
 from ...context import Context
-from ...database import UnitOfWork
-from ...database.models import (
-    UserModel,
-)
-from ...utils.alerts.detector import DEFAULT_THRESHOLDS
-from ...utils.alerts.types import AlertTypes
-from ...utils.i18n import Localizer
+from ...database.models import UserModel
+from ...database.unitofwork import UnitOfWork
 
 
 async def change_provider_tab(
@@ -137,7 +135,6 @@ async def reset_thresholds(
     __,
     manager: DialogManager,
 ) -> None:
-    """Stub: reset thresholds later."""
     await manager.show()
 
 
@@ -148,7 +145,7 @@ async def open_threshold_editor(
 ) -> None:
     user_model: UserModel = manager.middleware_data["user_model"]
     key = button.widget_id.removeprefix("threshold_")
-    threshold_data = user_model.alert_settings.thresholds_data or DEFAULT_THRESHOLDS
+    threshold_data = user_model.alert_settings.thresholds_data or THRESHOLDS
     current = threshold_data.get(key)
 
     manager.dialog_data.update(

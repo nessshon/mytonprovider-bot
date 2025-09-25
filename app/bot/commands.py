@@ -4,10 +4,10 @@ import typing as t
 from aiogram.exceptions import TelegramRetryAfter
 from aiogram.types import BotCommand, BotCommandScopeDefault
 
+from .utils.i18n import Localizer
+from .utils.i18n.utils import LOCALE_TO_TELEGRAM
 from ..config import SUPPORTED_LOCALES, DEFAULT_LOCALE
 from ..context import Context
-from ..utils.i18n import Localizer
-from ..utils.i18n.utils import LOCALE_TO_TELEGRAM
 
 logger = logging.getLogger(__name__)
 

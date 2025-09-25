@@ -183,7 +183,7 @@ alerts:
   monthly_report:
     info: |
       📊 <b>每月報告</b><br><br>
-      <b>提供者:</b> <code>{{ report.provider.ui.short_pubkey }}</code><br>
+      <b>提供者:</b> <code>{{ provider.ui.short_pubkey }}</code><br>
       <b>期間:</b> <code>{{ report.start_date }}</code> • <code>{{ report.end_date }}</code><br><br>
       
       <b>• 獲得收益:</b> <code>+{{ report.earned_nanoton | toamount }} TON</code><br>

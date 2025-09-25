@@ -1,13 +1,17 @@
-from datetime import datetime
-
 from aiogram_dialog import DialogManager
 
+from app.database.metrics import (
+    build_provider_wallet_metrics,
+    build_provider_traffic_metrics,
+    build_provider_storage_metrics,
+    build_stats_summary,
+)
 from .consts import DEFAULT_PROVIDER_TAB, DEFAULT_ALERT_TAB
-from ...config import TIMEZONE, ADMIN_IDS
-from ...database import UnitOfWork
+from ..utils.i18n import Localizer
+from ...alert.thresholds import THRESHOLDS
+from ...config import ADMIN_IDS
 from ...database.models import UserModel
-from ...utils.alerts.detector import DEFAULT_THRESHOLDS
-from ...utils.i18n import Localizer
+from ...database.unitofwork import UnitOfWork
 
 
 async def main_menu(
@@ -19,7 +23,7 @@ async def main_menu(
     uow: UnitOfWork = dialog_manager.middleware_data["uow"]
 
     list_providers_count = await uow.provider.count()
-    my_providers_count = len(user_model.subscriptions or [])
+    my_providers_count = len(user_model.subscriptions)
 
     return {
         "user": dialog_manager.event.from_user,
@@ -41,7 +45,7 @@ async def stats_menu(
     **_,
 ):
     uow: UnitOfWork = dialog_manager.middleware_data["uow"]
-    stats = await uow.get_stats_summary()
+    stats = await build_stats_summary(uow.session)
     return {"stats": stats}
 
 
@@ -56,10 +60,12 @@ async def provider_menu(
     uow: UnitOfWork = dialog_manager.middleware_data["uow"]
     pubkey = dialog_manager.start_data.get("provider_pubkey")
     dialog_manager.dialog_data["provider_pubkey"] = pubkey
-    today = datetime.now(TIMEZONE).date()
 
     provider = await uow.provider.get(pubkey=pubkey)
     telemetry = await uow.telemetry.get(provider_pubkey=pubkey)
+    provider_wallet_metrics = await build_provider_wallet_metrics(uow.session, pubkey)
+    provider_traffic_metrics = await build_provider_traffic_metrics(uow.session, pubkey)
+    provider_storage_metrics = await build_provider_storage_metrics(uow.session, pubkey)
 
     subscription = next(
         (
@@ -71,15 +77,6 @@ async def provider_menu(
     )
     is_subscribed = subscription is not None
 
-    provider_wallet_metrics = await uow.get_provider_wallet_metrics(
-        pubkey=pubkey, today=today
-    )
-    provider_traffic_metrics = await uow.get_provider_traffic_metrics(
-        pubkey=pubkey, today=today
-    )
-    provider_storage_metrics = await uow.get_provider_storage_metrics(
-        pubkey=pubkey, today=today
-    )
     if telemetry and telemetry.telemetry_pass:
         user_pass_hash = subscription.telemetry_pass if subscription else "N/A"
         access_granted = user_pass_hash == telemetry.telemetry_pass
@@ -97,7 +94,7 @@ async def provider_menu(
         "access_granted": access_granted,
         "password_invalid": password_invalid,
         "provider": provider,
-        "telemetry": provider.telemetry,
+        "telemetry": provider.telemetry_model,
         "provider_pubkey": pubkey,
         "provider_address": provider.address,
         "provider_wallet_metrics": provider_wallet_metrics,
@@ -122,7 +119,7 @@ async def alert_settings_menu(
 
     alert_tab = dialog_manager.dialog_data.get("alert_tab", DEFAULT_ALERT_TAB)
     dialog_manager.current_context().widget_data["alert_tab"] = alert_tab
-    thresholds_data = user_model.alert_settings.thresholds_data or DEFAULT_THRESHOLDS
+    thresholds_data = user_model.alert_settings.thresholds_data or THRESHOLDS
 
     return {
         "user_model": user_model,

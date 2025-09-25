@@ -1,29 +1,33 @@
 from ._base import BaseModel
 from .provider import (
     ProviderModel,
-    ProviderTelemetryModel,
-    ProviderWalletHistoryModel,
-    ProviderTrafficHistoryModel,
-    ProviderStorageHistoryModel,
+    ProviderHistoryModel,
 )
-from .telemetry import TelemetryModel
+from .telemetry import (
+    TelemetryModel,
+    TelemetryHistoryModel,
+)
 from .user import (
     UserModel,
-    UserSubscriptionModel,
     UserAlertSettingModel,
+    UserSubscriptionModel,
     UserTriggeredAlertModel,
+)
+from .wallet import (
+    WalletModel,
+    WalletHistoryModel,
 )
 
 __all__ = [
     "BaseModel",
     "ProviderModel",
-    "ProviderTelemetryModel",
-    "ProviderWalletHistoryModel",
-    "ProviderTrafficHistoryModel",
-    "ProviderStorageHistoryModel",
+    "ProviderHistoryModel",
     "TelemetryModel",
+    "TelemetryHistoryModel",
     "UserModel",
-    "UserSubscriptionModel",
     "UserAlertSettingModel",
+    "UserSubscriptionModel",
     "UserTriggeredAlertModel",
+    "WalletModel",
+    "WalletHistoryModel",
 ]
