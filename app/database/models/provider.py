@@ -45,7 +45,7 @@ class ProviderModel(BaseProviderModel):
     __tablename__ = "providers"
 
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime,
+        DateTime(timezone=True),
         default=now,
         onupdate=now,
     )
@@ -55,7 +55,7 @@ class ProviderHistoryModel(BaseProviderModel):
     __tablename__ = "providers_history"
 
     archived_at: Mapped[datetime] = mapped_column(
-        DateTime,
+        DateTime(timezone=True),
         primary_key=True,
         nullable=False,
         default=now_rounded_min,

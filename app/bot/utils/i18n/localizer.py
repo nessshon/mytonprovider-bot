@@ -2,12 +2,10 @@ from __future__ import annotations
 
 import logging
 import typing as t
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 
 from jinja2 import Environment
 from sulguk import RenderResult
-
-from app.config import TIMEZONE
 
 logger = logging.getLogger(__name__)
 
@@ -38,16 +36,11 @@ class Localizer:
         ts: t.Optional[t.Union[int, datetime]],
         fmt: str = "%Y-%m-%d %H:%M",
     ) -> str:
-        if isinstance(ts, int):
-            dt = datetime.fromtimestamp(ts, tz=TIMEZONE)
-        elif isinstance(ts, datetime):
-            if ts.tzinfo is None:
-                dt = ts.replace(tzinfo=timezone.utc).astimezone(TIMEZONE)
-            else:
-                dt = ts.astimezone(TIMEZONE)
-        else:
+        if ts is None:
             return "N/A"
-        return dt.strftime(fmt)
+        if isinstance(ts, int):
+            ts = datetime.fromtimestamp(ts)
+        return ts.strftime(fmt)
 
     async def _durationformat_filter(self, seconds: t.Optional[int]) -> str:
         if seconds is None:

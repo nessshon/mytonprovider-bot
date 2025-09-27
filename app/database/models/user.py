@@ -22,8 +22,15 @@ class UserModel(BaseModel):
     full_name: Mapped[str] = mapped_column(String)
     language_code: Mapped[str] = mapped_column(String(8))
 
-    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
-    updated_at: Mapped[datetime] = mapped_column(DateTime, default=now, onupdate=now)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=now,
+        onupdate=now,
+    )
 
     alert_settings: Mapped[UserAlertSettingModel] = relationship(
         back_populates="user",
@@ -86,7 +93,10 @@ class UserTriggeredAlertModel(BaseModel):
         nullable=False,
     )
     alert_type: Mapped[str] = mapped_column(String(32), index=True)
-    triggered_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    triggered_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+    )
 
     __table_args__ = (
         UniqueConstraint(

@@ -24,7 +24,7 @@ class WalletModel(BaseWalletModel):
     __tablename__ = "wallets"
 
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime,
+        DateTime(timezone=True),
         default=now,
         onupdate=now,
     )
@@ -34,7 +34,7 @@ class WalletHistoryModel(BaseWalletModel):
     __tablename__ = "wallets_history"
 
     archived_at: Mapped[datetime] = mapped_column(
-        DateTime,
+        DateTime(timezone=True),
         primary_key=True,
         nullable=False,
         default=now_rounded_hour,

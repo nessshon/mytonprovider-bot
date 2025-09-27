@@ -5,14 +5,15 @@ from aiogram.enums import ChatMemberStatus
 from sqlalchemy import String, Float, select, func, and_, desc, cast
 from sqlalchemy.ext.asyncio.session import AsyncSession
 
-from app.config import TIMEZONE
-from app.database.models import (
+from .models import (
     WalletHistoryModel,
     TelemetryHistoryModel,
     TelemetryModel,
     ProviderModel,
     UserModel,
+    WalletModel,
 )
+from ..config import TIMEZONE
 
 
 def _dt_range_for(
@@ -68,7 +69,6 @@ async def build_provider_wallet_metrics(session: AsyncSession, pubkey: str) -> d
     )
     last_row = (await session.execute(last_row_stmt)).first()
     balance = last_row[0] if last_row else 0
-    updated_at = last_row[1] if last_row else None
 
     async def _sum_earned(start: datetime | None, end: datetime) -> int:
         stmt = select(func.coalesce(func.sum(WalletHistoryModel.earned), 0)).where(
@@ -87,6 +87,11 @@ async def build_provider_wallet_metrics(session: AsyncSession, pubkey: str) -> d
     earned_week = await _sum_earned(start_week, now)
     earned_month = await _sum_earned(start_month, now)
     earned_total = await _sum_earned(None, now)
+
+    stmt_updated = select(WalletModel.updated_at).where(
+        WalletModel.provider_pubkey == pubkey
+    )
+    updated_at = (await session.execute(stmt_updated)).scalar_one_or_none()
 
     return {
         "balance": balance,
@@ -122,10 +127,15 @@ async def build_provider_traffic_metrics(session: AsyncSession, pubkey: str) -> 
         delta_out = int(row["max_out"] - row["min_out"])
         return max(delta_in, 0), max(delta_out, 0), row["last_ts"]
 
-    ti, to, updated = await _delta_for("today")
+    ti, to, _ = await _delta_for("today")
     wi, wo, _ = await _delta_for("week")
     mi, mo, _ = await _delta_for("month")
     ai, ao, _ = await _delta_for("total")
+
+    stmt_updated = select(TelemetryModel.updated_at).where(
+        TelemetryModel.provider_pubkey == pubkey
+    )
+    updated_at = (await session.execute(stmt_updated)).scalar_one_or_none()
 
     return {
         "traffic_today_in": ti,
@@ -140,7 +150,7 @@ async def build_provider_traffic_metrics(session: AsyncSession, pubkey: str) -> 
         "traffic_total_in": ai,
         "traffic_total_out": ao,
         "traffic_total": ai + ao,
-        "updated_at": updated,
+        "updated_at": updated_at,
     }
 
 
@@ -177,7 +187,11 @@ async def build_provider_storage_metrics(session: AsyncSession, pubkey: str) -> 
     last = (await session.execute(last_stmt)).mappings().first()
     used_eom = float(last["used"]) if last and last["used"] is not None else 0.0
     total_eom = float(last["total"]) if last and last["total"] is not None else 0.0
-    updated_at = last["archived_at"] if last else None
+
+    stmt_updated = select(TelemetryModel.updated_at).where(
+        TelemetryModel.provider_pubkey == pubkey
+    )
+    updated_at = (await session.execute(stmt_updated)).scalar_one_or_none()
 
     return {
         "used_today": await _delta_used("today"),

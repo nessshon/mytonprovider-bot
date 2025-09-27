@@ -43,7 +43,7 @@ class TelemetryModel(BaseTelemetryModel):
     __tablename__ = "telemetry"
 
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime,
+        DateTime(timezone=True),
         default=now,
         onupdate=now,
     )
@@ -53,7 +53,7 @@ class TelemetryHistoryModel(BaseTelemetryModel):
     __tablename__ = "telemetry_history"
 
     archived_at: Mapped[datetime] = mapped_column(
-        DateTime,
+        DateTime(timezone=True),
         primary_key=True,
         nullable=False,
         default=now_rounded_min,
