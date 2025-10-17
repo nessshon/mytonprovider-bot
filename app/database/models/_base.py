@@ -3,10 +3,7 @@ from __future__ import annotations
 import json
 import typing as t
 
-from sqlalchemy.orm import (
-    DeclarativeBase,
-    InstrumentedAttribute,
-)
+from sqlalchemy.orm import DeclarativeBase, InstrumentedAttribute
 
 _T = t.TypeVar("_T", bound="BaseModel")
 
@@ -23,6 +20,10 @@ class BaseModel(DeclarativeBase):
         )
         return f"<{self.__class__.__name__} {cols}>"
 
+    @property
+    def pk(self) -> int:
+        return getattr(self, self.get_pk_column().key)
+
     def get_pk(self):
         return getattr(self, self.get_pk_column().name)
 
@@ -33,9 +34,11 @@ class BaseModel(DeclarativeBase):
             raise ValueError(f"{cls.__name__} has composite or missing PK")
         return getattr(cls, pk_cols[0].key)
 
-    @property
-    def pk(self) -> int:
-        return getattr(self, self.get_pk_column().key)
+    def get_col(self, name: str) -> t.Any:
+        try:
+            return getattr(self, name)
+        except AttributeError as e:
+            raise ValueError(f"Model {self.__name__} has no column '{name}'") from e
 
     def model_dump(
         self,

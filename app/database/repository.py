@@ -1,18 +1,7 @@
-from __future__ import annotations
-
 import typing as t
 from typing import TypeVar
 
-from sqlalchemy import (
-    delete,
-    exists,
-    func,
-    select,
-    update,
-    Delete,
-    Select,
-    Update,
-)
+from sqlalchemy import delete, exists, func, select, Delete, Select, Update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .models import BaseModel
@@ -39,18 +28,12 @@ class BaseRepository(t.Generic[_TModel]):
         return stmt
 
     async def upsert(self, model: _TModel) -> _TModel:
-        pk_columns = self.model.__mapper__.primary_key
-        pk_filter = {col.key: getattr(model, col.key) for col in pk_columns}
+        merged = await self.session.merge(model)
+        return merged
 
-        existing = await self.get(**pk_filter)
-        if existing:
-            for field in model.__table__.columns.keys():
-                if field not in pk_filter:
-                    setattr(existing, field, getattr(model, field))
-            await self.session.flush()
-            return existing
-
-        return await self.create(model)
+    async def bulk_upsert(self, models: list[_TModel]) -> list[_TModel]:
+        merged = [await self.session.merge(m) for m in models]
+        return merged
 
     async def create(self, model: _TModel) -> _TModel:
         self.session.add(model)
@@ -80,11 +63,9 @@ class BaseRepository(t.Generic[_TModel]):
     ) -> t.List[_TModel]:
         stmt: Select = select(self.model)
         stmt = self._build_filters(stmt, filters)
-
         if order_by is not None:
             order_by_list = order_by if isinstance(order_by, list) else [order_by]
             stmt = stmt.order_by(*order_by_list)
-
         stmt = stmt.offset(offset).limit(limit)
         result = await self.session.execute(stmt)
         return list(result.scalars().all())
@@ -93,16 +74,6 @@ class BaseRepository(t.Generic[_TModel]):
         stmt: Select = select(self.model)
         result = await self.session.execute(stmt)
         return list(result.scalars().all())
-
-    async def update(
-        self,
-        filters: t.Dict[str, t.Any],
-        values: t.Dict[str, t.Any],
-    ) -> t.Optional[_TModel]:
-        stmt: Update = update(self.model).values(**values).returning(self.model)
-        stmt = self._build_filters(stmt, filters)
-        result = await self.session.execute(stmt)
-        return result.scalar_one_or_none()
 
     async def delete(self, **filters: t.Any) -> None:
         stmt: Delete = delete(self.model)

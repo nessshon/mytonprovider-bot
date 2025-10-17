@@ -20,6 +20,7 @@ class Database:
     def __init__(self) -> None:
         self.engine: AsyncEngine = create_async_engine(
             url=DB_URL,
+            connect_args={"timeout": 30},
             pool_pre_ping=True,
         )
         self.session_factory: async_sessionmaker = async_sessionmaker(

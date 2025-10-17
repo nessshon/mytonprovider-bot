@@ -3,11 +3,31 @@ from __future__ import annotations
 import asyncio
 import typing as t
 
+from aiogram import Bot, Dispatcher
+from redis.asyncio.client import Redis
+
+if t.TYPE_CHECKING:
+    from .api.toncenter import ToncenterClient
+    from .api.mytonprovider import MytonproviderClient
+    from .bot.broadcaster import Broadcaster
+    from .bot.utils.i18n import I18N
+    from .database.database import Database
+    from .scheduler.scheduler import Scheduler
+
 _CTX: t.Optional[Context] = None
 _STORAGE_KEY: str = "__context_storage__"
 
 
 class Context:
+    bot: Bot
+    broadcaster: Broadcaster
+    db: Database
+    dp: Dispatcher
+    i18n: I18N
+    mytonprovider: MytonproviderClient
+    toncenter: ToncenterClient
+    redis: Redis
+    scheduler: Scheduler
 
     @classmethod
     def _storage(cls) -> dict[str, t.Any]:

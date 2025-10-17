@@ -86,32 +86,31 @@ docker-compose logs -f
 
 ```
     .
-    ├── app/                               # Main application
-    │   ├── bot/                           # Telegram bot
-    │   │   ├── commands.py                # Bot commands
-    │   │   ├── dialogs/                   # Dialogs and states
-    │   │   ├── handlers/                  # Event handlers
-    │   │   ├── middlewares/               # Middleware
-    │   │   └── utils/                     # Utilities
-    │   ├── database/                      # Database
-    │   │   ├── models/                    # SQLAlchemy models
-    │   │   ├── repository.py              # Repository
-    │   │   └── unitofwork.py              # Unit of Work pattern
-    │   ├── scheduler/                     # Task scheduler
-    │   │   └── jobs/                      # Background jobs
-    │   │       ├── monitor_providers.py   # Providers sync and updates
-    │   │       ├── monitor_balances.py    # Balance and earnings tracking
-    │   │       ├── monitor_traffics.py    # Traffic statistics collection
-    │   │       └── monthly_reports.py     # Monthly reports generation
-    │   └── utils/                         # Common utilities
-    │       ├── alerts/                    # Alerts system
-    │       ├── i18n/                      # Internationalization
-    │       ├── mtpapi/                    # MyTONProvider API wrapper
-    │       └── toncenter/                 # TONCenter API wrapper
-    ├── alembic/                           # Database migrations
-    ├── locales/                           # Localization files
-    ├── data/                              # Database and service files
-    └── docker-compose.yml                 # Docker configuration
+    ├── app/                                # Main application
+    │   ├── alert/                          # Alerts system
+    │   ├── api/                            # External APIs
+    │   │   ├── mytonprovider/              # MyTONProvider API wrapper
+    │   │   └── toncenter/                  # TONCenter API wrapper
+    │   ├── bot/                            # Telegram bot
+    │   │   ├── dialogs/                    # Dialogs and states
+    │   │   ├── handlers/                   # Event handlers
+    │   │   ├── middlewares/                # Middleware
+    │   │   ├── utils/                      # Utilities
+    │   │   └── commands.py                 # Bot commands
+    │   ├── database/                       # Database
+    │   │   ├── models/                     # SQLAlchemy models
+    │   │   ├── repository.py               # Repository
+    │   │   └── unitofwork.py               # Unit of Work pattern
+    │   └── scheduler/                      # Task scheduler
+    │       └── jobs/                       # Background jobs
+    │           ├── sync_providers/         # Providers sync jobs
+    │           ├── alerts_dispatch.py      # Processing and dispatching alerts
+    │           ├── monthly_reports.py      # Monthly reports generation
+    │           └── update_wallets.py       # Updating providers wallets data
+    ├── alembic/                            # Database migrations
+    ├── locales/                            # Localization files
+    ├── data/                               # Database and service files
+    └── docker-compose.yml                  # Docker configuration
 ```
 
 ### Integrations
@@ -121,20 +120,23 @@ docker-compose logs -f
 
 ### Data models
 
-* **Provider** — provider information
-* **ProviderTelemetry** — telemetry and metrics
-* **ProviderWalletHistory** — wallet balance and earnings history
-* **ProviderTrafficHistory** — traffic statistics
-* **Telemetry** — advanced telemetry and metrics
-* **User** — user data
-* **UserSubscription** — user subscriptions
-* **UserAlertSetting** — individual alert preferences
+* **ProviderModel** — provider information
+* **ProviderHistoryModel** — provider history (archived state)
+* **TelemetryModel** — current telemetry and metrics
+* **TelemetryHistoryModel** — telemetry history snapshots
+* **WalletModel** — provider wallet state
+* **WalletHistoryModel** — wallet history (balance, earnings)
+* **UserModel** — user data
+* **UserSubscriptionModel** — user subscriptions
+* **UserAlertSettingModel** — user alert preferences
+* **UserTriggeredAlertModel** — triggered alerts log
 
 ### Task scheduler
 
-* **monitor_providers** — provider sync and updates
-* **monitor_balances** — balance and earnings monitoring
-* **monitor_traffics** — traffic statistics collection
+* **sync_providers/update_providers** — provider sync and updates
+* **sync_providers/update_telemetry** — telemetry collection and persistence
+* **update_wallets** — wallets update and transaction sync
+* **alerts_dispatch** — alert processing and dispatching
 * **monthly_reports** — monthly reports generation
 
 ## License

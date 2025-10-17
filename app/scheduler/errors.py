@@ -5,7 +5,7 @@ from aiogram.types import BufferedInputFile
 from aiogram.utils.markdown import hbold, hcode
 from apscheduler.events import JobExecutionEvent
 
-from ..bot import Broadcaster
+from ..bot.broadcaster import Broadcaster
 from ..config import DEV_ID
 from ..context import Context, get_context
 
@@ -27,7 +27,6 @@ async def _on_job_error(event: JobExecutionEvent, ctx: Context) -> None:
 
     broadcaster: Broadcaster = ctx.broadcaster
     caption = f"{hbold(exc_type)}: {hcode(exc_text[:900])}"
-
     traceback_text = event.traceback or "No traceback available"
     filename = f"error_{job_id}.txt"
     document = BufferedInputFile(traceback_text.encode(), filename=filename)

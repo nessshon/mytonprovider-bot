@@ -6,12 +6,9 @@ from collections.abc import Awaitable, Callable
 from aiogram.dispatcher.middlewares.base import BaseMiddleware
 from aiogram.types import TelegramObject, User
 
-from ...config import (
-    DEFAULT_LOCALE,
-    SUPPORTED_LOCALES,
-)
+from ..utils.i18n import Localizer
+from ...config import DEFAULT_LOCALE, SUPPORTED_LOCALES
 from ...context import Context
-from ...utils.i18n import Localizer
 
 
 class I18nMiddleware(BaseMiddleware):

@@ -86,32 +86,31 @@ docker-compose logs -f
 
 ```
     .
-    ├── app/                               # Основное приложение
-    │   ├── bot/                           # Telegram-бот
-    │   │   ├── commands.py                # Команды бота
-    │   │   ├── dialogs/                   # Диалоги и состояния
-    │   │   ├── handlers/                  # Обработчики событий
-    │   │   ├── middlewares/               # Middleware
-    │   │   └── utils/                     # Утилиты
-    │   ├── database/                      # База данных
-    │   │   ├── models/                    # SQLAlchemy модели
-    │   │   ├── repository.py              # Репозиторий
-    │   │   └── unitofwork.py              # Паттерн Unit of Work
-    │   ├── scheduler/                     # Планировщик задач
-    │   │   └── jobs/                      # Фоновые задачи
-    │   │       ├── monitor_providers.py   # Синхронизация и обновление провайдеров
-    │   │       ├── monitor_balances.py    # Учет балансов и заработка
-    │   │       ├── monitor_traffics.py    # Сбор статистики по трафику
-    │   │       └── monthly_reports.py     # Генерация ежемесячных отчетов
-    │   └── utils/                         # Общие утилиты
-    │       ├── alerts/                    # Система уведомлений
-    │       ├── i18n/                      # Интернационализация
-    │       ├── mtpapi/                    # Обертка для MyTONProvider API
-    │       └── toncenter/                 # Обертка для TONCenter API
-    ├── alembic/                           # Миграции БД
-    ├── locales/                           # Файлы локализации
-    ├── data/                              # База данных и служебные файлы
-    └── docker-compose.yml                 # Конфигурация Docker
+    ├── app/                                # Основное приложение
+    │   ├── alert/                          # Система оповещений
+    │   ├── api/                            # Внешние API
+    │   │   ├── mytonprovider/              # Обёртка для MyTONProvider API
+    │   │   └── toncenter/                  # Обёртка для TONCenter API
+    │   ├── bot/                            # Telegram-бот
+    │   │   ├── dialogs/                    # Диалоги и состояния
+    │   │   ├── handlers/                   # Обработчики событий
+    │   │   ├── middlewares/                # Middleware
+    │   │   ├── utils/                      # Утилиты
+    │   │   └── commands.py                 # Команды бота
+    │   ├── database/                       # База данных
+    │   │   ├── models/                     # SQLAlchemy-модели
+    │   │   ├── repository.py               # Репозиторий
+    │   │   └── unitofwork.py               # Паттерн Unit of Work
+    │   └── scheduler/                      # Планировщик задач
+    │       └── jobs/                       # Фоновые задачи
+    │           ├── sync_providers/         # Задачи синхронизации провайдеров
+    │           ├── alerts_dispatch.py      # Обработка и рассылка оповещений
+    │           ├── monthly_reports.py      # Генерация ежемесячных отчётов
+    │           └── update_wallets.py       # Обновление данных кошельков провайдеров
+    ├── alembic/                            # Миграции базы данных
+    ├── locales/                            # Файлы локализации
+    ├── data/                               # Файлы базы и сервисные данные
+    └── docker-compose.yml                  # Конфигурация Docker
 ```
 
 ### Интеграции
@@ -121,21 +120,24 @@ docker-compose logs -f
 
 ### Модели данных
 
-* **Provider** — информация о провайдере
-* **ProviderTelemetry** — телеметрия и метрики
-* **ProviderWalletHistory** — история баланса и заработка
-* **ProviderTrafficHistory** — статистика трафика
-* **Telemetry** — расширенная телеметрия и метрики
-* **User** — данные пользователя
-* **UserSubscription** — подписки пользователей
-* **UserAlertSetting** — индивидуальные настройки уведомлений
+* **ProviderModel** — информация о провайдере
+* **ProviderHistoryModel** — история провайдеров (архивные данные)
+* **TelemetryModel** — текущая телеметрия и метрики
+* **TelemetryHistoryModel** — история телеметрии (срезы по времени)
+* **WalletModel** — состояние кошелька провайдера
+* **WalletHistoryModel** — история кошелька (балансы, доходы)
+* **UserModel** — данные пользователя
+* **UserSubscriptionModel** — подписки пользователей
+* **UserAlertSettingModel** — индивидуальные настройки оповещений
+* **UserTriggeredAlertModel** — журнал сработавших оповещений
 
 ### Планировщик задач
 
-* **monitor_providers** — синхронизация и обновление провайдеров
-* **monitor_balances** — учет балансов и заработка
-* **monitor_traffics** — сбор статистики по трафику
-* **monthly_reports** — генерация ежемесячных отчетов
+* **sync_providers/update_providers** — синхронизация и обновление провайдеров
+* **sync_providers/update_telemetry** — сбор и сохранение телеметрии
+* **update_wallets** — обновление данных кошельков и транзакций
+* **alerts_dispatch** — обработка и рассылка оповещений
+* **monthly_reports** — генерация ежемесячных отчётов
 
 ## Лицензия
 

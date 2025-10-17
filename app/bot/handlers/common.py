@@ -10,11 +10,11 @@ from aiogram.types import (
 from aiogram_dialog import DialogManager, ShowMode
 
 from ..dialogs import states
-from ..utils import delete_message, generate_password_hash, is_valid_pubkey
+from ..utils import delete_message, generate_passwd_hash, is_valid_pubkey
+from ..utils.i18n import Localizer
 from ...config import ADMIN_IDS, ADMIN_PASSWORD
-from ...database import UnitOfWork
 from ...database.models import ProviderModel, UserModel, UserSubscriptionModel
-from ...utils.i18n import Localizer
+from ...database.unitofwork import UnitOfWork
 
 
 async def my_chat_memeber(
@@ -96,7 +96,7 @@ async def enter_password_message(
         password_ok = True
         user_telemetry_pass = telemetry_pass
     else:
-        user_telemetry_pass = generate_password_hash(message.text)
+        user_telemetry_pass = generate_passwd_hash(message.text)
         password_ok = user_telemetry_pass == telemetry_pass
 
     if not password_ok:

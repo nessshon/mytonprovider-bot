@@ -1,4 +1,4 @@
-from app.utils.alerts import AlertTypes
+from ...alert.types import AlertTypes
 
 PROVIDER_TABS = [
     "hardware",
