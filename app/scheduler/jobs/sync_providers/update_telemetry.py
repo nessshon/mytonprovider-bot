@@ -29,7 +29,7 @@ async def update_telemetry_job(ctx: Context) -> None:
         telemetry_models.append(TelemetryModel(**telemetry_data))
 
         telemetry_history_data["archived_at"] = now
-        telemetry_history_models.append(TelemetryHistoryModel(**data))
+        telemetry_history_models.append(TelemetryHistoryModel(**telemetry_history_data))
 
     async with uow:
         await uow.telemetry_history.bulk_upsert(telemetry_history_models)
