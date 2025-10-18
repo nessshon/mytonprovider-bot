@@ -5,6 +5,7 @@ from datetime import datetime
 
 from sqlalchemy import Boolean, BigInteger, DateTime, Float, Integer, JSON, String
 from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.sql.schema import Index
 
 from ._base import BaseModel
 from ..helpers import now, now_rounded_min
@@ -59,4 +60,11 @@ class ProviderHistoryModel(BaseProviderModel):
         primary_key=True,
         nullable=False,
         default=now_rounded_min,
+    )
+    __table_args__ = (
+        Index(
+            "idx_providers_history_pubkey_archived",
+            "pubkey",
+            "archived_at",
+        ),
     )

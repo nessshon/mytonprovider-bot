@@ -5,6 +5,7 @@ from datetime import datetime
 
 from sqlalchemy import BigInteger, DateTime, ForeignKey, Integer, String, JSON
 from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.sql.schema import Index
 
 from ._base import BaseModel
 from ..helpers import now, now_rounded_min
@@ -57,4 +58,11 @@ class TelemetryHistoryModel(BaseTelemetryModel):
         primary_key=True,
         nullable=False,
         default=now_rounded_min,
+    )
+    __table_args__ = (
+        Index(
+            "idx_telemetry_history_pubkey_archived",
+            "provider_pubkey",
+            "archived_at",
+        ),
     )
