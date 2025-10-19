@@ -223,19 +223,25 @@ class AlertDetector:
 
     def is_provider_offline(self) -> bool:
         """
-        Offline if telemetry too old and provider not stable.
+        Determine if provider is offline.
+
+        Logic:
+          - Provider considered offline if telemetry data is too old (no updates within 30 min)
+            and provider is not marked as stable.
+          - Stability is defined by: status == 0 and status_ratio >= 0.99.
 
         Example:
-            telemetry.timestamp = 1727171727
-            provider.status = 1
-            provider.status_ratio = 0.80
+            telemetry.timestamp = 1727171727  # Last telemetry update
+            provider.status = 1               # Not stable
+            provider.status_ratio = 0.80      # 80% uptime in period
         """
         # No telemetry timestamp → cannot assert offline
         if self.telemetry.timestamp is None:
             return False
 
         age_sec = int(time.time()) - int(self.telemetry.timestamp)
-        if age_sec <= float(self.thresholds[AlertTypes.PROVIDER_OFFLINE]):
+        # Telemetry is fresh (≤ 30 min) — still considered online
+        if age_sec <= THRESHOLDS[AlertTypes.PROVIDER_OFFLINE]:  # 30 min
             return False
         # Stable → not offline
         if self.provider.status == 0 and self.provider.status_ratio >= 0.99:

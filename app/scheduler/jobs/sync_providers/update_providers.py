@@ -1,5 +1,8 @@
 import logging
 import typing as t
+from datetime import timedelta
+
+from sqlalchemy.sql.expression import text
 
 from ....api.mytonprovider import MytonproviderClient, Provider, ProviderSearchPayload
 from ....context import Context
@@ -25,6 +28,27 @@ async def iterate_providers(
         offset += limit
 
 
+async def downsample_history_hourly(uow: UnitOfWork) -> None:
+    from ....database.helpers import now
+
+    cutoff = (now() - timedelta(hours=1)).strftime("%Y-%m-%d %H:%M:%S")
+    sql_text = text(
+        """
+        DELETE FROM providers_history AS t
+        WHERE t.archived_at < :cutoff
+          AND EXISTS (
+            SELECT 1
+            FROM providers_history AS keep
+            WHERE keep.pubkey = t.pubkey
+              AND keep.archived_at < :cutoff
+              AND substr(keep.archived_at, 1, 13) = substr(t.archived_at, 1, 13)
+              AND keep.archived_at > t.archived_at
+          )
+    """
+    )
+    await uow.session.execute(sql_text, {"cutoff": cutoff})
+
+
 async def update_providers_job(ctx: Context) -> None:
     uow = UnitOfWork(ctx.db.session_factory)
     now = now_rounded_min()
@@ -46,3 +70,5 @@ async def update_providers_job(ctx: Context) -> None:
     async with uow:
         await uow.provider.bulk_upsert(provider_models)
         await uow.provider_history.bulk_upsert(provider_history_models)
+    async with uow:
+        await downsample_history_hourly(uow)
