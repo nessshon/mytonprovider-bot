@@ -8,5 +8,5 @@ THRESHOLDS: t.Dict[str, float] = {
     AlertTypes.NETWORK_HIGH.value: 90.0,
     AlertTypes.DISK_LOAD_HIGH.value: 90.0,
     AlertTypes.DISK_SPACE_LOW.value: 90.0,
-    AlertTypes.PROVIDER_OFFLINE.value: 30 * 60,
+    AlertTypes.PROVIDER_OFFLINE.value: 15 * 60,
 }

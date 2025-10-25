@@ -1,3 +1,4 @@
+import os
 import time
 import typing as t
 from contextlib import suppress
@@ -94,7 +95,7 @@ class AlertDetector:
         return detected, resolved
 
     def is_cpu_high(self) -> bool:
-        """High when 1m or 5m load exceeds (CPU_HIGH% of cores).
+        """High when 5m load exceeds (CPU_HIGH% of cores).
 
         Example telemetry.cpu_info:
         {
@@ -104,16 +105,19 @@ class AlertDetector:
         """
         if not self.telemetry.cpu_info:
             return False
+
         cpu_info = CPUInfo(**self.telemetry.cpu_info)
         if not cpu_info.cpu_load or not cpu_info.cpu_count:
             return False
+        if len(cpu_info.cpu_load) < 2:
+            return False
 
-        load1, load5, _ = cpu_info.cpu_load
+        load5 = cpu_info.cpu_load[1]  # 5m load average
         cores = max(1, cpu_info.cpu_count)  # guard against zero
 
-        # Threshold is stored in percent (e.g., 80 → 0.8 of cores)
-        thr_ratio = float(self.thresholds[AlertTypes.CPU_HIGH]) / 100.0
-        return load1 > cores * thr_ratio or load5 > cores * thr_ratio
+        cpu_load_percent = float(load5 / cores * 100)
+        thr_ratio = float(self.thresholds[AlertTypes.CPU_HIGH])
+        return cpu_load_percent > thr_ratio
 
     def is_ram_high(self) -> bool:
         """High when RAM usage_percent >= RAM_HIGH threshold (in percent).
@@ -165,7 +169,7 @@ class AlertDetector:
 
     def is_disk_load_high(self) -> bool:
         """
-        High when avg disk load across devices (1m slot) >= DISK_LOAD_HIGH.
+        High when disk load (1m slot) >= DISK_LOAD_HIGH.
 
         Example telemetry.disks_load_percent:
         {
@@ -173,22 +177,25 @@ class AlertDetector:
             "sda": [40.0, 35.2, 30.0]
         }
         """
-        disks = self.telemetry.disks_load_percent
-        if not isinstance(disks, dict) or not disks:
+        disks_loads = self.telemetry.disks_load_percent
+        if not isinstance(disks_loads, dict) or not disks_loads:
             return False
 
-        vals: list[float] = []
-        for _, arr in disks.items():
-            p = _to_percent(_first_slot(arr))
-            if p is not None:
-                vals.append(p)
+        storage = getattr(self.telemetry, "storage", None)
+        disk_name = None
 
-        if not vals:
+        if isinstance(storage, dict) and storage.get("disk_name"):
+            disk_name = os.path.basename(storage.get("disk_name"))
+        if not disk_name or disk_name not in disks_loads:
+            disk_name = next(iter(disks_loads.keys()))
+
+        values = disks_loads.get(disk_name)
+        if not isinstance(values, (list, tuple)) or len(values) < 3:
             return False
 
-        avg_load = sum(vals) / len(vals)
+        disk_load_percent = float(values[2])
         thr_percent = float(self.thresholds[AlertTypes.DISK_LOAD_HIGH])
-        return avg_load >= thr_percent
+        return disk_load_percent > thr_percent
 
     def is_disk_space_low(self) -> bool:
         """
@@ -241,7 +248,7 @@ class AlertDetector:
 
         age_sec = int(time.time()) - int(self.telemetry.timestamp)
         # Telemetry is fresh (≤ 30 min) — still considered online
-        if age_sec <= THRESHOLDS[AlertTypes.PROVIDER_OFFLINE]:  # 30 min
+        if age_sec <= THRESHOLDS[AlertTypes.PROVIDER_OFFLINE]:  # 15 min
             return False
         # Stable → not offline
         if self.provider.status == 0 and self.provider.status_ratio >= 0.99:
