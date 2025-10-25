@@ -248,7 +248,7 @@ class AlertDetector:
 
         age_sec = int(time.time()) - int(self.telemetry.timestamp)
         # Telemetry is fresh (≤ 30 min) — still considered online
-        if age_sec <= THRESHOLDS[AlertTypes.PROVIDER_OFFLINE]:  # 30 min
+        if age_sec <= THRESHOLDS[AlertTypes.PROVIDER_OFFLINE]:  # 15 min
             return False
         # Stable → not offline
         if self.provider.status == 0 and self.provider.status_ratio >= 0.99:
