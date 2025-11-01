@@ -31,22 +31,34 @@ async def iterate_providers(
 async def downsample_history_hourly(uow: UnitOfWork) -> None:
     from ....database.helpers import now
 
-    cutoff = (now() - timedelta(hours=1)).strftime("%Y-%m-%d %H:%M:%S")
-    sql_text = text(
+    start_prev_hour = (now() - timedelta(hours=2)).strftime("%Y-%m-%d %H:00:00")
+    end_prev_hour = (now() - timedelta(hours=1)).strftime("%Y-%m-%d %H:00:00")
+
+    sql = text(
         """
-        DELETE FROM providers_history AS t
-        WHERE t.archived_at < :cutoff
-          AND EXISTS (
-            SELECT 1
-            FROM providers_history AS keep
-            WHERE keep.pubkey = t.pubkey
-              AND keep.archived_at < :cutoff
-              AND substr(keep.archived_at, 1, 13) = substr(t.archived_at, 1, 13)
-              AND keep.archived_at > t.archived_at
-          )
-    """
+        WITH ranked AS (
+          SELECT
+            rowid,
+            ROW_NUMBER() OVER (
+              PARTITION BY pubkey
+              ORDER BY archived_at DESC
+            ) AS rn
+          FROM providers_history
+          WHERE archived_at >= :start_prev_hour
+            AND archived_at <  :end_prev_hour
+        )
+        DELETE FROM providers_history
+        WHERE rowid IN (SELECT rowid FROM ranked WHERE rn > 1);
+        """
     )
-    await uow.session.execute(sql_text, {"cutoff": cutoff})
+
+    await uow.session.execute(
+        sql,
+        {
+            "start_prev_hour": start_prev_hour,
+            "end_prev_hour": end_prev_hour,
+        },
+    )
 
 
 async def update_providers_job(ctx: Context) -> None:
