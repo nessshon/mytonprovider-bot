@@ -193,7 +193,11 @@ class AlertDetector:
         if not isinstance(values, (list, tuple)) or len(values) < 3:
             return False
 
-        disk_load_percent = float(values[2])
+        raw_value = values[2]
+        try:
+            disk_load_percent = float(raw_value)
+        except (TypeError, ValueError):
+            return False
         thr_percent = float(self.thresholds[AlertTypes.DISK_LOAD_HIGH])
         return disk_load_percent > thr_percent
 
