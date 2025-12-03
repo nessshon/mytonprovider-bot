@@ -4,9 +4,14 @@ messages:
       🤖 <b>追蹤供應商狀態</b> –  
       遙測、通知與更多功能。<br><br>
 
-      📘 <b>如何找到供應商：</b><br>
-      • 點擊「供應商清單」<br>
+      📘 <b>如何尋找提供者：</b><br>
+      • 打開 «所有提供者»<br>
+      • 或點擊 «尋找提供者»<br>
       • 或在聊天中發送公鑰<br>
+
+    search_provider: |
+      🔎 <b>搜尋提供者</b><br><br>
+      請在聊天中發送提供者的公鑰：
 
     not_found: |
       ⚠️ <b>找不到供應商</b><br><br>
@@ -265,6 +270,7 @@ buttons:
     stats: "機器人統計"
 
   main_menu:
+    search_provider: "尋找提供者"
     my_providers: "我的供應商 {{ my_providers_count }}"
     list_providers: "所有供應商 {{ list_providers_count}}"
     statuses: "供應商狀態"

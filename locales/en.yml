@@ -5,8 +5,13 @@ messages:
       telemetry, alerts, and much more.<br><br>
 
       📘 <b>How to find a provider:</b><br>
-      • Click “Provider list”<br>
-      • Or send a public key in the chat<br>
+      • Open «All providers»<br>
+      • Or tap «Find provider»<br>
+      • Or send the public key in the chat<br>
+
+    search_provider: |
+      🔎 <b>Provider search</b><br><br>
+      Send the provider’s public key in the chat:
 
     not_found: |
       ⚠️ <b>Provider not found</b><br><br>
@@ -265,6 +270,7 @@ buttons:
     stats: "Bot Statistics"
 
   main_menu:
+    search_provider: "Find provider"
     my_providers: "My providers {{ my_providers_count }}"
     list_providers: "All providers {{ list_providers_count}}"
     statuses: "Provider statuses"
