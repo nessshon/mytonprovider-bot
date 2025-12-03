@@ -22,7 +22,7 @@ def register_command(
         await dialog_manager.start(
             state=state,
             mode=StartMode.RESET_STACK,
-            show_mode=ShowMode.DELETE_AND_SEND,
+            show_mode=ShowMode.SEND,
         )
         await delete_message(message)
 
