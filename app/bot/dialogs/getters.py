@@ -5,6 +5,7 @@ from app.database.metrics import (
     build_provider_traffic_metrics,
     build_provider_storage_metrics,
     build_stats_summary,
+    build_monthly_report,
 )
 from .consts import DEFAULT_PROVIDER_TAB, DEFAULT_ALERT_TAB
 from ..utils.i18n import Localizer
@@ -66,6 +67,7 @@ async def provider_menu(
     provider_wallet_metrics = await build_provider_wallet_metrics(uow.session, pubkey)
     provider_traffic_metrics = await build_provider_traffic_metrics(uow.session, pubkey)
     provider_storage_metrics = await build_provider_storage_metrics(uow.session, pubkey)
+    provider_last_month_report = await build_monthly_report(uow.session, pubkey)
 
     subscription = next(
         (
@@ -100,6 +102,7 @@ async def provider_menu(
         "provider_wallet_metrics": provider_wallet_metrics,
         "provider_traffic_metrics": provider_traffic_metrics,
         "provider_storage_metrics": provider_storage_metrics,
+        "provider_last_month_report": provider_last_month_report,
     }
 
 

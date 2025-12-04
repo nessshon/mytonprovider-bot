@@ -184,6 +184,15 @@ messages:
       <b>• Updated:</b> <code>{{ m.get('updated_at') | datetimeformat }}</code><br>
       </blockquote>
 
+    last_month_report: |
+      <h2>Last Month Report</h2>
+      <blockquote>
+      <b>• Earned:</b> <code>+{{ provider_last_month_report.earned_nanoton | toamount }} TON</code><br>
+      <b>• Storage Used:</b> <code>+{{ provider_last_month_report.used_space_bytes | sizeformat }}</code><br>
+      <b>• Traffic Used:</b> <code>↓ {{ provider_last_month_report.traffic_in_bytes | sizeformat }}</code> / <code>↑ {{ provider_last_month_report.traffic_out_bytes | sizeformat }}</code><br>
+      <b>• Period:</b> <code>{{ provider_last_month_report.start_date }}</code> • <code>{{ provider_last_month_report.end_date }}</code><br><br>
+      </blockquote>
+
 alerts:
   monthly_report:
     info: |
@@ -336,6 +345,7 @@ buttons:
       network: "Network"
       traffic: "Traffic"
       wallet: "Wallet"
+      last_month_report: "Last month report"
 
 commands:
   start:

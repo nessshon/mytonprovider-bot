@@ -184,6 +184,15 @@ messages:
       <b>• 更新時間：</b> <code>{{ m.get('updated_at') | datetimeformat }}</code><br>
       </blockquote>
 
+    last_month_report: |
+      <h2>上個月報告</h2>
+      <blockquote>
+      <b>• 已獲得：</b> <code>+{{ provider_last_month_report.earned_nanoton | toamount }} TON</code><br>
+      <b>• 已使用空間：</b> <code>+{{ provider_last_month_report.used_space_bytes | sizeformat }}</code><br>
+      <b>• 已使用流量：</b> <code>↓ {{ provider_last_month_report.traffic_in_bytes | sizeformat }}</code> / <code>↑ {{ provider_last_month_report.traffic_out_bytes | sizeformat }}</code><br>
+      <b>• 期間：</b> <code>{{ provider_last_month_report.start_date }}</code> • <code>{{ provider_last_month_report.end_date }}</code><br><br>
+      </blockquote>
+
 alerts:
   monthly_report:
     info: |
@@ -336,6 +345,7 @@ buttons:
       network: "網路"
       traffic: "流量"
       wallet: "錢包"
+      last_month_report: "上個月報告"
 
 commands:
   start:
