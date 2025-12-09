@@ -62,9 +62,7 @@ async def downsample_history_hourly(uow: UnitOfWork) -> None:
 
 
 async def update_providers_job(ctx: Context) -> None:
-    uow = UnitOfWork(ctx.db.session_factory)
     now = now_rounded_min()
-
     provider_models = []
     provider_history_models = []
     async for provider in iterate_providers(ctx.mytonprovider):
@@ -79,8 +77,8 @@ async def update_providers_job(ctx: Context) -> None:
         provider_history_data["archived_at"] = now
         provider_history_models.append(ProviderHistoryModel(**provider_history_data))
 
-    async with uow:
+    async with UnitOfWork(ctx.db.session_factory) as uow:
         await uow.provider.bulk_upsert(provider_models)
         await uow.provider_history.bulk_upsert(provider_history_models)
-    async with uow:
+    async with UnitOfWork(ctx.db.session_factory) as uow:
         await downsample_history_hourly(uow)
