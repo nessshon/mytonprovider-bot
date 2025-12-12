@@ -28,6 +28,7 @@ class BaseProviderModel(BaseModel):
     min_span: Mapped[int] = mapped_column(BigInteger, nullable=False)
     max_bag_size_bytes: Mapped[int] = mapped_column(BigInteger, nullable=False)
     reg_time: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    last_online_check_time: Mapped[int] = mapped_column(BigInteger, nullable=True)
     is_send_telemetry: Mapped[bool] = mapped_column(Boolean, nullable=False)
     telemetry: Mapped[dict] = mapped_column(JSON)
 
