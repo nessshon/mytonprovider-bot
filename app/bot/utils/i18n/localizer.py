@@ -20,6 +20,7 @@ class Localizer:
         self.jinja_env = jinja_env
         self.locale_data = locale_data
 
+        self.jinja_env.filters["ago"] = self._ago_filter
         self.jinja_env.filters["toamount"] = self._toamount_filter
         self.jinja_env.filters["sizeformat"] = self._sizeformat_filter
         self.jinja_env.filters["datetimeformat"] = self._datetimeformat_filter
@@ -59,6 +60,46 @@ class Localizer:
         elif days > 0:
             return f"{days}{await l('day')} {hours}{await l('hour')}"
         return f"{hours}{await l('hour')}"
+
+    async def _ago_filter(self, ts: t.Optional[t.Union[int, datetime]]) -> str:
+        if ts is None:
+            return "N/A"
+
+        try:
+            ts_int = int(ts.timestamp()) if isinstance(ts, datetime) else int(ts)
+            now = int(datetime.now().timestamp())
+            total = now - ts_int
+            if total < 0:
+                return "N/A"
+        except (TypeError, ValueError, OverflowError):
+            return "N/A"
+
+        async def l(key: str) -> str:
+            return await self(f"duration_short.{key}")
+
+        if total < 60:
+            return f"{total}{await l('second')} {await l('ago')}"
+
+        minutes = total // 60
+        if minutes < 60:
+            return f"{minutes}{await l('minute')} {await l('ago')}"
+
+        hours, rem_min = divmod(minutes, 60)
+        if hours < 24:
+            if rem_min:
+                return f"{hours}{await l('hour')} {rem_min}{await l('minute')} {await l('ago')}"
+            return f"{hours}{await l('hour')} {await l('ago')}"
+
+        days = hours // 24
+        if days < 30:
+            return f"{days}{await l('day')} {await l('ago')}"
+
+        months = days // 30
+        if months < 12:
+            return f"{months}{await l('month')} {await l('ago')}"
+
+        years = months // 12
+        return f"{years}{await l('year')} {await l('ago')}"
 
     @staticmethod
     async def _sizeformat_filter(value: t.Optional[t.Union[int, float]]) -> str:
