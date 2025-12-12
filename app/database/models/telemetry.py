@@ -47,6 +47,7 @@ class TelemetryModel(BaseTelemetryModel):
         DateTime(timezone=True),
         default=now,
         onupdate=now,
+        nullable=True,
     )
 
 

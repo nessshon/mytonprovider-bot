@@ -29,6 +29,7 @@ class WalletModel(BaseWalletModel):
         DateTime(timezone=True),
         default=now,
         onupdate=now,
+        nullable=True,
     )
 
 

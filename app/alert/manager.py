@@ -21,8 +21,7 @@ class AlertManager:
     def __init__(self, ctx: Context) -> None:
         self.ctx = ctx
         self.broadcaster = ctx.broadcaster
-        self.uow = UnitOfWork(ctx.db.session_factory)
-        self.repo = AlertRepository(self.uow)
+        self.repo = AlertRepository(UnitOfWork(ctx.db.session_factory))
 
     async def dispatch(self) -> None:
         payload = await self.repo.get_providers_telemetry_with_prev_telemetry()
