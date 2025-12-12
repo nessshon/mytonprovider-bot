@@ -75,6 +75,7 @@ messages:
     menu: |
       {{ provider.ui.status_emoji }} <b>Провайдер</b> <code>{{ provider.ui.short_pubkey }}</code><br><br>
       <b>• Статус</b>: <code>{{ provider.ui.status_text }} ({{ provider.ui.uptime }})</code><br>
+      <b>• Последний онлайн</b>: <code>{{ provider.last_online_check_time | ago }}</code><br>
       <b>• Рейтинг</b>: <code>{{ provider.ui.rating }}</code><br>
       <b>• Цена</b>: <code>{{ provider.ui.price }}</code><br>
       <b>• Адрес</b>: <a href="https://tonviewer.com/{{ provider.address }}">{{ provider.ui.short_address }}</a><br>
@@ -362,5 +363,9 @@ language_names:
 
 duration_short:
   year: "г"
+  month: "мес"
   day: "д"
   hour: "ч"
+  minute: "м"
+  second: "с"
+  ago: "назад"

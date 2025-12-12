@@ -75,6 +75,7 @@ messages:
     menu: |
       {{ provider.ui.status_emoji }} <b>供應商</b> <code>{{ provider.ui.short_pubkey }}</code><br><br>
       <b>• 狀態</b>: <code>{{ provider.ui.status_text }} ({{ provider.ui.uptime }})</code><br>
+      <b>• 最後上線</b>: <code>{{ provider.last_online_check_time | ago }}</code><br>
       <b>• 評分</b>: <code>{{ provider.ui.rating }}</code><br>
       <b>• 價格</b>: <code>{{ provider.ui.price }}</code><br>
       <b>• 地址</b>: <a href="https://tonviewer.com/{{ provider.address }}">{{ provider.ui.short_address }}</a><br>
@@ -362,5 +363,9 @@ language_names:
 
 duration_short:
   year: "年"
+  month: "個月"
   day: "天"
   hour: "小時"
+  minute: "分鐘"
+  second: "秒"
+  ago: "前"
