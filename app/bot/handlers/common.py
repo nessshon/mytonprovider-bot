@@ -10,7 +10,7 @@ from aiogram.types import (
 from aiogram_dialog import DialogManager, ShowMode
 
 from ..dialogs import states
-from ..utils import delete_message, generate_passwd_hash, is_valid_pubkey
+from ..utils import generate_passwd_hash, is_valid_pubkey, delete_message
 from ..utils.i18n import Localizer
 from ...config import ADMIN_IDS, ADMIN_PASSWORD
 from ...database.models import ProviderModel, UserModel, UserSubscriptionModel
@@ -84,7 +84,6 @@ async def enter_password_message(
     uow: UnitOfWork,
 ) -> None:
     if message.content_type != ContentType.TEXT:
-        await delete_message(message)
         return
 
     user: UserModel = dialog_manager.middleware_data["user_model"]
@@ -101,7 +100,7 @@ async def enter_password_message(
 
     if not password_ok:
         dialog_manager.dialog_data["incorrect_password"] = True
-        await dialog_manager.show(show_mode=ShowMode.DELETE_AND_SEND)
+        await dialog_manager.show(show_mode=ShowMode.SEND)
         return
 
     dialog_manager.dialog_data["incorrect_password"] = False
@@ -121,11 +120,10 @@ async def enter_password_message(
         )
     )
     await uow.session.flush()
-    await delete_message(message)
 
     await dialog_manager.start(
         state=states.ProviderMenu.MAIN,
-        show_mode=ShowMode.DELETE_AND_SEND,
+        show_mode=ShowMode.SEND,
         data={"provider_pubkey": pubkey},
     )
 
@@ -144,7 +142,7 @@ async def default_message(
     if not pubkey or not is_valid_pubkey(pubkey):
         await dialog_manager.start(
             state=states.MainMenu.INVALID_INPUT,
-            show_mode=ShowMode.EDIT,
+            show_mode=ShowMode.SEND,
         )
     else:
         state, data = (
@@ -155,7 +153,5 @@ async def default_message(
         await dialog_manager.start(
             state=state,
             data=data,
-            show_mode=ShowMode.EDIT,
+            show_mode=ShowMode.SEND,
         )
-
-    await delete_message(message)

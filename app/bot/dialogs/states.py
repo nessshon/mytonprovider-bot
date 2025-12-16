@@ -3,6 +3,7 @@ from aiogram.fsm.state import StatesGroup, State
 
 class MainMenu(StatesGroup):
     MAIN = State()
+    SEARCH_PROVIDER = State()
     NOT_FOUND = State()
     INVALID_INPUT = State()
 

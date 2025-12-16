@@ -6,14 +6,13 @@ from ...database.unitofwork import UnitOfWork
 
 
 async def monthly_report_job(ctx: Context) -> None:
-    uow = UnitOfWork(ctx.db.session_factory)
     alert_manager = AlertManager(ctx)
 
-    async with uow:
+    async with UnitOfWork(ctx.db.session_factory) as uow:
         providers = await uow.provider.all()
 
     for provider in providers:
-        async with uow:
+        async with UnitOfWork(ctx.db.session_factory) as uow:
             report = await build_monthly_report(uow.session, provider.pubkey)
 
         users = await alert_manager.repo.get_subscribed_users(provider.pubkey)

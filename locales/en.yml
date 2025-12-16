@@ -5,8 +5,13 @@ messages:
       telemetry, alerts, and much more.<br><br>
 
       📘 <b>How to find a provider:</b><br>
-      • Click “Provider list”<br>
-      • Or send a public key in the chat<br>
+      • Open «All providers»<br>
+      • Or tap «Find provider»<br>
+      • Or send the public key in the chat<br>
+
+    search_provider: |
+      🔎 <b>Provider search</b><br><br>
+      Send the provider’s public key in the chat:
 
     not_found: |
       ⚠️ <b>Provider not found</b><br><br>
@@ -70,6 +75,7 @@ messages:
     menu: |
       {{ provider.ui.status_emoji }} <b>Provider</b> <code>{{ provider.ui.short_pubkey }}</code><br><br>
       <b>• Status</b>: <code>{{ provider.ui.status_text }} ({{ provider.ui.uptime }})</code><br>
+      <b>• Last online</b>: <code>{{ provider.last_online_check_time | ago }}</code><br>
       <b>• Rating</b>: <code>{{ provider.ui.rating }}</code><br>
       <b>• Price</b>: <code>{{ provider.ui.price }}</code><br>
       <b>• Address</b>: <a href="https://tonviewer.com/{{ provider.address }}">{{ provider.ui.short_address }}</a><br>
@@ -179,6 +185,15 @@ messages:
       <b>• Updated:</b> <code>{{ m.get('updated_at') | datetimeformat }}</code><br>
       </blockquote>
 
+    last_month_report: |
+      <h2>Last Month Report</h2>
+      <blockquote>
+      <b>• Earned:</b> <code>+{{ provider_last_month_report.earned_nanoton | toamount }} TON</code><br>
+      <b>• Storage Used:</b> <code>+{{ provider_last_month_report.used_space_bytes | sizeformat }}</code><br>
+      <b>• Traffic Used:</b> <code>↓ {{ provider_last_month_report.traffic_in_bytes | sizeformat }}</code> / <code>↑ {{ provider_last_month_report.traffic_out_bytes | sizeformat }}</code><br>
+      <b>• Period:</b> <code>{{ provider_last_month_report.start_date }}</code> • <code>{{ provider_last_month_report.end_date }}</code><br><br>
+      </blockquote>
+
 alerts:
   monthly_report:
     info: |
@@ -265,6 +280,7 @@ buttons:
     stats: "Bot Statistics"
 
   main_menu:
+    search_provider: "Find provider"
     my_providers: "My providers {{ my_providers_count }}"
     list_providers: "All providers {{ list_providers_count}}"
     statuses: "Provider statuses"
@@ -330,6 +346,7 @@ buttons:
       network: "Network"
       traffic: "Traffic"
       wallet: "Wallet"
+      last_month_report: "Last month report"
 
 commands:
   start:
@@ -346,5 +363,9 @@ language_names:
 
 duration_short:
   year: "y"
+  month: "mo"
   day: "d"
   hour: "h"
+  minute: "m"
+  second: "s"
+  ago: "ago"

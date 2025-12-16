@@ -7,6 +7,7 @@ PROVIDER_TABS = [
     "network",
     "traffic",
     "wallet",
+    "last_month_report",
 ]
 DEFAULT_PROVIDER_TAB = "hardware"
 

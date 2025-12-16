@@ -5,8 +5,13 @@ messages:
       телеметрия, уведомления и многое другое.<br><br>
 
       📘 <b>Как найти провайдера:</b><br>
-      • Нажмите «Список провайдеров»<br>
+      • Откройте «Все провайдеры»<br>
+      • Или нажмите «Найти провайдера»<br>
       • Или отправьте публичный ключ в чат<br>
+
+    search_provider: |
+      🔎 <b>Поиск провайдера</b><br><br>
+      Отправьте публичный ключ провайдера в чат:
 
     not_found: |
       ⚠️ <b>Провайдер не найден</b><br><br>
@@ -70,6 +75,7 @@ messages:
     menu: |
       {{ provider.ui.status_emoji }} <b>Провайдер</b> <code>{{ provider.ui.short_pubkey }}</code><br><br>
       <b>• Статус</b>: <code>{{ provider.ui.status_text }} ({{ provider.ui.uptime }})</code><br>
+      <b>• Последний онлайн</b>: <code>{{ provider.last_online_check_time | ago }}</code><br>
       <b>• Рейтинг</b>: <code>{{ provider.ui.rating }}</code><br>
       <b>• Цена</b>: <code>{{ provider.ui.price }}</code><br>
       <b>• Адрес</b>: <a href="https://tonviewer.com/{{ provider.address }}">{{ provider.ui.short_address }}</a><br>
@@ -179,6 +185,15 @@ messages:
       <b>• Обновлено:</b> <code>{{ m.get('updated_at') | datetimeformat }}</code><br>
       </blockquote>
 
+    last_month_report: |
+      <h2>Отчет за прошлый месяц</h2>
+      <blockquote>
+      <b>• Заработано:</b> <code>+{{ provider_last_month_report.earned_nanoton | toamount }} TON</code><br>
+      <b>• Использовано места:</b> <code>+{{ provider_last_month_report.used_space_bytes | sizeformat }}</code><br>
+      <b>• Использовано трафика:</b> <code>↓ {{ provider_last_month_report.traffic_in_bytes | sizeformat }}</code> / <code>↑ {{ provider_last_month_report.traffic_out_bytes | sizeformat }}</code><br>
+      <b>• Период:</b> <code>{{ provider_last_month_report.start_date }}</code> • <code>{{ provider_last_month_report.end_date }}</code><br><br>
+      </blockquote>
+
 alerts:
   monthly_report:
     info: |
@@ -265,6 +280,7 @@ buttons:
     stats: "Статистика бота"
 
   main_menu:
+    search_provider: "Найти провайдера"
     my_providers: "Мои провайдеры {{ my_providers_count }}"
     list_providers: "Все провайдеры {{ list_providers_count}}"
     statuses: "Статусы провайдеров"
@@ -330,6 +346,7 @@ buttons:
       network: "Сеть"
       traffic: "Трафик"
       wallet: "Кошелёк"
+      last_month_report: "Отчет за прошлый месяц"
 
 commands:
   start:
@@ -346,5 +363,9 @@ language_names:
 
 duration_short:
   year: "г"
+  month: "мес"
   day: "д"
   hour: "ч"
+  minute: "м"
+  second: "с"
+  ago: "назад"

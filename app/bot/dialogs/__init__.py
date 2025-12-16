@@ -13,6 +13,7 @@ def register(dp: Dispatcher) -> None:
     dialog_router.include_routers(
         Dialog(
             windows.main_menu,
+            windows.search_provider_menu,
             windows.main_not_found,
             windows.main_invalid_input,
             launch_mode=LaunchMode.ROOT,

@@ -28,6 +28,12 @@ main_invalid_input = Window(
     state=states.MainMenu.INVALID_INPUT,
 )
 
+search_provider_menu = Window(
+    I18NJinja("messages.main.search_provider"),
+    keyboards.to_main,
+    state=states.MainMenu.SEARCH_PROVIDER,
+)
+
 stats_menu = Window(
     I18NJinja("messages.stats.menu"),
     keyboards.to_main,

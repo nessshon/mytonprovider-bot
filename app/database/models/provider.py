@@ -16,8 +16,6 @@ from ...bot.utils.ui import ProviderUI
 class BaseProviderModel(BaseModel):
     __abstract__ = True
 
-    pubkey: Mapped[str] = mapped_column(String(64), primary_key=True)
-
     location: Mapped[t.Optional[dict[str, str]]] = mapped_column(JSON)
     status: Mapped[t.Optional[int]] = mapped_column(Integer)
     address: Mapped[str] = mapped_column(String(64), nullable=False)
@@ -30,6 +28,7 @@ class BaseProviderModel(BaseModel):
     min_span: Mapped[int] = mapped_column(BigInteger, nullable=False)
     max_bag_size_bytes: Mapped[int] = mapped_column(BigInteger, nullable=False)
     reg_time: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    last_online_check_time: Mapped[int] = mapped_column(BigInteger, nullable=True)
     is_send_telemetry: Mapped[bool] = mapped_column(Boolean, nullable=False)
     telemetry: Mapped[dict] = mapped_column(JSON)
 
@@ -45,6 +44,8 @@ class BaseProviderModel(BaseModel):
 class ProviderModel(BaseProviderModel):
     __tablename__ = "providers"
 
+    pubkey: Mapped[str] = mapped_column(String(64), primary_key=True)
+
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=now,
@@ -55,9 +56,18 @@ class ProviderModel(BaseProviderModel):
 class ProviderHistoryModel(BaseProviderModel):
     __tablename__ = "providers_history"
 
+    id: Mapped[int] = mapped_column(
+        Integer,
+        primary_key=True,
+        autoincrement=True,
+    )
+    pubkey: Mapped[str] = mapped_column(
+        String(64),
+        nullable=False,
+    )
+
     archived_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        primary_key=True,
         nullable=False,
         default=now_rounded_min,
     )

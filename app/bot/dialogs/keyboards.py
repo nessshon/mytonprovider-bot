@@ -15,6 +15,11 @@ to_main = kbd.Start(
 )
 
 main_menu = kbd.Group(
+    kbd.SwitchTo(
+        id="search_provider",
+        text=I18NJinja("buttons.main_menu.search_provider"),
+        state=states.MainMenu.SEARCH_PROVIDER,
+    ),
     kbd.SwitchInlineQueryCurrentChat(
         id="open_my_providers",
         text=I18NJinja("buttons.main_menu.my_providers"),

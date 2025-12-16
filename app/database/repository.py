@@ -32,7 +32,10 @@ class BaseRepository(t.Generic[_TModel]):
         return merged
 
     async def bulk_upsert(self, models: list[_TModel]) -> list[_TModel]:
-        merged = [await self.session.merge(m) for m in models]
+        if not models:
+            return []
+        with self.session.no_autoflush:
+            merged = [await self.session.merge(m) for m in models]
         return merged
 
     async def create(self, model: _TModel) -> _TModel:

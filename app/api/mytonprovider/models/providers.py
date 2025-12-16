@@ -52,6 +52,7 @@ class Provider(BaseModel):
     min_span: int
     max_bag_size_bytes: int
     reg_time: int
+    last_online_check_time: t.Optional[int] = None
     is_send_telemetry: bool
     telemetry: TelemetryInfo
 
