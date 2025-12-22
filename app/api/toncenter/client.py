@@ -11,9 +11,9 @@ class ToncenterClient(AsyncClientAPI):
     headers = {"X-API-Key": TONCENTER_API_KEY}
     base_url = "https://toncenter.com/api"
     version = "v3"
-
     max_retries = 10
     rps = 5
+    timeout = 30
 
     @async_endpoint(
         HTTPMethod.GET,

@@ -45,33 +45,37 @@ async def downsample_history_hourly(uow: UnitOfWork) -> None:
 
 
 async def update_telemetry_job(ctx: Context) -> None:
-    now = now_rounded_min()
-    response = await ctx.mytonprovider.telemetry()
+    try:
+        now = now_rounded_min()
+        response = await ctx.mytonprovider.telemetry()
 
-    telemetry_models = []
-    telemetry_history_models = []
-    for telemetry in response.providers:
-        data = telemetry.model_dump()
-        data["provider_pubkey"] = telemetry.storage.provider.pubkey.lower()
+        telemetry_models = []
+        telemetry_history_models = []
+        for telemetry in response.providers:
+            data = telemetry.model_dump()
+            data["provider_pubkey"] = telemetry.storage.provider.pubkey.lower()
 
-        telemetry_data = data.copy()
-        telemetry_history_data = data.copy()
+            telemetry_data = data.copy()
+            telemetry_history_data = data.copy()
 
-        telemetry_data["updated_at"] = now
-        telemetry_models.append(TelemetryModel(**telemetry_data))
+            telemetry_data["updated_at"] = now
+            telemetry_models.append(TelemetryModel(**telemetry_data))
 
-        telemetry_history_data["archived_at"] = now
-        telemetry_history_models.append(TelemetryHistoryModel(**telemetry_history_data))
-
-    async with UnitOfWork(ctx.db.session_factory) as uow:
-        await uow.telemetry_history.bulk_upsert(telemetry_history_models)
-        await uow.telemetry.bulk_upsert(telemetry_models)
-
-        current_pubkeys = tuple({m.provider_pubkey for m in telemetry_models})
-        if current_pubkeys:
-            stmt = delete(TelemetryModel).where(
-                ~TelemetryModel.provider_pubkey.in_(current_pubkeys)
+            telemetry_history_data["archived_at"] = now
+            telemetry_history_models.append(
+                TelemetryHistoryModel(**telemetry_history_data)
             )
-            await uow.session.execute(stmt)
-    async with UnitOfWork(ctx.db.session_factory) as uow:
-        await downsample_history_hourly(uow)
+
+        async with UnitOfWork(ctx.db.session_factory) as uow:
+            await uow.telemetry_history.bulk_upsert(telemetry_history_models)
+            await uow.telemetry.bulk_upsert(telemetry_models)
+
+            current_pubkeys = tuple({m.provider_pubkey for m in telemetry_models})
+            if current_pubkeys:
+                stmt = delete(TelemetryModel).where(
+                    ~TelemetryModel.provider_pubkey.in_(current_pubkeys)
+                )
+                await uow.session.execute(stmt)
+    except Exception:
+        logger.exception("update_telemetry_job failed")
+        raise

@@ -1,4 +1,7 @@
+from contextlib import suppress
+
 from apscheduler.events import EVENT_JOB_ERROR
+from apscheduler.jobstores.base import JobLookupError
 from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
@@ -22,14 +25,14 @@ class Scheduler:
 
     async def shutdown(self) -> None:
         self.remove_jobs()
-        self.async_scheduler.shutdown(wait=False)
+        self.async_scheduler.shutdown(wait=True)
 
     def add_jobs(self) -> None:
         ctx = get_context()
 
         self.async_scheduler.add_job(
             jobs.sync_providers_job,
-            trigger=CronTrigger(minute="*"),
+            trigger=CronTrigger(minute="*", jitter=20),
             kwargs={"ctx": ctx},
             id=jobs.sync_providers_job.__name__,
             misfire_grace_time=30,
@@ -72,9 +75,35 @@ class Scheduler:
             max_instances=1,
             replace_existing=True,
         )
+        self.async_scheduler.add_job(
+            jobs.downsample_providers_job,
+            trigger=CronTrigger(minute="20"),
+            kwargs={"ctx": ctx},
+            id=jobs.downsample_providers_job.__name__,
+            misfire_grace_time=3600,
+            coalesce=True,
+            max_instances=1,
+            replace_existing=True,
+        )
+        self.async_scheduler.add_job(
+            jobs.downsample_telemetry_job,
+            trigger=CronTrigger(minute="50"),
+            kwargs={"ctx": ctx},
+            id=jobs.downsample_telemetry_job.__name__,
+            misfire_grace_time=3600,
+            coalesce=True,
+            max_instances=1,
+            replace_existing=True,
+        )
 
     def remove_jobs(self) -> None:
-        self.async_scheduler.remove_job(jobs.sync_providers_job.__name__)
-        self.async_scheduler.remove_job(jobs.alerts_dispatch_job.__name__)
-        self.async_scheduler.remove_job(jobs.update_wallets_job.__name__)
-        self.async_scheduler.remove_job(jobs.monthly_report_job.__name__)
+        for job in (
+            jobs.sync_providers_job,
+            jobs.alerts_dispatch_job,
+            jobs.update_wallets_job,
+            jobs.monthly_report_job,
+            jobs.downsample_providers_job,
+            jobs.downsample_telemetry_job,
+        ):
+            with suppress(JobLookupError):
+                self.async_scheduler.remove_job(job.__name__)

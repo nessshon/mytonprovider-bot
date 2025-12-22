@@ -62,23 +62,27 @@ async def downsample_history_hourly(uow: UnitOfWork) -> None:
 
 
 async def update_providers_job(ctx: Context) -> None:
-    now = now_rounded_min()
-    provider_models = []
-    provider_history_models = []
-    async for provider in iterate_providers(ctx.mytonprovider):
-        data = provider.model_dump()
+    try:
+        now = now_rounded_min()
+        provider_models = []
+        provider_history_models = []
+        async for provider in iterate_providers(ctx.mytonprovider):
+            data = provider.model_dump()
 
-        provider_data = data.copy()
-        provider_history_data = data.copy()
+            provider_data = data.copy()
+            provider_history_data = data.copy()
 
-        provider_data["updated_at"] = now
-        provider_models.append(ProviderModel(**provider_data))
+            provider_data["updated_at"] = now
+            provider_models.append(ProviderModel(**provider_data))
 
-        provider_history_data["archived_at"] = now
-        provider_history_models.append(ProviderHistoryModel(**provider_history_data))
+            provider_history_data["archived_at"] = now
+            provider_history_models.append(
+                ProviderHistoryModel(**provider_history_data)
+            )
 
-    async with UnitOfWork(ctx.db.session_factory) as uow:
-        await uow.provider.bulk_upsert(provider_models)
-        await uow.provider_history.bulk_upsert(provider_history_models)
-    async with UnitOfWork(ctx.db.session_factory) as uow:
-        await downsample_history_hourly(uow)
+        async with UnitOfWork(ctx.db.session_factory) as uow:
+            await uow.provider.bulk_upsert(provider_models)
+            await uow.provider_history.bulk_upsert(provider_history_models)
+    except Exception:
+        logger.exception("update_providers_job failed")
+        raise

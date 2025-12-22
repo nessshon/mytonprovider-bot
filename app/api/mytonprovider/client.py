@@ -18,6 +18,7 @@ class MytonproviderClient(AsyncClientAPI):
     base_url = "https://mytonprovider.org/api/"
     version = "v1"
     rps = 10
+    timeout = 30
 
     @property
     def providers(self) -> Providers:
