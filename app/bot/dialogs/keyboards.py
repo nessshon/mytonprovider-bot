@@ -1,5 +1,7 @@
 from aiogram import F
+from aiogram.enums import ButtonStyle
 from aiogram_dialog.widgets import kbd
+from aiogram_dialog.widgets.style import Style
 from aiogram_dialog.widgets.text import Case, Multi, Const, Format
 
 from . import states, on_clicks
@@ -38,15 +40,18 @@ main_menu = kbd.Group(
         when=F["user_model"].alert_settings.enabled,
     ),
     kbd.Button(
-        id="toggle_alerts",
-        text=Case(
-            {
-                True: I18NJinja("buttons.alert_settings.state.enabled"),
-                False: I18NJinja("buttons.alert_settings.state.disabled"),
-            },
-            selector=F["user_model"].alert_settings.enabled,
-        ),
+        id="toggle_alerts_off",
+        text=I18NJinja("buttons.alert_settings.state.enabled"),
         on_click=on_clicks.toggle_alerts,
+        when=F["user_model"].alert_settings.enabled,
+        style=Style(style=ButtonStyle.DANGER),
+    ),
+    kbd.Button(
+        id="toggle_alerts_on",
+        text=I18NJinja("buttons.alert_settings.state.disabled"),
+        on_click=on_clicks.toggle_alerts,
+        when=~F["user_model"].alert_settings.enabled,
+        style=Style(style=ButtonStyle.SUCCESS),
     ),
     kbd.Row(
         kbd.Start(
@@ -77,6 +82,7 @@ provider_menu = kbd.Group(
             item_id_getter=lambda x: x,
             items=PROVIDER_TABS,
             on_click=on_clicks.change_provider_tab,
+            checked_style=Style(style=ButtonStyle.PRIMARY),
         ),
         width=3,
         when=F["access_granted"].is_(True),
@@ -86,6 +92,7 @@ provider_menu = kbd.Group(
         text=I18NJinja("buttons.provider.update_password"),
         state=states.ProviderMenu.ENTER_PASSWORD,
         when=F["password_invalid"].is_(True),
+        style=Style(style=ButtonStyle.SUCCESS),
     ),
     kbd.CopyText(
         text=I18NJinja("buttons.provider.copy_pubkey"),
@@ -100,12 +107,14 @@ provider_menu = kbd.Group(
         text=I18NJinja("buttons.provider.unsubscribe"),
         on_click=on_clicks.unsubscribe,
         when=F["is_subscribed"].is_(True),
+        style=Style(style=ButtonStyle.DANGER),
     ),
     kbd.Next(
         id="subscribe",
         text=I18NJinja("buttons.provider.subscribe"),
         when=F["is_subscribed"].is_(False),
         on_click=on_clicks.subscribe,
+        style=Style(style=ButtonStyle.SUCCESS),
     ),
     to_main,
 )
@@ -119,6 +128,7 @@ alert_settings_menu = kbd.Group(
             item_id_getter=lambda x: x,
             items=ALERT_TABS,
             on_click=on_clicks.change_alert_tab,
+            checked_style=Style(style=ButtonStyle.PRIMARY),
         ),
         width=3,
     ),
@@ -156,11 +166,13 @@ alert_settings_menu = kbd.Group(
                 id="enable_all_alerts",
                 text=I18NJinja("buttons.alert_settings.types.enable_all"),
                 on_click=on_clicks.toggle_alert_type,
+                style=Style(style=ButtonStyle.SUCCESS),
             ),
             kbd.Button(
                 id="disable_all_alerts",
                 text=I18NJinja("buttons.alert_settings.types.disable_all"),
                 on_click=on_clicks.toggle_alert_type,
+                style=Style(style=ButtonStyle.DANGER),
             ),
         ),
         when=F["alert_tab"].contains("types"),
@@ -203,18 +215,21 @@ alert_settings_set_threshold = kbd.Group(
                 id=f"step_{sid}",
                 text=Const(label),
                 on_click=on_clicks.adjust_threshold,
+                style=Style(style=ButtonStyle.DANGER),
             )
             for sid, label in STEP_LEFT
         ],
         kbd.Button(
             id="current_value",
             text=Format("{threshold_value}"),
+            style=Style(style=ButtonStyle.PRIMARY)
         ),
         *[
             kbd.Button(
                 id=f"step_{sid}",
                 text=Const(label),
                 on_click=on_clicks.adjust_threshold,
+                style=Style(style=ButtonStyle.SUCCESS)
             )
             for sid, label in STEP_RIGHT
         ],
