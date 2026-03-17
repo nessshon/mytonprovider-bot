@@ -49,6 +49,7 @@ async def _sync_bags_impl(ctx: Context) -> None:
                 "Failed to fetch bags for provider %s",
                 provider.pubkey,
             )
+            await asyncio.sleep(1)
             continue
 
         async with UnitOfWork(ctx.db.session_factory) as uow:
@@ -74,6 +75,8 @@ async def _sync_bags_impl(ctx: Context) -> None:
                 bags_count=len(new_bags),
             )
             await uow.bag.upsert(bag_model)
+
+        await asyncio.sleep(1)
 
     if not notifications:
         return
