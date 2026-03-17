@@ -4,12 +4,14 @@ from .downsample_history import (
     downsample_providers_job,
 )
 from .monthly_reports import monthly_report_job
+from .sync_bags import sync_bags_job
 from .sync_providers import sync_providers_job
 from .update_wallets import update_wallets_job
 
 __all__ = [
     "alerts_dispatch_job",
     "monthly_report_job",
+    "sync_bags_job",
     "sync_providers_job",
     "update_wallets_job",
     "downsample_telemetry_job",

@@ -61,6 +61,16 @@ class Scheduler:
             replace_existing=True,
         )
         self.async_scheduler.add_job(
+            jobs.sync_bags_job,
+            trigger=CronTrigger(minute="*/5", jitter=30),
+            kwargs={"ctx": ctx},
+            id=jobs.sync_bags_job.__name__,
+            misfire_grace_time=300,
+            coalesce=True,
+            max_instances=1,
+            replace_existing=True,
+        )
+        self.async_scheduler.add_job(
             jobs.monthly_report_job,
             trigger=CronTrigger(
                 day=1,
@@ -101,6 +111,7 @@ class Scheduler:
             jobs.sync_providers_job,
             jobs.alerts_dispatch_job,
             jobs.update_wallets_job,
+            jobs.sync_bags_job,
             jobs.monthly_report_job,
             jobs.downsample_providers_job,
             jobs.downsample_telemetry_job,

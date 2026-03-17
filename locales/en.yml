@@ -194,6 +194,12 @@ messages:
       <b>• Period:</b> <code>{{ provider_last_month_report.start_date }}</code> • <code>{{ provider_last_month_report.end_date }}</code><br><br>
       </blockquote>
 
+    bags: |
+      📦 <b>Storage bags</b>: <code>{{ bags_count }}</code><br>
+      {%- if bags_count == 0 %}<br>
+      <blockquote>No bags found yet. Data will appear after the next sync.</blockquote>
+      {%- endif %}
+
 alerts:
   monthly_report:
     info: |
@@ -258,6 +264,29 @@ alerts:
       🔰 <b>Provider server is back online</b><br><br>
       <b>Provider</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
 
+  bags_changed:
+    detected: |
+      📦 <b>Bags changed</b><br><br>
+      <b>Provider</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
+      {%- if added_count %}
+      <br><b>Added ({{ added_count }}):</b><br>
+      {%- for bag in added_list %}
+      • <a href="https://mytonstorage.org/api/v1/gateway/{{ bag }}">{{ bag[:10] }} . . . {{ bag[-10:] }}</a><br>
+      {%- endfor %}
+      {%- if added_count > added_list|length %}
+      <i>...and {{ added_count - added_list|length }} more</i><br>
+      {%- endif %}
+      {%- endif %}
+      {%- if removed_count %}
+      <br><b>Removed ({{ removed_count }}):</b><br>
+      {%- for bag in removed_list %}
+      • <a href="https://mytonstorage.org/api/v1/gateway/{{ bag }}">{{ bag[:10] }} . . . {{ bag[-10:] }}</a><br>
+      {%- endfor %}
+      {%- if removed_count > removed_list|length %}
+      <i>...and {{ removed_count - removed_list|length }} more</i><br>
+      {%- endif %}
+      {%- endif %}
+
 inlines:
   list_providers:
     title: "{{ provider.ui.status_emoji }} Provider: {{ provider.ui.short_pubkey }}"
@@ -317,6 +346,7 @@ buttons:
         provider_offline: "Server unavailable"
         service_restarted: "Service restarted"
         monthly_report: "Monthly report"
+        bags_changed: "Bag list changed"
         cpu_high: "High CPU load"
         ram_high: "High RAM load"
         network_high: "High network load"
@@ -338,6 +368,7 @@ buttons:
     update_password: "⟳ Update password"
     subscribe: "+ Subscribe"
     unsubscribe: "× Unsubscribe"
+    bags: "Storage bags [{{ provider_bags_count }}]"
     tab:
       storage: "Storage"
       hardware: "Hardware"

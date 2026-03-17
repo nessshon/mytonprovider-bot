@@ -5,6 +5,7 @@ class AlertTypes(str, Enum):
     MONTHLY_REPORT = "monthly_report"
     PROVIDER_OFFLINE = "provider_offline"
     SERVICE_RESTARTED = "service_restarted"
+    BAGS_CHANGED = "bags_changed"
 
     CPU_HIGH = "cpu_high"
     RAM_HIGH = "ram_high"

@@ -194,6 +194,12 @@ messages:
       <b>• Период:</b> <code>{{ provider_last_month_report.start_date }}</code> • <code>{{ provider_last_month_report.end_date }}</code><br><br>
       </blockquote>
 
+    bags: |
+      📦 <b>Хранимые bags</b>: <code>{{ bags_count }}</code><br>
+      {%- if bags_count == 0 %}<br>
+      <blockquote>Bags ещё не найдены. Данные появятся после следующей синхронизации.</blockquote>
+      {%- endif %}
+
 alerts:
   monthly_report:
     info: |
@@ -258,6 +264,29 @@ alerts:
       🔰 <b>Сервер провайдера восстановил работу</b><br><br>
       <b>Провайдер</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
 
+  bags_changed:
+    detected: |
+      📦 <b>Изменения Bags</b><br><br>
+      <b>Провайдер</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
+      {%- if added_count %}
+      <br><b>Добавлено ({{ added_count }}):</b><br>
+      {%- for bag in added_list %}
+      • <a href="https://mytonstorage.org/api/v1/gateway/{{ bag }}">{{ bag[:10] }} . . . {{ bag[-10:] }}</a><br>
+      {%- endfor %}
+      {%- if added_count > added_list|length %}
+      <i>...и ещё {{ added_count - added_list|length }}</i><br>
+      {%- endif %}
+      {%- endif %}
+      {%- if removed_count %}
+      <br><b>Удалено ({{ removed_count }}):</b><br>
+      {%- for bag in removed_list %}
+      • <a href="https://mytonstorage.org/api/v1/gateway/{{ bag }}">{{ bag[:10] }} . . . {{ bag[-10:] }}</a><br>
+      {%- endfor %}
+      {%- if removed_count > removed_list|length %}
+      <i>...и ещё {{ removed_count - removed_list|length }}</i><br>
+      {%- endif %}
+      {%- endif %}
+
 inlines:
   list_providers:
     title: "{{ provider.ui.status_emoji }} Провайдер: {{ provider.ui.short_pubkey }}"
@@ -317,6 +346,7 @@ buttons:
         provider_offline: "Сервер недоступен"
         service_restarted: "Перезапуск служб"
         monthly_report: "Ежемесячный отчёт"
+        bags_changed: "Изменения списка bags"
         cpu_high: "Высокая нагрузка на CPU"
         ram_high: "Высокая нагрузка на RAM"
         network_high: "Высокая сетевая нагрузка"
@@ -338,6 +368,7 @@ buttons:
     update_password: "⟳ Обновить пароль"
     subscribe: "+ Подписаться"
     unsubscribe: "× Отписаться"
+    bags: "Хранимые bags [{{ provider_bags_count }}]"
     tab:
       storage: "Хранилище"
       hardware: "Железо"

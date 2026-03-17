@@ -194,6 +194,12 @@ messages:
       <b>• 期間：</b> <code>{{ provider_last_month_report.start_date }}</code> • <code>{{ provider_last_month_report.end_date }}</code><br><br>
       </blockquote>
 
+    bags: |
+      📦 <b>儲存 bags</b>: <code>{{ bags_count }}</code><br>
+      {%- if bags_count == 0 %}<br>
+      <blockquote>尚未找到 Bags。資料將在下次同步後顯示。</blockquote>
+      {%- endif %}
+
 alerts:
   monthly_report:
     info: |
@@ -258,6 +264,29 @@ alerts:
       🔰 <b>提供者伺服器已恢復運作</b><br><br>
       <b>提供者</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
 
+  bags_changed:
+    detected: |
+      📦 <b>Bags 變更</b><br><br>
+      <b>提供者</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
+      {%- if added_count %}
+      <br><b>新增 ({{ added_count }}):</b><br>
+      {%- for bag in added_list %}
+      • <a href="https://mytonstorage.org/api/v1/gateway/{{ bag }}">{{ bag[:10] }} . . . {{ bag[-10:] }}</a><br>
+      {%- endfor %}
+      {%- if added_count > added_list|length %}
+      <i>...還有 {{ added_count - added_list|length }} 個</i><br>
+      {%- endif %}
+      {%- endif %}
+      {%- if removed_count %}
+      <br><b>移除 ({{ removed_count }}):</b><br>
+      {%- for bag in removed_list %}
+      • <a href="https://mytonstorage.org/api/v1/gateway/{{ bag }}">{{ bag[:10] }} . . . {{ bag[-10:] }}</a><br>
+      {%- endfor %}
+      {%- if removed_count > removed_list|length %}
+      <i>...還有 {{ removed_count - removed_list|length }} 個</i><br>
+      {%- endif %}
+      {%- endif %}
+
 inlines:
   list_providers:
     title: "{{ provider.ui.status_emoji }} 供應商: {{ provider.ui.short_pubkey }}"
@@ -317,6 +346,7 @@ buttons:
         provider_offline: "伺服器無法使用"
         service_restarted: "服務已重新啟動"
         monthly_report: "每月報告"
+        bags_changed: "Bag 清單變更"
         cpu_high: "CPU 高負載"
         ram_high: "RAM 高負載"
         network_high: "網路高負載"
@@ -338,6 +368,7 @@ buttons:
     update_password: "⟳ 更新密碼"
     subscribe: "+ 訂閱"
     unsubscribe: "× 取消訂閱"
+    bags: "儲存 bags [{{ provider_bags_count }}]"
     tab:
       storage: "儲存"
       hardware: "硬體"
