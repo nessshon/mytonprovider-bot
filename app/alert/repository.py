@@ -57,9 +57,7 @@ class AlertRepository:
             )
         )
 
-        async with self.uow:
-            res = await self.uow.session.execute(stmt)
-
+        res = await self.uow.session.execute(stmt)
         return [
             (provider, telemetry, telemetry_history)
             for provider, telemetry, telemetry_history in res.all()
@@ -80,8 +78,7 @@ class AlertRepository:
             )
             .options(selectinload(UserModel.alert_settings))
         )
-        async with self.uow:
-            result = await self.uow.session.execute(stmt)
+        result = await self.uow.session.execute(stmt)
         return list(result.scalars().all())
 
     async def get_user_active_alerts(
@@ -89,11 +86,10 @@ class AlertRepository:
         user_id: int,
         provider_pubkey: str,
     ) -> t.Set[AlertTypes]:
-        async with self.uow:
-            result = await self.uow.user_triggered_alert.list(
-                user_id=user_id,
-                provider_pubkey=provider_pubkey,
-            )
+        result = await self.uow.user_triggered_alert.list(
+            user_id=user_id,
+            provider_pubkey=provider_pubkey,
+        )
         return {AlertTypes(i.alert_type) for i in result}
 
     async def create_alert_record(
@@ -102,14 +98,13 @@ class AlertRepository:
         alert_type: AlertTypes,
         provider_pubkey: str,
     ) -> None:
-        async with self.uow:
-            model = UserTriggeredAlertModel(
-                user_id=user_id,
-                provider_pubkey=provider_pubkey,
-                alert_type=alert_type.value,
-                triggered_at=datetime.now(TIMEZONE),
-            )
-            await self.uow.user_triggered_alert.create(model)
+        model = UserTriggeredAlertModel(
+            user_id=user_id,
+            provider_pubkey=provider_pubkey,
+            alert_type=alert_type.value,
+            triggered_at=datetime.now(TIMEZONE),
+        )
+        await self.uow.user_triggered_alert.create(model)
 
     async def delete_alert_record(
         self,
@@ -117,12 +112,11 @@ class AlertRepository:
         alert_type: AlertTypes,
         provider_pubkey: str,
     ) -> None:
-        async with self.uow:
-            await self.uow.user_triggered_alert.delete(
-                user_id=user_id,
-                alert_type=alert_type.value,
-                provider_pubkey=provider_pubkey,
-            )
+        await self.uow.user_triggered_alert.delete(
+            user_id=user_id,
+            alert_type=alert_type.value,
+            provider_pubkey=provider_pubkey,
+        )
 
     async def exists_alert_record(
         self,
@@ -130,9 +124,8 @@ class AlertRepository:
         alert_type: AlertTypes,
         provider_pubkey: str,
     ) -> bool:
-        async with self.uow:
-            return await self.uow.user_triggered_alert.exists(
-                user_id=user_id,
-                alert_type=alert_type.value,
-                provider_pubkey=provider_pubkey,
-            )
+        return await self.uow.user_triggered_alert.exists(
+            user_id=user_id,
+            alert_type=alert_type.value,
+            provider_pubkey=provider_pubkey,
+        )
