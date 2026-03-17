@@ -1,3 +1,7 @@
+from .contracts import (
+    ContractBagsRequest,
+    ContractBagsResponse,
+)
 from .providers import (
     LocationInfo,
     Provider,
@@ -17,6 +21,8 @@ from .telemetry import (
 
 __all__ = [
     "CPUInfo",
+    "ContractBagsRequest",
+    "ContractBagsResponse",
     "LocationInfo",
     "Provider",
     "ProviderInfo",
