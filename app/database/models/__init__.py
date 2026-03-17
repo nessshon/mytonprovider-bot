@@ -1,4 +1,5 @@
 from ._base import BaseModel
+from .bag import BagModel
 from .provider import (
     ProviderModel,
     ProviderHistoryModel,
@@ -20,6 +21,7 @@ from .wallet import (
 
 __all__ = [
     "BaseModel",
+    "BagModel",
     "ProviderModel",
     "ProviderHistoryModel",
     "TelemetryModel",
