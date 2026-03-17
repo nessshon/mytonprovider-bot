@@ -68,6 +68,8 @@ async def provider_menu(
     provider_traffic_metrics = await build_provider_traffic_metrics(uow.session, pubkey)
     provider_storage_metrics = await build_provider_storage_metrics(uow.session, pubkey)
     provider_last_month_report = await build_monthly_report(uow.session, pubkey)
+    bag_data = await uow.bag.get(provider_pubkey=pubkey)
+    provider_bags_count = bag_data.bags_count if bag_data else 0
 
     subscription = next(
         (
@@ -103,6 +105,7 @@ async def provider_menu(
         "provider_traffic_metrics": provider_traffic_metrics,
         "provider_storage_metrics": provider_storage_metrics,
         "provider_last_month_report": provider_last_month_report,
+        "provider_bags_count": provider_bags_count,
     }
 
 
@@ -112,6 +115,32 @@ async def provider_enter_password(
 ):
     incorrect_password = dialog_manager.dialog_data.get("incorrect_password", False)
     return {"incorrect_password": incorrect_password}
+
+
+async def provider_bags(
+    dialog_manager: DialogManager,
+    **_,
+):
+    uow: UnitOfWork = dialog_manager.middleware_data["uow"]
+    pubkey = dialog_manager.dialog_data.get("provider_pubkey")
+
+    bag_data = await uow.bag.get(provider_pubkey=pubkey)
+    bags = bag_data.bags if bag_data else []
+    bags_count = bag_data.bags_count if bag_data else 0
+
+    bag_items = [
+        {
+            "id": bag,
+            "label": f"{bag[:10]} . . . {bag[-10:]}",
+            "url": f"https://mytonstorage.org/api/v1/gateway/{bag}",
+        }
+        for bag in bags
+    ]
+
+    return {
+        "bags_count": bags_count,
+        "bag_items": bag_items,
+    }
 
 
 async def alert_settings_menu(

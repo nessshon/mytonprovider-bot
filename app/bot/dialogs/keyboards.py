@@ -1,14 +1,17 @@
 from aiogram import F
 from aiogram.enums import ButtonStyle
 from aiogram_dialog.widgets import kbd
+from aiogram_dialog.widgets.kbd import ListGroup, Url
 from aiogram_dialog.widgets.style import Style
 from aiogram_dialog.widgets.text import Case, Multi, Const, Format
 
 from . import states, on_clicks
 from .consts import PROVIDER_TABS, ALERT_TABS, STEP_LEFT, STEP_RIGHT
+from .widgets import PaginatedScrollingGroup
 from ..widgets import I18NJinja
 from ...alert.types import AlertTypes
 from ...config import SUPPORTED_LOCALES
+
 
 to_main = kbd.Start(
     id="back",
@@ -102,6 +105,12 @@ provider_menu = kbd.Group(
         text=I18NJinja("buttons.provider.copy_address"),
         copy_text=Format("{provider_address}"),
     ),
+    kbd.SwitchTo(
+        id="open_bags",
+        text=I18NJinja("buttons.provider.bags"),
+        state=states.ProviderMenu.BAGS,
+        when=F["access_granted"].is_(True),
+    ),
     kbd.Button(
         id="unsubscribe",
         text=I18NJinja("buttons.provider.unsubscribe"),
@@ -117,6 +126,29 @@ provider_menu = kbd.Group(
         style=Style(style=ButtonStyle.SUCCESS),
     ),
     to_main,
+)
+
+provider_bags_menu = kbd.Group(
+    PaginatedScrollingGroup(
+        ListGroup(
+            Url(
+                Format("{item[label]}"),
+                Format("{item[url]}"),
+                id="bag_url",
+            ),
+            id="bags_list",
+            item_id_getter=lambda item: item["id"],
+            items="bag_items",
+        ),
+        id="bags_scroll",
+        width=1,
+        height=10,
+    ),
+    kbd.SwitchTo(
+        id="bags_back",
+        text=I18NJinja("buttons.common.to_main"),
+        state=states.ProviderMenu.MAIN,
+    ),
 )
 
 alert_settings_menu = kbd.Group(

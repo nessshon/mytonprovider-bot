@@ -21,6 +21,7 @@ def register(dp: Dispatcher) -> None:
         Dialog(
             windows.provider_menu,
             windows.provider_enter_password,
+            windows.provider_bags,
         ),
         Dialog(
             windows.allert_settings_menu,

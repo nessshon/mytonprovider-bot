@@ -79,6 +79,13 @@ provider_menu = Window(
     state=states.ProviderMenu.MAIN,
 )
 
+provider_bags = Window(
+    I18NJinja("messages.provider.bags"),
+    keyboards.provider_bags_menu,
+    getter=getters.provider_bags,
+    state=states.ProviderMenu.BAGS,
+)
+
 provider_enter_password = Window(
     I18NJinja(
         "messages.provider.enter_password",
