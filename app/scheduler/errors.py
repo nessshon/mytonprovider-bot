@@ -37,5 +37,5 @@ async def _on_job_error(event: JobExecutionEvent, ctx: Context) -> None:
 
 def on_job_error(event: JobExecutionEvent) -> None:
     ctx: Context = get_context()
-    loop = asyncio.get_event_loop()
+    loop = asyncio.get_running_loop()
     loop.create_task(_on_job_error(event, ctx))

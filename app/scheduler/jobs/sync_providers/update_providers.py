@@ -1,8 +1,5 @@
 import logging
 import typing as t
-from datetime import timedelta
-
-from sqlalchemy.sql.expression import text
 
 from ....api.mytonprovider import MytonproviderClient, Provider, ProviderSearchPayload
 from ....context import Context
@@ -26,39 +23,6 @@ async def iterate_providers(
         for provider in response.providers:
             yield provider
         offset += limit
-
-
-async def downsample_history_hourly(uow: UnitOfWork) -> None:
-    from ....database.helpers import now
-
-    start_prev_hour = (now() - timedelta(hours=2)).strftime("%Y-%m-%d %H:00:00")
-    end_prev_hour = (now() - timedelta(hours=1)).strftime("%Y-%m-%d %H:00:00")
-
-    sql = text(
-        """
-        WITH ranked AS (
-          SELECT
-            rowid,
-            ROW_NUMBER() OVER (
-              PARTITION BY pubkey
-              ORDER BY archived_at DESC
-            ) AS rn
-          FROM providers_history
-          WHERE archived_at >= :start_prev_hour
-            AND archived_at <  :end_prev_hour
-        )
-        DELETE FROM providers_history
-        WHERE rowid IN (SELECT rowid FROM ranked WHERE rn > 1);
-        """
-    )
-
-    await uow.session.execute(
-        sql,
-        {
-            "start_prev_hour": start_prev_hour,
-            "end_prev_hour": end_prev_hour,
-        },
-    )
 
 
 async def update_providers_job(ctx: Context) -> None:
