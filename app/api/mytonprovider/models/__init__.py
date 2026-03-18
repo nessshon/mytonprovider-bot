@@ -1,6 +1,7 @@
 from .contracts import (
     ContractBagsRequest,
     ContractBagsResponse,
+    ContractInfo,
 )
 from .providers import (
     LocationInfo,
@@ -23,6 +24,7 @@ __all__ = [
     "CPUInfo",
     "ContractBagsRequest",
     "ContractBagsResponse",
+    "ContractInfo",
     "LocationInfo",
     "Provider",
     "ProviderInfo",
