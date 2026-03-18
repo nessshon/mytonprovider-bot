@@ -80,10 +80,18 @@ provider_menu = Window(
 )
 
 provider_bags = Window(
+    I18NJinja("messages.provider.menu"),
     I18NJinja("messages.provider.bags"),
     keyboards.provider_bags_menu,
     getter=getters.provider_bags,
     state=states.ProviderMenu.BAGS,
+)
+
+provider_bags_detail = Window(
+    I18NJinja("messages.provider.bags_detail"),
+    keyboards.provider_bags_detail_menu,
+    getter=getters.provider_bags_detail,
+    state=states.ProviderMenu.BAGS_DETAIL,
 )
 
 provider_enter_password = Window(

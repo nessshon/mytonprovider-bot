@@ -43,6 +43,7 @@ messages:
       {% for h, c in stats.provider_git_hashes|dictsort(by='value', reverse=True) %}
       • <code>{{ h }}</code> — 提供者數量: <code>{{ c }}</code><br>
       {% endfor %}
+      <br>啟動時間: <code>{{ stats.bot_started_at|datetimeformat }}</code> ({{ stats.bot_started_at|ago }})
 
   alert_settings:
     types_menu: |
@@ -195,16 +196,33 @@ messages:
       </blockquote>
 
     bags: |
-      📦 <b>儲存 bags</b>: <code>{{ bags_count }}</code><br>
-      {%- if bags_count == 0 %}<br>
-      <blockquote>尚未找到 Bags。資料將在下次同步後顯示。</blockquote>
+      <br>📦 <b>儲存 bags</b><br>
+      <b>• 總計</b>: <code>{{ total_count }}</code><br>
+      <b>• 可用</b>: <code>{{ ok_count }}</code><br>
+      {%- if problematic_count > 0 %}
+      <b>• 問題</b>: <code>{{ problematic_count }}</code><br>
       {%- endif %}
+      {%- if total_count == 0 %}<br>
+      <blockquote>尚未找到合約。資料將在下次同步後顯示。</blockquote>
+      {%- endif %}
+
+    bags_detail: |
+      📋 <b>合約</b><br><br>
+      <b>• 狀態</b>: <code>{{ reason_text }}</code><br>
+      <b>• 大小</b>: <code>{{ contract.size | sizeformat }}</code><br>
+      {%- if contract.reason_timestamp %}
+      <b>• 檢查時間</b>: <code>{{ contract.reason_timestamp | datetimeformat }}</code><br>
+      {%- endif %}<br>
+      <b>• Bag ID</b>: <a href="https://mytonstorage.org/api/v1/gateway/{{ contract.bag_id }}">{{ contract.bag_id[:5] }}...{{ contract.bag_id[-6:] }}</a><br>
+      <b>• 合約</b>: <a href="https://tonviewer.com/{{ contract.address }}">{{ contract.address[:5] }}...{{ contract.address[-6:] }}</a><br>
+      <b>• 擁有者</b>: <a href="https://tonviewer.com/{{ contract.owner_address }}">{{ contract.owner_address[:5] }}...{{ contract.owner_address[-6:] }}</a><br>
 
 alerts:
   monthly_report:
     info: |
       📊 <b>每月報告</b><br><br>
-      <b>提供者:</b> <code>{{ provider.ui.short_pubkey }}</code><br>
+      <b>提供者:</b><br>
+      <code>{{ provider.pubkey }}</code><br>
       <b>期間:</b> <code>{{ report.start_date }}</code> • <code>{{ report.end_date }}</code><br><br>
       
       <b>• 獲得收益:</b> <code>+{{ report.earned_nanoton | toamount }} TON</code><br>
@@ -214,64 +232,78 @@ alerts:
   service_restarted:
     detected: |
       ⚠️️ <b>服務 {{ service_name }} 已重新啟動</b><br><br>
-      <b>提供者</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
+      <b>提供者:</b><br>
+      <code>{{ provider.pubkey }}</code><br>
 
   cpu_high:
     detected: |
       ❗️ <b>CPU | 偵測到高負載</b><br><br>
-      <b>供應商</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
+      <b>供應商:</b><br>
+      <code>{{ provider.pubkey }}</code><br>
     resolved: |
       🔰 <b>CPU | 負載已恢復正常</b><br><br>
-      <b>供應商</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
+      <b>供應商:</b><br>
+      <code>{{ provider.pubkey }}</code><br>
 
   ram_high:
     detected: |
       ❗️ <b>RAM | 偵測到高負載</b><br><br>
-      <b>供應商</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
+      <b>供應商:</b><br>
+      <code>{{ provider.pubkey }}</code><br>
     resolved: |
       🔰 <b>RAM | 負載已恢復正常</b><br><br>
-      <b>供應商</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
+      <b>供應商:</b><br>
+      <code>{{ provider.pubkey }}</code><br>
 
   disk_load_high:
     detected: |
       ❗️ <b>磁碟 | 偵測到高負載</b><br><br>
-      <b>供應商</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
+      <b>供應商:</b><br>
+      <code>{{ provider.pubkey }}</code><br>
     resolved: |
       🔰 <b>磁碟 | 負載已恢復正常</b><br><br>
-      <b>供應商</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
+      <b>供應商:</b><br>
+      <code>{{ provider.pubkey }}</code><br>
 
   network_high:
     detected: |
       ❗️ <b>網路 | 偵測到高負載</b><br><br>
-      <b>供應商</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
+      <b>供應商:</b><br>
+      <code>{{ provider.pubkey }}</code><br>
     resolved: |
       🔰 <b>網路 | 負載已恢復正常</b><br><br>
-      <b>供應商</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
+      <b>供應商:</b><br>
+      <code>{{ provider.pubkey }}</code><br>
 
   disk_space_low:
     detected: |
       ❗️ <b>磁碟 | 可用空間不足</b><br><br>
-      <b>供應商</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
+      <b>供應商:</b><br>
+      <code>{{ provider.pubkey }}</code><br>
     resolved: |
       🔰 <b>磁碟 | 可用空間已恢復</b><br><br>
-      <b>供應商</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
+      <b>供應商:</b><br>
+      <code>{{ provider.pubkey }}</code><br>
 
   provider_offline:
     detected: |
       ❗️ <b>提供者伺服器無回應</b><br><br>
-      <b>提供者</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
+      <b>提供者:</b><br>
+      <code>{{ provider.pubkey }}</code><br>
     resolved: |
       🔰 <b>提供者伺服器已恢復運作</b><br><br>
-      <b>提供者</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
+      <b>提供者:</b><br>
+      <code>{{ provider.pubkey }}</code><br>
 
   bags_changed:
     detected: |
       📦 <b>Bags 變更</b><br><br>
-      <b>提供者</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
+      <b>提供者:</b><br>
+      <code>{{ provider.pubkey }}</code><br>
       {%- if added_count %}
       <br><b>新增 ({{ added_count }}):</b><br>
       {%- for bag in added_list %}
-      • <a href="https://mytonstorage.org/api/v1/gateway/{{ bag }}">{{ bag[:10] }} . . . {{ bag[-10:] }}</a><br>
+      • <a href="https://mytonstorage.org/api/v1/gateway/{{ bag }}">{{ bag[:10] }}...{{ bag[-10:] }}</a><br>
       {%- endfor %}
       {%- if added_count > added_list|length %}
       <i>...還有 {{ added_count - added_list|length }} 個</i><br>
@@ -280,7 +312,7 @@ alerts:
       {%- if removed_count %}
       <br><b>移除 ({{ removed_count }}):</b><br>
       {%- for bag in removed_list %}
-      • <a href="https://mytonstorage.org/api/v1/gateway/{{ bag }}">{{ bag[:10] }} . . . {{ bag[-10:] }}</a><br>
+      • <a href="https://mytonstorage.org/api/v1/gateway/{{ bag }}">{{ bag[:10] }}...{{ bag[-10:] }}</a><br>
       {%- endfor %}
       {%- if removed_count > removed_list|length %}
       <i>...還有 {{ removed_count - removed_list|length }} 個</i><br>
@@ -346,7 +378,7 @@ buttons:
         provider_offline: "伺服器無法使用"
         service_restarted: "服務已重新啟動"
         monthly_report: "每月報告"
-        bags_changed: "Bag 清單變更"
+        bags_changed: "儲存 bags 變更"
         cpu_high: "CPU 高負載"
         ram_high: "RAM 高負載"
         network_high: "網路高負載"
@@ -369,6 +401,14 @@ buttons:
     subscribe: "+ 訂閱"
     unsubscribe: "× 取消訂閱"
     bags: "儲存 bags [{{ provider_bags_count }}]"
+    bags_tab:
+      all: "全部"
+      problematic: "問題"
+    bags_detail:
+      open_bag: "在瀏覽器中開啟 bag"
+      copy_bag_id: "複製 bag ID"
+      open_owner: "在 Tonviewer 中開啟擁有者"
+      open_contract: "在 Tonviewer 中開啟合約"
     tab:
       storage: "儲存"
       hardware: "硬體"

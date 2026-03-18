@@ -1,82 +1,39 @@
-from aiogram.types import InlineKeyboardButton
-from aiogram_dialog.api.internal import RawKeyboard
-from aiogram_dialog.api.protocols import DialogManager
-from aiogram_dialog.widgets.kbd import ScrollingGroup
+BAGS_PER_PAGE = 10
 
 
-class PaginatedScrollingGroup(ScrollingGroup):
+def build_pagination_buttons(
+    current_page: int,
+    total_pages: int,
+) -> list[dict[str, str]]:
+    if total_pages <= 1:
+        return []
 
-    async def _render_pager(
-        self,
-        pages: int,
-        manager: DialogManager,
-    ) -> RawKeyboard:
-        if self.hide_pager:
-            return []
-        if pages == 0 or (pages == 1 and self.hide_on_single_page):
-            return []
+    page = current_page + 1
+    buttons = {}
 
-        last_page = pages - 1
-        current_page = min(last_page, await self.get_page(manager))
+    if total_pages <= 5:
+        for p in range(1, total_pages + 1):
+            buttons[p] = str(p)
+    elif page <= 3:
+        for p in range(1, 4):
+            buttons[p] = str(p)
+        buttons[4] = "4 ›"
+        buttons[total_pages] = f"{total_pages} »"
+    elif page > total_pages - 3:
+        buttons[1] = "« 1"
+        buttons[total_pages - 3] = f"‹ {total_pages - 3}"
+        for p in range(total_pages - 2, total_pages + 1):
+            buttons[p] = str(p)
+    else:
+        buttons[1] = "« 1"
+        buttons[page - 1] = f"‹ {page - 1}"
+        buttons[page + 1] = f"{page + 1} ›"
+        buttons[total_pages] = f"{total_pages} »"
+        buttons[page] = str(page)
 
-        buttons = []
-        if pages <= 5:
-            for i in range(pages):
-                text = f"· {i + 1} ·" if i == current_page else str(i + 1)
-                buttons.append(InlineKeyboardButton(
-                    text=text,
-                    callback_data=self._item_callback_data(i),
-                ))
-        elif current_page <= 2:
-            for i in range(min(3, pages)):
-                text = f"· {i + 1} ·" if i == current_page else str(i + 1)
-                buttons.append(InlineKeyboardButton(
-                    text=text,
-                    callback_data=self._item_callback_data(i),
-                ))
-            buttons.append(InlineKeyboardButton(
-                text=f"{current_page + 2} ›",
-                callback_data=self._item_callback_data(current_page + 1),
-            ))
-            buttons.append(InlineKeyboardButton(
-                text=f"{last_page + 1} »",
-                callback_data=self._item_callback_data(last_page),
-            ))
-        elif current_page >= last_page - 2:
-            buttons.append(InlineKeyboardButton(
-                text="« 1",
-                callback_data=self._item_callback_data(0),
-            ))
-            buttons.append(InlineKeyboardButton(
-                text=f"‹ {current_page}",
-                callback_data=self._item_callback_data(current_page - 1),
-            ))
-            for i in range(max(0, last_page - 2), pages):
-                text = f"· {i + 1} ·" if i == current_page else str(i + 1)
-                buttons.append(InlineKeyboardButton(
-                    text=text,
-                    callback_data=self._item_callback_data(i),
-                ))
-        else:
-            buttons.append(InlineKeyboardButton(
-                text="« 1",
-                callback_data=self._item_callback_data(0),
-            ))
-            buttons.append(InlineKeyboardButton(
-                text=f"‹ {current_page}",
-                callback_data=self._item_callback_data(current_page - 1),
-            ))
-            buttons.append(InlineKeyboardButton(
-                text=f"· {current_page + 1} ·",
-                callback_data=self._item_callback_data(current_page),
-            ))
-            buttons.append(InlineKeyboardButton(
-                text=f"{current_page + 2} ›",
-                callback_data=self._item_callback_data(current_page + 1),
-            ))
-            buttons.append(InlineKeyboardButton(
-                text=f"{last_page + 1} »",
-                callback_data=self._item_callback_data(last_page),
-            ))
+    buttons[page] = f"· {page} ·"
 
-        return [buttons]
+    return [
+        {"id": str(p - 1), "label": label}
+        for p, label in sorted(buttons.items())
+    ]

@@ -1,17 +1,14 @@
 from aiogram import F
 from aiogram.enums import ButtonStyle
 from aiogram_dialog.widgets import kbd
-from aiogram_dialog.widgets.kbd import ListGroup, Url
 from aiogram_dialog.widgets.style import Style
 from aiogram_dialog.widgets.text import Case, Multi, Const, Format
 
 from . import states, on_clicks
-from .consts import PROVIDER_TABS, ALERT_TABS, STEP_LEFT, STEP_RIGHT
-from .widgets import PaginatedScrollingGroup
+from .consts import PROVIDER_TABS, ALERT_TABS, STEP_LEFT, STEP_RIGHT, BAGS_TABS
 from ..widgets import I18NJinja
 from ...alert.types import AlertTypes
 from ...config import SUPPORTED_LOCALES
-
 
 to_main = kbd.Start(
     id="back",
@@ -41,6 +38,7 @@ main_menu = kbd.Group(
         text=I18NJinja("buttons.alert_settings.text"),
         state=states.AlertSettingsMenu.MAIN,
         when=F["user_model"].alert_settings.enabled,
+        style=Style(style=ButtonStyle.SUCCESS),
     ),
     kbd.Button(
         id="toggle_alerts_off",
@@ -129,25 +127,68 @@ provider_menu = kbd.Group(
 )
 
 provider_bags_menu = kbd.Group(
-    PaginatedScrollingGroup(
-        ListGroup(
-            Url(
-                Format("{item[label]}"),
-                Format("{item[url]}"),
-                id="bag_url",
-            ),
-            id="bags_list",
-            item_id_getter=lambda item: item["id"],
-            items="bag_items",
+    kbd.Group(
+        kbd.Radio(
+            checked_text=Const("• ") + I18NJinja("buttons.provider.bags_tab.{item}"),
+            unchecked_text=I18NJinja("buttons.provider.bags_tab.{item}"),
+            id="bags_tab",
+            item_id_getter=lambda x: x,
+            items=BAGS_TABS,
+            on_click=on_clicks.change_bags_tab,
+            checked_style=Style(style=ButtonStyle.PRIMARY),
         ),
-        id="bags_scroll",
-        width=1,
-        height=10,
+        width=2,
+    ),
+    kbd.Column(
+        kbd.Select(
+            Format("{item[label]}"),
+            id="select_contract",
+            item_id_getter=lambda item: item["id"],
+            items="contract_items",
+            on_click=on_clicks.open_contract_detail,
+        ),
+    ),
+    kbd.Group(
+        kbd.Select(
+            Format("{item[label]}"),
+            id="select_page",
+            item_id_getter=lambda item: item["id"],
+            items="pagination_items",
+            on_click=on_clicks.change_bags_page,
+        ),
+        width=5,
     ),
     kbd.SwitchTo(
         id="bags_back",
         text=I18NJinja("buttons.common.to_main"),
         state=states.ProviderMenu.MAIN,
+    ),
+)
+
+provider_bags_detail_menu = kbd.Group(
+    kbd.CopyText(
+        text=I18NJinja("buttons.provider.bags_detail.copy_bag_id"),
+        copy_text=Format("{contract.bag_id}"),
+    ),
+    kbd.Url(
+        id="open_bag",
+        text=I18NJinja("buttons.provider.bags_detail.open_bag"),
+        url=Format("https://mytonstorage.org/api/v1/gateway/{contract.bag_id}"),
+    ),
+    kbd.Url(
+        id="open_contract",
+        text=I18NJinja("buttons.provider.bags_detail.open_contract"),
+        url=Format("https://tonviewer.com/{contract.address}"),
+    ),
+    kbd.Url(
+        id="open_owner",
+        text=I18NJinja("buttons.provider.bags_detail.open_owner"),
+        url=Format("https://tonviewer.com/{contract.owner_address}"),
+    ),
+    kbd.SwitchTo(
+        id="back_to_bags",
+        text=I18NJinja("buttons.common.to_main"),
+        state=states.ProviderMenu.BAGS,
     ),
 )
 
@@ -254,14 +295,14 @@ alert_settings_set_threshold = kbd.Group(
         kbd.Button(
             id="current_value",
             text=Format("{threshold_value}"),
-            style=Style(style=ButtonStyle.PRIMARY)
+            style=Style(style=ButtonStyle.PRIMARY),
         ),
         *[
             kbd.Button(
                 id=f"step_{sid}",
                 text=Const(label),
                 on_click=on_clicks.adjust_threshold,
-                style=Style(style=ButtonStyle.SUCCESS)
+                style=Style(style=ButtonStyle.SUCCESS),
             )
             for sid, label in STEP_RIGHT
         ],
