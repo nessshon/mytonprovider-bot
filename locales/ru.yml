@@ -196,13 +196,12 @@ messages:
       </blockquote>
 
     bags: |
-      <br>📦 <b>Хранимые bags</b><br>
-      <b>• Всего</b>: <code>{{ total_count }}</code><br>
+      <br>📦 <b>Хранимые bags</b>: <code>{{ checked_count }}</code><br>
       <b>• Доступны</b>: <code>{{ ok_count }}</code><br>
       {%- if problematic_count > 0 %}
       <b>• Проблемные</b>: <code>{{ problematic_count }}</code><br>
       {%- endif %}
-      {%- if total_count == 0 %}<br>
+      {%- if checked_count == 0 %}<br>
       <blockquote>Контракты ещё не найдены. Данные появятся после следующей синхронизации.</blockquote>
       {%- endif %}
 

@@ -196,13 +196,12 @@ messages:
       </blockquote>
 
     bags: |
-      <br>📦 <b>Storage bags</b><br>
-      <b>• Total</b>: <code>{{ total_count }}</code><br>
+      <br>📦 <b>Storage bags</b>: <code>{{ checked_count }}</code><br>
       <b>• Available</b>: <code>{{ ok_count }}</code><br>
       {%- if problematic_count > 0 %}
       <b>• Problems</b>: <code>{{ problematic_count }}</code><br>
       {%- endif %}
-      {%- if total_count == 0 %}<br>
+      {%- if checked_count == 0 %}<br>
       <blockquote>No contracts found yet. Data will appear after the next sync.</blockquote>
       {%- endif %}
 

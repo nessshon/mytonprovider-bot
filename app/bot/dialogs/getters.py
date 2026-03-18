@@ -77,7 +77,12 @@ async def provider_menu(
     provider_traffic_metrics = await build_provider_traffic_metrics(uow.session, pubkey)
     provider_storage_metrics = await build_provider_storage_metrics(uow.session, pubkey)
     provider_last_month_report = await build_monthly_report(uow.session, pubkey)
-    provider_bags_count = await uow.contract.count(provider_pubkey=pubkey)
+    result = await uow.session.execute(
+        select(func.count()).select_from(ContractModel).where(
+            and_(ContractModel.provider_pubkey == pubkey, ContractModel.reason.isnot(None))
+        )
+    )
+    provider_bags_count = result.scalar() or 0
 
     subscription = next(
         (
@@ -137,15 +142,19 @@ async def provider_bags(
     dialog_manager.current_context().widget_data["bags_tab"] = bags_tab
 
     provider = await uow.provider.get(pubkey=pubkey)
-    total_count = await uow.contract.count(provider_pubkey=pubkey)
-
     provider_filter = ContractModel.provider_pubkey == pubkey
+    checked_filter = and_(provider_filter, ContractModel.reason.isnot(None))
     ok_filter = and_(provider_filter, ContractModel.reason == 0)
     problematic_filter = and_(
         provider_filter,
         ContractModel.reason.isnot(None),
         ContractModel.reason != 0,
     )
+
+    result = await uow.session.execute(
+        select(func.count()).select_from(ContractModel).where(checked_filter)
+    )
+    checked_count = result.scalar() or 0
 
     result = await uow.session.execute(
         select(func.count()).select_from(ContractModel).where(ok_filter)
@@ -161,8 +170,8 @@ async def provider_bags(
         tab_filter = problematic_filter
         total_filtered = problematic_count
     else:
-        tab_filter = provider_filter
-        total_filtered = total_count
+        tab_filter = checked_filter
+        total_filtered = checked_count
 
     total_pages = max(1, (total_filtered + BAGS_PER_PAGE - 1) // BAGS_PER_PAGE)
     bags_page = min(bags_page, total_pages - 1)
@@ -196,7 +205,7 @@ async def provider_bags(
     return {
         "provider": provider,
         "bags_tab": bags_tab,
-        "total_count": total_count,
+        "checked_count": checked_count,
         "ok_count": ok_count,
         "problematic_count": problematic_count,
         "contract_items": contract_items,

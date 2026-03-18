@@ -196,13 +196,12 @@ messages:
       </blockquote>
 
     bags: |
-      <br>📦 <b>儲存 bags</b><br>
-      <b>• 總計</b>: <code>{{ total_count }}</code><br>
+      <br>📦 <b>儲存 bags</b>: <code>{{ checked_count }}</code><br>
       <b>• 可用</b>: <code>{{ ok_count }}</code><br>
       {%- if problematic_count > 0 %}
       <b>• 問題</b>: <code>{{ problematic_count }}</code><br>
       {%- endif %}
-      {%- if total_count == 0 %}<br>
+      {%- if checked_count == 0 %}<br>
       <blockquote>尚未找到合約。資料將在下次同步後顯示。</blockquote>
       {%- endif %}
 
