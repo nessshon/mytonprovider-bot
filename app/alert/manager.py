@@ -85,11 +85,13 @@ class AlertManager:
         telemetry: TelemetryModel,
         telemetry_history: TelemetryHistoryModel,
     ) -> None:
+        bot_started_at = getattr(self.ctx, "started_at", None)
         alert_detector = AlertDetector(
             provider=provider,
             telemetry=telemetry,
             telemetry_history=telemetry_history,
             user_thresholds=user.alert_settings.thresholds_data or {},
+            bot_started_at=bot_started_at,
         )
         enabled = {AlertTypes(a) for a in user.alert_settings.types or []}
 

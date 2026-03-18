@@ -1,4 +1,5 @@
 import logging
+import time
 from contextlib import suppress
 
 from aiogram import Dispatcher, Bot
@@ -28,6 +29,7 @@ logger = logging.getLogger("app.main")
 async def on_startup(ctx: Context) -> None:
     logger.info("App startup initiated...")
 
+    ctx.started_at = time.time()
     await ctx.db.start()
     await ctx.scheduler.start()
 
