@@ -24,6 +24,11 @@ class ContractModel(BaseModel):
     reason: Mapped[t.Optional[int]] = mapped_column(Integer, nullable=True)
     reason_timestamp: Mapped[t.Optional[int]] = mapped_column(BigInteger, nullable=True)
 
+    missing_since: Mapped[t.Optional[datetime]] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=now,

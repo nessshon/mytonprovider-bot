@@ -2,11 +2,13 @@ import asyncio
 import logging
 import typing as t
 from collections import defaultdict
+from datetime import datetime, timedelta
 
 from ...alert.manager import AlertManager
 from ...alert.repository import AlertRepository
 from ...alert.types import AlertTypes, AlertStages
 from ...api.mytonprovider import ContractBagsRequest, ContractInfo
+from ...config import TIMEZONE
 from ...context import Context
 from ...database.models import ContractModel
 from ...database.unitofwork import UnitOfWork
@@ -15,6 +17,7 @@ logger = logging.getLogger(__name__)
 
 SYNC_BAGS_TIMEOUT = 4 * 60
 MAX_DISPLAY_BAGS = 20
+MISSING_THRESHOLD = timedelta(hours=3)
 
 
 async def sync_bags_job(ctx: Context) -> None:
@@ -63,7 +66,7 @@ async def _fetch_all_contracts(ctx: Context) -> t.Optional[list[ContractInfo]]:
             expected_total = response.total
         elif response.total != expected_total:
             logger.warning(
-                "Total changed during fetch: expected %d, got %d. Restarting.",
+                "Total changed during fetch: expected %d, got %d. Skipping.",
                 expected_total, response.total,
             )
             return None
@@ -76,7 +79,7 @@ async def _fetch_all_contracts(ctx: Context) -> t.Optional[list[ContractInfo]]:
 
     if len(all_contracts) != expected_total:
         logger.warning(
-            "Fetched %d contracts but expected %d. Skipping update.",
+            "Fetched %d contracts but expected %d. Skipping.",
             len(all_contracts), expected_total,
         )
         return None
@@ -97,24 +100,30 @@ async def _sync_bags_impl(ctx: Context) -> None:
 
     old_by_key = {(c.address, c.provider_pubkey): c for c in existing}
     old_keys = set(old_by_key.keys())
+    active_keys = {k for k, c in old_by_key.items() if c.missing_since is None}
 
-    if not new_keys and old_keys:
+    if not new_keys and active_keys:
         logger.debug(
-            "Skipping contracts update: API returned empty, had %d contracts",
-            len(old_keys),
+            "Skipping contracts update: API returned empty, had %d active contracts",
+            len(active_keys),
         )
         return
 
     is_first_run = not old_keys and new_keys
-    added_keys = new_keys - old_keys
-    removed_keys = old_keys - new_keys
-    common_keys = new_keys & old_keys
+    now = datetime.now(TIMEZONE)
+
+    truly_new = new_keys - old_keys
+    returned = {k for k in (new_keys & old_keys) if old_by_key[k].missing_since is not None}
+    newly_missing = {k for k in (old_keys - new_keys) if old_by_key[k].missing_since is None}
+    confirmed_missing = {
+        k for k in (old_keys - new_keys)
+        if old_by_key[k].missing_since is not None
+        and (now - old_by_key[k].missing_since) > MISSING_THRESHOLD
+    }
+    still_present = (new_keys & old_keys) - returned
 
     async with UnitOfWork(ctx.db.session_factory) as uow:
-        for key in removed_keys:
-            await uow.contract.delete(address=key[0], provider_pubkey=key[1])
-
-        for key in added_keys:
+        for key in truly_new:
             c = new_by_key[key]
             await uow.contract.create(ContractModel(
                 address=c.address,
@@ -126,7 +135,34 @@ async def _sync_bags_impl(ctx: Context) -> None:
                 reason_timestamp=c.reason_timestamp,
             ))
 
-        for key in common_keys:
+        for key in returned:
+            db_obj = await uow.contract.get(address=key[0], provider_pubkey=key[1])
+            if db_obj:
+                missing_min = int((now - db_obj.missing_since).total_seconds() / 60)
+                logger.info(
+                    "Contract %s returned after %dm missing (provider %s)",
+                    db_obj.bag_id[:16], missing_min, key[1][:8],
+                )
+                c = new_by_key[key]
+                db_obj.missing_since = None
+                db_obj.reason = c.reason
+                db_obj.reason_timestamp = c.reason_timestamp
+                db_obj.size = c.size
+                db_obj.owner_address = c.owner_address
+
+        if newly_missing:
+            logger.info("Marking %d contracts as missing", len(newly_missing))
+        for key in newly_missing:
+            db_obj = await uow.contract.get(address=key[0], provider_pubkey=key[1])
+            if db_obj:
+                db_obj.missing_since = now
+
+        if confirmed_missing:
+            logger.info("Deleting %d contracts missing for >%s", len(confirmed_missing), MISSING_THRESHOLD)
+        for key in confirmed_missing:
+            await uow.contract.delete(address=key[0], provider_pubkey=key[1])
+
+        for key in still_present:
             c = new_by_key[key]
             old = old_by_key[key]
             if (c.reason != old.reason
@@ -140,15 +176,15 @@ async def _sync_bags_impl(ctx: Context) -> None:
                     db_obj.owner_address = c.owner_address
 
     if is_first_run:
-        logger.info("First run: inserted %d contracts, skipping notifications", len(added_keys))
+        logger.info("First run: inserted %d contracts, skipping notifications", len(truly_new))
         return
 
     added_by_provider: dict[str, list[str]] = defaultdict(list)
-    for key in added_keys:
+    for key in truly_new:
         added_by_provider[new_by_key[key].provider_pubkey].append(new_by_key[key].bag_id)
 
     removed_by_provider: dict[str, list[str]] = defaultdict(list)
-    for key in removed_keys:
+    for key in confirmed_missing:
         removed_by_provider[old_by_key[key].provider_pubkey].append(old_by_key[key].bag_id)
 
     notifications: dict[str, dict[str, list[str]]] = {}
