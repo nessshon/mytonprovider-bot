@@ -20,6 +20,12 @@ MAX_DISPLAY_BAGS = 20
 MISSING_THRESHOLD = timedelta(hours=3)
 
 
+def _ensure_aware(dt: datetime) -> datetime:
+    if dt.tzinfo is None:
+        return dt.replace(tzinfo=TIMEZONE)
+    return dt
+
+
 async def sync_bags_job(ctx: Context) -> None:
     try:
         await asyncio.wait_for(
@@ -118,7 +124,7 @@ async def _sync_bags_impl(ctx: Context) -> None:
     confirmed_missing = {
         k for k in (old_keys - new_keys)
         if old_by_key[k].missing_since is not None
-        and (now - old_by_key[k].missing_since) > MISSING_THRESHOLD
+        and (now - _ensure_aware(old_by_key[k].missing_since)) > MISSING_THRESHOLD
     }
     still_present = (new_keys & old_keys) - returned
 
@@ -138,7 +144,7 @@ async def _sync_bags_impl(ctx: Context) -> None:
         for key in returned:
             db_obj = await uow.contract.get(address=key[0], provider_pubkey=key[1])
             if db_obj:
-                missing_min = int((now - db_obj.missing_since).total_seconds() / 60)
+                missing_min = int((now - _ensure_aware(db_obj.missing_since)).total_seconds() / 60)
                 logger.info(
                     "Contract %s returned after %dm missing (provider %s)",
                     db_obj.bag_id[:16], missing_min, key[1][:8],
