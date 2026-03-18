@@ -38,6 +38,7 @@ async def _fetch_all_contracts(ctx: Context) -> t.Optional[list[ContractInfo]]:
     offset = 0
     limit = 500
     max_retries = 3
+    expected_total = None
 
     while True:
         response = None
@@ -58,11 +59,27 @@ async def _fetch_all_contracts(ctx: Context) -> t.Optional[list[ContractInfo]]:
         if response is None:
             return None
 
+        if expected_total is None:
+            expected_total = response.total
+        elif response.total != expected_total:
+            logger.warning(
+                "Total changed during fetch: expected %d, got %d. Restarting.",
+                expected_total, response.total,
+            )
+            return None
+
         all_contracts.extend(response.contracts)
         if len(all_contracts) >= response.total:
             break
         offset += limit
         await asyncio.sleep(1)
+
+    if len(all_contracts) != expected_total:
+        logger.warning(
+            "Fetched %d contracts but expected %d. Skipping update.",
+            len(all_contracts), expected_total,
+        )
+        return None
 
     return all_contracts
 
