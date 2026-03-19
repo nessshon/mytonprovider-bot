@@ -205,6 +205,14 @@ messages:
       <blockquote>No contracts found yet. Data will appear after the next sync.</blockquote>
       {%- endif %}
 
+    bags_search: |
+      🔎 <b>Search bag</b><br><br>
+      Send the bag identifier in the chat:
+
+    bags_not_found: |
+      ⚠️ <b>Bag not found</b><br><br>
+      Make sure you sent the correct bag identifier.
+
     bags_detail: |
       📋 <b>Contract</b><br><br>
       <b>• Status</b>: <code>{{ reason_text }}</code><br>
@@ -425,6 +433,7 @@ buttons:
     bags_tab:
       all: "All"
       problematic: "Problems"
+    bags_search: "⌕ Search"
     bags_detail:
       open_bag: "Open bag in explorer"
       copy_bag_id: "Copy bag ID"

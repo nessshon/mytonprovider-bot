@@ -205,6 +205,14 @@ messages:
       <blockquote>尚未找到合約。資料將在下次同步後顯示。</blockquote>
       {%- endif %}
 
+    bags_search: |
+      🔎 <b>搜尋 bag</b><br><br>
+      請在聊天中發送 bag 識別碼：
+
+    bags_not_found: |
+      ⚠️ <b>找不到 bag</b><br><br>
+      請確認您發送了正確的 bag 識別碼。
+
     bags_detail: |
       📋 <b>合約</b><br><br>
       <b>• 狀態</b>: <code>{{ reason_text }}</code><br>
@@ -425,6 +433,7 @@ buttons:
     bags_tab:
       all: "全部"
       problematic: "問題"
+    bags_search: "⌕ 搜尋"
     bags_detail:
       open_bag: "在瀏覽器中開啟 bag"
       copy_bag_id: "複製 bag ID"

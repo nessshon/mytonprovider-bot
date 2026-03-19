@@ -205,6 +205,14 @@ messages:
       <blockquote>Контракты ещё не найдены. Данные появятся после следующей синхронизации.</blockquote>
       {%- endif %}
 
+    bags_search: |
+      🔎 <b>Поиск bag</b><br><br>
+      Отправьте идентификатор bag в чат:
+
+    bags_not_found: |
+      ⚠️ <b>Bag не найден</b><br><br>
+      Убедитесь, что вы отправили корректный идентификатор bag.
+
     bags_detail: |
       📋 <b>Контракт</b><br><br>
       <b>• Статус</b>: <code>{{ reason_text }}</code><br>
@@ -425,6 +433,7 @@ buttons:
     bags_tab:
       all: "Все"
       problematic: "Проблемные"
+    bags_search: "⌕ Поиск"
     bags_detail:
       open_bag: "Открыть bag в обозревателе"
       open_owner: "Открыть владельца в Tonviewer"

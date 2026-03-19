@@ -158,10 +158,17 @@ provider_bags_menu = kbd.Group(
         ),
         width=5,
     ),
-    kbd.SwitchTo(
-        id="bags_back",
-        text=I18NJinja("buttons.common.to_main"),
-        state=states.ProviderMenu.MAIN,
+    kbd.Row(
+        kbd.SwitchTo(
+            id="bags_back",
+            text=I18NJinja("buttons.common.to_main"),
+            state=states.ProviderMenu.MAIN,
+        ),
+        kbd.SwitchTo(
+            id="bags_search",
+            text=I18NJinja("buttons.provider.bags_search"),
+            state=states.ProviderMenu.BAGS_SEARCH,
+        ),
     ),
 )
 
