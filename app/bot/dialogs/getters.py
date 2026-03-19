@@ -13,6 +13,7 @@ from ..utils.i18n import Localizer
 from ...alert.thresholds import THRESHOLDS
 from ...config import ADMIN_IDS
 from ...database.models import ContractModel, UserModel
+from ...database.models.contract import REASON_DESCRIPTIONS
 from ...database.unitofwork import UnitOfWork
 from .widgets import BAGS_PER_PAGE, build_pagination_buttons
 
@@ -228,20 +229,7 @@ async def provider_bags_detail(
     if not contract:
         return {"contract": None}
 
-    reason_descriptions = {
-        0: "OK",
-        101: "IP not found or unavailable",
-        102: "IP not found or unavailable",
-        103: "Connection timed out",
-        201: "Offline or ports closed",
-        202: "Storage contract issues",
-        301: "No headers information",
-        302: "No headers information",
-        401: "Can't proof files availability",
-        402: "Can't proof files availability",
-        403: "Can't proof files availability",
-    }
-    reason_text = reason_descriptions.get(contract.reason, f"Unknown ({contract.reason})")
+    reason_text = REASON_DESCRIPTIONS.get(contract.reason, f"Unknown ({contract.reason})")
 
     return {
         "contract": contract,

@@ -8,6 +8,21 @@ from ._base import BaseModel
 from ..helpers import now
 
 
+REASON_DESCRIPTIONS = {
+    0: "OK",
+    101: "IP not found or unavailable",
+    102: "IP not found or unavailable",
+    103: "Connection timed out",
+    201: "Offline or ports closed",
+    202: "Storage contract issues",
+    301: "No headers information",
+    302: "No headers information",
+    401: "Can't proof files availability",
+    402: "Can't proof files availability",
+    403: "Can't proof files availability",
+}
+
+
 class ContractModel(BaseModel):
     __tablename__ = "contracts"
 
