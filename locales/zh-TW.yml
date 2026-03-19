@@ -317,6 +317,28 @@ alerts:
       <i>...還有 {{ removed_count - removed_list|length }} 個</i><br>
       {%- endif %}
       {%- endif %}
+    info: |
+      📦 <b>Bags 變更</b><br><br>
+      <b>提供者:</b><br>
+      <code>{{ provider.pubkey }}</code><br>
+      {%- if failed_count %}
+      <br><b>發現問題 ({{ failed_count }}):</b><br>
+      {%- for bag_id in failed_list %}
+      • <a href="https://mytonstorage.org/api/v1/gateway/{{ bag_id }}">{{ bag_id[:10] }}...{{ bag_id[-10:] }}</a><br>
+      {%- endfor %}
+      {%- if failed_count > failed_list|length %}
+      <i>...還有 {{ failed_count - failed_list|length }} 個</i><br>
+      {%- endif %}
+      {%- endif %}
+      {%- if recovered_count %}
+      <br><b>再次可用 ({{ recovered_count }}):</b><br>
+      {%- for bag_id in recovered_list %}
+      • <a href="https://mytonstorage.org/api/v1/gateway/{{ bag_id }}">{{ bag_id[:10] }}...{{ bag_id[-10:] }}</a><br>
+      {%- endfor %}
+      {%- if recovered_count > recovered_list|length %}
+      <i>...還有 {{ recovered_count - recovered_list|length }} 個</i><br>
+      {%- endif %}
+      {%- endif %}
 
 inlines:
   list_providers:

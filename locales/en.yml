@@ -317,6 +317,28 @@ alerts:
       <i>...and {{ removed_count - removed_list|length }} more</i><br>
       {%- endif %}
       {%- endif %}
+    info: |
+      📦 <b>Bags changed</b><br><br>
+      <b>Provider:</b><br>
+      <code>{{ provider.pubkey }}</code><br>
+      {%- if failed_count %}
+      <br><b>Issues detected ({{ failed_count }}):</b><br>
+      {%- for bag_id in failed_list %}
+      • <a href="https://mytonstorage.org/api/v1/gateway/{{ bag_id }}">{{ bag_id[:10] }}...{{ bag_id[-10:] }}</a><br>
+      {%- endfor %}
+      {%- if failed_count > failed_list|length %}
+      <i>...and {{ failed_count - failed_list|length }} more</i><br>
+      {%- endif %}
+      {%- endif %}
+      {%- if recovered_count %}
+      <br><b>Available again ({{ recovered_count }}):</b><br>
+      {%- for bag_id in recovered_list %}
+      • <a href="https://mytonstorage.org/api/v1/gateway/{{ bag_id }}">{{ bag_id[:10] }}...{{ bag_id[-10:] }}</a><br>
+      {%- endfor %}
+      {%- if recovered_count > recovered_list|length %}
+      <i>...and {{ recovered_count - recovered_list|length }} more</i><br>
+      {%- endif %}
+      {%- endif %}
 
 inlines:
   list_providers:
