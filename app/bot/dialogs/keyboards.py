@@ -23,15 +23,16 @@ main_menu = kbd.Group(
         state=states.MainMenu.SEARCH_PROVIDER,
     ),
     kbd.SwitchInlineQueryCurrentChat(
+        id="open_list_providers",
+        text=I18NJinja("buttons.main_menu.list_providers"),
+        switch_inline_query_current_chat=Const("list providers"),
+    ),
+    kbd.SwitchInlineQueryCurrentChat(
         id="open_my_providers",
         text=I18NJinja("buttons.main_menu.my_providers"),
         switch_inline_query_current_chat=Const("my providers"),
         when=F["has_subscriptions"],
-    ),
-    kbd.SwitchInlineQueryCurrentChat(
-        id="open_list_providers",
-        text=I18NJinja("buttons.main_menu.list_providers"),
-        switch_inline_query_current_chat=Const("list providers"),
+        style=Style(style=ButtonStyle.PRIMARY),
     ),
     kbd.Start(
         id="to_alert_settings",
