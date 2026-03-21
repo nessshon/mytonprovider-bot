@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 SYNC_BAGS_TIMEOUT = 4 * 60
 MAX_DISPLAY_BAGS = 20
 MISSING_THRESHOLD = timedelta(hours=24)
+REASON_THRESHOLD = timedelta(hours=12)
 
 ContractKey = tuple[str, str]
 
@@ -67,6 +68,8 @@ def _build_notifications(
     diff: ContractDiff,
     old_by_key: dict[ContractKey, ContractModel],
     new_by_key: dict[ContractKey, ContractInfo],
+    reason_failed: set[ContractKey],
+    reason_recovered: set[ContractKey],
 ) -> dict[str, dict[str, list[str]]]:
     added_by_provider: dict[str, list[str]] = defaultdict(list)
     for key in diff.truly_new:
@@ -82,13 +85,14 @@ def _build_notifications(
 
     failed_by_provider: dict[str, list[str]] = defaultdict(list)
     recovered_by_provider: dict[str, list[str]] = defaultdict(list)
-    for key in diff.still_present:
-        old = old_by_key[key]
-        new = new_by_key[key]
-        if old.reason == 0 and new.reason and new.reason != 0:
-            failed_by_provider[new.provider_pubkey].append(new.bag_id)
-        elif old.reason and old.reason != 0 and new.reason == 0:
-            recovered_by_provider[new.provider_pubkey].append(new.bag_id)
+    for key in reason_failed:
+        src = new_by_key.get(key) or old_by_key.get(key)
+        if src:
+            failed_by_provider[src.provider_pubkey].append(src.bag_id)
+    for key in reason_recovered:
+        src = new_by_key.get(key) or old_by_key.get(key)
+        if src:
+            recovered_by_provider[src.provider_pubkey].append(src.bag_id)
 
     notifications: dict[str, dict[str, list[str]]] = {}
     all_pubkeys = (
@@ -190,7 +194,10 @@ async def _apply_db_changes(
     old_by_key: dict[ContractKey, ContractModel],
     new_by_key: dict[ContractKey, ContractInfo],
     now: datetime,
-) -> None:
+) -> tuple[set[ContractKey], set[ContractKey]]:
+    reason_failed: set[ContractKey] = set()
+    reason_recovered: set[ContractKey] = set()
+
     async with UnitOfWork(ctx.db.session_factory) as uow:
         for key in diff.truly_new:
             c = new_by_key[key]
@@ -222,6 +229,8 @@ async def _apply_db_changes(
                 db_obj.missing_since = None
                 db_obj.reason = c.reason
                 db_obj.reason_timestamp = c.reason_timestamp
+                db_obj.previous_reason = None
+                db_obj.reason_changed_at = None
                 db_obj.size = c.size
                 db_obj.owner_address = c.owner_address
 
@@ -244,17 +253,82 @@ async def _apply_db_changes(
         for key in diff.still_present:
             c = new_by_key[key]
             old = old_by_key[key]
-            if (
-                c.reason != old.reason
-                or c.size != old.size
-                or c.owner_address != old.owner_address
-            ):
+            db_obj = None
+
+            if old.reason_changed_at is not None:
+                if c.reason == old.previous_reason:
+                    db_obj = await uow.contract.get(
+                        address=key[0], provider_pubkey=key[1]
+                    )
+                    if db_obj:
+                        db_obj.reason = c.reason
+                        db_obj.reason_timestamp = c.reason_timestamp
+                        db_obj.previous_reason = None
+                        db_obj.reason_changed_at = None
+                        logger.debug(
+                            "Contract %s reason reverted to %s, debounce cancelled",
+                            old.bag_id[:16],
+                            c.reason,
+                        )
+                elif (now - _ensure_aware(old.reason_changed_at)) > REASON_THRESHOLD:
+                    db_obj = await uow.contract.get(
+                        address=key[0], provider_pubkey=key[1]
+                    )
+                    if db_obj:
+                        db_obj.reason = c.reason
+                        db_obj.reason_timestamp = c.reason_timestamp
+                        prev = old.previous_reason
+                        db_obj.previous_reason = None
+                        db_obj.reason_changed_at = None
+                        if (prev is None or prev == 0) and c.reason and c.reason != 0:
+                            reason_failed.add(key)
+                        elif prev and prev != 0 and (not c.reason or c.reason == 0):
+                            reason_recovered.add(key)
+                        logger.info(
+                            "Contract %s reason confirmed: %s -> %s (provider %s)",
+                            old.bag_id[:16],
+                            prev,
+                            c.reason,
+                            key[1][:8],
+                        )
+                elif c.reason != old.reason:
+                    db_obj = await uow.contract.get(
+                        address=key[0], provider_pubkey=key[1]
+                    )
+                    if db_obj:
+                        db_obj.reason = c.reason
+                        db_obj.reason_timestamp = c.reason_timestamp
+            elif c.reason != old.reason:
                 db_obj = await uow.contract.get(address=key[0], provider_pubkey=key[1])
                 if db_obj:
+                    db_obj.previous_reason = old.reason
+                    db_obj.reason_changed_at = now
                     db_obj.reason = c.reason
                     db_obj.reason_timestamp = c.reason_timestamp
+                    logger.debug(
+                        "Contract %s reason changed %s -> %s, debounce started",
+                        old.bag_id[:16],
+                        old.reason,
+                        c.reason,
+                    )
+
+            if c.size != old.size or c.owner_address != old.owner_address:
+                if db_obj is None:
+                    db_obj = await uow.contract.get(
+                        address=key[0], provider_pubkey=key[1]
+                    )
+                if db_obj:
                     db_obj.size = c.size
                     db_obj.owner_address = c.owner_address
+
+    if reason_failed or reason_recovered:
+        logger.info(
+            "Reason debounce confirmed: %d failed, %d recovered",
+            len(reason_failed),
+            len(reason_recovered),
+        )
+
+    return reason_failed, reason_recovered
 
 
 async def _send_notifications(
@@ -347,7 +421,13 @@ async def _sync_bags_impl(ctx: Context) -> None:
     now = datetime.now(TIMEZONE)
 
     diff = _compute_diff(old_by_key, new_keys, now)
-    await _apply_db_changes(ctx, diff, old_by_key, new_by_key, now)
+    reason_failed, reason_recovered = await _apply_db_changes(
+        ctx,
+        diff,
+        old_by_key,
+        new_by_key,
+        now,
+    )
 
     if is_first_run:
         logger.info(
@@ -356,6 +436,12 @@ async def _sync_bags_impl(ctx: Context) -> None:
         )
         return
 
-    notifications = _build_notifications(diff, old_by_key, new_by_key)
+    notifications = _build_notifications(
+        diff,
+        old_by_key,
+        new_by_key,
+        reason_failed,
+        reason_recovered,
+    )
     if notifications:
         await _send_notifications(ctx, notifications)
