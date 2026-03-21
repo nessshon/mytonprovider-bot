@@ -39,6 +39,12 @@ class ContractModel(BaseModel):
     reason: Mapped[t.Optional[int]] = mapped_column(Integer, nullable=True)
     reason_timestamp: Mapped[t.Optional[int]] = mapped_column(BigInteger, nullable=True)
 
+    previous_reason: Mapped[t.Optional[int]] = mapped_column(Integer, nullable=True)
+    reason_changed_at: Mapped[t.Optional[datetime]] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+
     missing_since: Mapped[t.Optional[datetime]] = mapped_column(
         DateTime(timezone=True),
         nullable=True,
