@@ -24,6 +24,8 @@ class Database:
             url=DB_URL,
             connect_args={"timeout": 30},
             pool_pre_ping=True,
+            pool_size=3,
+            max_overflow=4,
         )
 
         event.listen(self.engine.sync_engine, "connect", self._set_sqlite_pragmas)
@@ -37,6 +39,7 @@ class Database:
     @staticmethod
     def _set_sqlite_pragmas(dbapi_connection: Any, _: Any) -> None:
         cursor = dbapi_connection.cursor()
+        cursor.execute("PRAGMA busy_timeout = 30000;")
         cursor.execute("PRAGMA journal_mode = WAL;")
         cursor.execute("PRAGMA synchronous = NORMAL;")
         cursor.execute("PRAGMA cache_size = -20000;")  # ~20 MB

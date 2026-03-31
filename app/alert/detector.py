@@ -17,10 +17,12 @@ class AlertDetector:
         telemetry: TelemetryModel,
         telemetry_history: t.Optional[TelemetryHistoryModel] = None,
         user_thresholds: t.Optional[t.Mapping[str, float]] = None,
+        bot_started_at: t.Optional[float] = None,
     ) -> None:
         self.provider = provider
         self.telemetry = telemetry
         self.telemetry_history = telemetry_history
+        self.bot_started_at = bot_started_at
 
         # Merge user thresholds over defaults (copy to avoid mutating global defaults)
         self.thresholds: dict[str, float] = dict(THRESHOLDS)
@@ -250,9 +252,19 @@ class AlertDetector:
         if self.telemetry.timestamp is None:
             return False
 
-        age_sec = int(time.time()) - int(self.telemetry.timestamp)
+        now = int(time.time())
+        threshold = THRESHOLDS[AlertTypes.PROVIDER_OFFLINE]  # 30 min
+
+        # Grace period: suppress offline alerts until bot has been running
+        # long enough to collect fresh data (threshold seconds since start).
+        if self.bot_started_at is not None:
+            bot_uptime = now - int(self.bot_started_at)
+            if bot_uptime < threshold:
+                return False
+
+        age_sec = now - int(self.telemetry.timestamp)
         # Telemetry is fresh (≤ 30 min) — still considered online
-        if age_sec <= THRESHOLDS[AlertTypes.PROVIDER_OFFLINE]:  # 15 min
+        if age_sec <= threshold:
             return False
         # Stable → not offline
         if self.provider.status == 0 and self.provider.status_ratio >= 0.99:

@@ -1,6 +1,9 @@
 from .client import MytonproviderClient
 from .models import (
     CPUInfo,
+    ContractBagsRequest,
+    ContractBagsResponse,
+    ContractInfo,
     LocationInfo,
     Provider,
     ProviderInfo,
@@ -17,6 +20,9 @@ from .models import (
 __all__ = [
     "MytonproviderClient",
     "CPUInfo",
+    "ContractBagsRequest",
+    "ContractBagsResponse",
+    "ContractInfo",
     "LocationInfo",
     "Provider",
     "ProviderInfo",

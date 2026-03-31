@@ -177,3 +177,38 @@ async def adjust_threshold(_, button, manager):
 
     await uow.session.flush()
     await manager.show()
+
+
+async def change_bags_tab(
+    _,
+    __,
+    manager: DialogManager,
+    item_id: str,
+) -> None:
+    manager.dialog_data["bags_tab"] = item_id
+    manager.dialog_data["bags_page"] = 0
+    await manager.switch_to(manager.current_context().state)
+
+
+async def change_bags_page(
+    _,
+    __,
+    manager: DialogManager,
+    item_id: str,
+) -> None:
+    manager.dialog_data["bags_page"] = int(item_id)
+    await manager.switch_to(manager.current_context().state)
+
+
+async def open_contract_detail(
+    _,
+    __,
+    manager: DialogManager,
+    item_id: str,
+) -> None:
+    page_keys = manager.dialog_data.get("page_keys", [])
+    idx = int(item_id)
+    key = page_keys[idx]
+    manager.dialog_data["contract_address"] = key["address"]
+    manager.dialog_data["contract_pubkey"] = key["provider_pubkey"]
+    await manager.switch_to(states.ProviderMenu.BAGS_DETAIL)

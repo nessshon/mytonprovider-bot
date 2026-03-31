@@ -11,6 +11,12 @@ PROVIDER_TABS = [
 ]
 DEFAULT_PROVIDER_TAB = "hardware"
 
+BAGS_TABS = [
+    "all",
+    "problematic",
+]
+DEFAULT_BAGS_TAB = "all"
+
 ALERT_TABS = [
     "types",
     "thresholds",

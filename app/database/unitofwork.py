@@ -6,6 +6,7 @@ import typing as t
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from .models import (
+    ContractModel,
     ProviderModel,
     ProviderHistoryModel,
     TelemetryModel,
@@ -25,6 +26,7 @@ logger = logging.getLogger(__name__)
 class UnitOfWork:
     session: AsyncSession
 
+    contract: BRepo[ContractModel]
     provider: BRepo[ProviderModel]
     provider_history: BRepo[ProviderHistoryModel]
     telemetry: BRepo[TelemetryModel]
@@ -42,6 +44,7 @@ class UnitOfWork:
     async def __aenter__(self) -> UnitOfWork:
         self.session = self.session_factory()
 
+        self.contract = BRepo(ContractModel, self.session)
         self.provider = BRepo(ProviderModel, self.session)
         self.provider_history = BRepo(ProviderHistoryModel, self.session)
         self.telemetry = BRepo(TelemetryModel, self.session)

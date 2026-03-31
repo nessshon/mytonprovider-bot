@@ -7,15 +7,11 @@ from aiogram_dialog.api.exceptions import (
     UnknownIntent,
     UnknownState,
 )
-from aiogram_dialog.context.intent_filter import IntentFilter
-
 from .commands import register_command
 from .common import (
-    default_message,
     hide_callback_query,
     my_chat_memeber,
     providers_inline,
-    enter_password_message,
 )
 from .errors import (
     on_unknown_intent,
@@ -45,13 +41,6 @@ def register(dp: Dispatcher) -> None:
         F.chat_type == ChatType.SENDER,
     )
 
-    dp.message.register(
-        enter_password_message,
-        IntentFilter(states.ProviderMenu),
-    )
-    dp.message.register(
-        default_message,
-    )
     dp.my_chat_member.register(my_chat_memeber)
     dp.callback_query.register(hide_callback_query, F.data == "hide")
 

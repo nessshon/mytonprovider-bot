@@ -28,3 +28,7 @@ class HelpMenu(StatesGroup):
 class ProviderMenu(StatesGroup):
     MAIN = State()
     ENTER_PASSWORD = State()
+    BAGS = State()
+    BAGS_DETAIL = State()
+    BAGS_SEARCH = State()
+    BAGS_NOT_FOUND = State()

@@ -1,9 +1,12 @@
 from aiogram import F
+from aiogram.enums import ContentType
 from aiogram_dialog import Window
 from aiogram_dialog.widgets import kbd
+from aiogram_dialog.widgets.input import MessageInput
 from aiogram_dialog.widgets.text import Case
 
 from . import getters
+from . import handlers
 from . import keyboards
 from . import states
 from .consts import PROVIDER_TABS
@@ -11,6 +14,10 @@ from ..widgets import I18NJinja
 
 main_menu = Window(
     I18NJinja("messages.main.menu"),
+    MessageInput(
+        func=handlers.search_provider,
+        content_types=[ContentType.TEXT],
+    ),
     keyboards.main_menu,
     getter=getters.main_menu,
     state=states.MainMenu.MAIN,
@@ -30,6 +37,10 @@ main_invalid_input = Window(
 
 search_provider_menu = Window(
     I18NJinja("messages.main.search_provider"),
+    MessageInput(
+        func=handlers.search_provider,
+        content_types=[ContentType.TEXT],
+    ),
     keyboards.to_main,
     state=states.MainMenu.SEARCH_PROVIDER,
 )
@@ -79,6 +90,45 @@ provider_menu = Window(
     state=states.ProviderMenu.MAIN,
 )
 
+provider_bags = Window(
+    I18NJinja("messages.provider.menu"),
+    I18NJinja("messages.provider.bags"),
+    keyboards.provider_bags_menu,
+    getter=getters.provider_bags,
+    state=states.ProviderMenu.BAGS,
+)
+
+provider_bags_detail = Window(
+    I18NJinja("messages.provider.bags_detail"),
+    keyboards.provider_bags_detail_menu,
+    getter=getters.provider_bags_detail,
+    state=states.ProviderMenu.BAGS_DETAIL,
+)
+
+provider_bags_search = Window(
+    I18NJinja("messages.provider.bags_search"),
+    MessageInput(
+        func=handlers.search_bag,
+        content_types=[ContentType.TEXT],
+    ),
+    kbd.SwitchTo(
+        id="bags_search_back",
+        text=I18NJinja("buttons.common.to_main"),
+        state=states.ProviderMenu.BAGS,
+    ),
+    state=states.ProviderMenu.BAGS_SEARCH,
+)
+
+provider_bags_not_found = Window(
+    I18NJinja("messages.provider.bags_not_found"),
+    kbd.SwitchTo(
+        id="bags_not_found_back",
+        text=I18NJinja("buttons.common.to_main"),
+        state=states.ProviderMenu.BAGS,
+    ),
+    state=states.ProviderMenu.BAGS_NOT_FOUND,
+)
+
 provider_enter_password = Window(
     I18NJinja(
         "messages.provider.enter_password",
@@ -87,6 +137,10 @@ provider_enter_password = Window(
     I18NJinja(
         "messages.provider.incorrect_password",
         when=F["incorrect_password"].is_(True),
+    ),
+    MessageInput(
+        func=handlers.enter_password,
+        content_types=[ContentType.TEXT],
     ),
     kbd.Back(I18NJinja("buttons.common.to_main")),
     getter=getters.provider_enter_password,

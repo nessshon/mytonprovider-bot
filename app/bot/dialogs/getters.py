@@ -1,4 +1,5 @@
 from aiogram_dialog import DialogManager
+from sqlalchemy import select, func, and_
 
 from app.database.metrics import (
     build_provider_wallet_metrics,
@@ -11,8 +12,10 @@ from .consts import DEFAULT_PROVIDER_TAB, DEFAULT_ALERT_TAB
 from ..utils.i18n import Localizer
 from ...alert.thresholds import THRESHOLDS
 from ...config import ADMIN_IDS
-from ...database.models import UserModel
+from ...database.models import ContractModel, UserModel
+from ...database.models.contract import REASON_DESCRIPTIONS
 from ...database.unitofwork import UnitOfWork
+from .widgets import BAGS_PER_PAGE, build_pagination_buttons
 
 
 async def main_menu(
@@ -45,8 +48,15 @@ async def stats_menu(
     dialog_manager: DialogManager,
     **_,
 ):
+    from ...context import get_context
+
     uow: UnitOfWork = dialog_manager.middleware_data["uow"]
     stats = await build_stats_summary(uow.session)
+
+    ctx = get_context()
+    started_at = getattr(ctx, "started_at", None)
+    stats["bot_started_at"] = int(started_at) if started_at is not None else None
+
     return {"stats": stats}
 
 
@@ -68,6 +78,12 @@ async def provider_menu(
     provider_traffic_metrics = await build_provider_traffic_metrics(uow.session, pubkey)
     provider_storage_metrics = await build_provider_storage_metrics(uow.session, pubkey)
     provider_last_month_report = await build_monthly_report(uow.session, pubkey)
+    result = await uow.session.execute(
+        select(func.count()).select_from(ContractModel).where(
+            and_(ContractModel.provider_pubkey == pubkey, ContractModel.reason.isnot(None))
+        )
+    )
+    provider_bags_count = result.scalar() or 0
 
     subscription = next(
         (
@@ -103,6 +119,7 @@ async def provider_menu(
         "provider_traffic_metrics": provider_traffic_metrics,
         "provider_storage_metrics": provider_storage_metrics,
         "provider_last_month_report": provider_last_month_report,
+        "provider_bags_count": provider_bags_count,
     }
 
 
@@ -112,6 +129,112 @@ async def provider_enter_password(
 ):
     incorrect_password = dialog_manager.dialog_data.get("incorrect_password", False)
     return {"incorrect_password": incorrect_password}
+
+
+async def provider_bags(
+    dialog_manager: DialogManager,
+    **_,
+):
+    uow: UnitOfWork = dialog_manager.middleware_data["uow"]
+    pubkey = dialog_manager.dialog_data.get("provider_pubkey")
+    bags_tab = dialog_manager.dialog_data.get("bags_tab", "all")
+    bags_page = int(dialog_manager.dialog_data.get("bags_page", 0))
+
+    dialog_manager.current_context().widget_data["bags_tab"] = bags_tab
+
+    provider = await uow.provider.get(pubkey=pubkey)
+    provider_filter = ContractModel.provider_pubkey == pubkey
+    checked_filter = and_(provider_filter, ContractModel.reason.isnot(None))
+    ok_filter = and_(provider_filter, ContractModel.reason == 0)
+    problematic_filter = and_(
+        provider_filter,
+        ContractModel.reason.isnot(None),
+        ContractModel.reason != 0,
+    )
+
+    result = await uow.session.execute(
+        select(func.count()).select_from(ContractModel).where(checked_filter)
+    )
+    checked_count = result.scalar() or 0
+
+    result = await uow.session.execute(
+        select(func.count()).select_from(ContractModel).where(ok_filter)
+    )
+    ok_count = result.scalar() or 0
+
+    result = await uow.session.execute(
+        select(func.count()).select_from(ContractModel).where(problematic_filter)
+    )
+    problematic_count = result.scalar() or 0
+
+    if bags_tab == "problematic":
+        tab_filter = problematic_filter
+        total_filtered = problematic_count
+    else:
+        tab_filter = checked_filter
+        total_filtered = checked_count
+
+    total_pages = max(1, (total_filtered + BAGS_PER_PAGE - 1) // BAGS_PER_PAGE)
+    bags_page = min(bags_page, total_pages - 1)
+
+    stmt = (
+        select(ContractModel)
+        .where(tab_filter)
+        .order_by(ContractModel.reason_timestamp.desc().nulls_last())
+        .offset(bags_page * BAGS_PER_PAGE)
+        .limit(BAGS_PER_PAGE)
+    )
+    result = await uow.session.execute(stmt)
+    page_contracts = list(result.scalars().all())
+
+    page_keys = [
+        {"address": c.address, "provider_pubkey": c.provider_pubkey}
+        for c in page_contracts
+    ]
+    dialog_manager.dialog_data["page_keys"] = page_keys
+
+    contract_items = [
+        {
+            "id": str(idx),
+            "label": f"{c.bag_id[:10]} . . . {c.bag_id[-10:]}",
+        }
+        for idx, c in enumerate(page_contracts)
+    ]
+
+    pagination_items = build_pagination_buttons(bags_page, total_pages)
+
+    return {
+        "provider": provider,
+        "bags_tab": bags_tab,
+        "checked_count": checked_count,
+        "ok_count": ok_count,
+        "problematic_count": problematic_count,
+        "contract_items": contract_items,
+        "pagination_items": pagination_items,
+    }
+
+
+async def provider_bags_detail(
+    dialog_manager: DialogManager,
+    **_,
+):
+    uow: UnitOfWork = dialog_manager.middleware_data["uow"]
+    contract_address = dialog_manager.dialog_data.get("contract_address")
+    contract_pubkey = dialog_manager.dialog_data.get("contract_pubkey")
+
+    contract = await uow.contract.get(
+        address=contract_address,
+        provider_pubkey=contract_pubkey,
+    )
+    if not contract:
+        return {"contract": None}
+
+    reason_text = REASON_DESCRIPTIONS.get(contract.reason, f"Unknown ({contract.reason})")
+
+    return {
+        "contract": contract,
+        "reason_text": reason_text,
+    }
 
 
 async def alert_settings_menu(

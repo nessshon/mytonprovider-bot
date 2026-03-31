@@ -62,6 +62,14 @@ class UserSubscriptionModel(BaseModel):
 
     user: Mapped[UserModel] = relationship(back_populates="subscriptions")
 
+    __table_args__ = (
+        UniqueConstraint(
+            "user_id",
+            "provider_pubkey",
+            name="uq_user_provider_subscription",
+        ),
+    )
+
 
 class UserAlertSettingModel(BaseModel):
     __tablename__ = "users_alert_settings"

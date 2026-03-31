@@ -1,4 +1,5 @@
 import logging
+import time
 from contextlib import suppress
 
 from aiogram import Dispatcher, Bot
@@ -28,6 +29,7 @@ logger = logging.getLogger("app.main")
 async def on_startup(ctx: Context) -> None:
     logger.info("App startup initiated...")
 
+    ctx.started_at = time.time()
     await ctx.db.start()
     await ctx.scheduler.start()
 
@@ -35,6 +37,8 @@ async def on_startup(ctx: Context) -> None:
     handlers.register(ctx.dp)
     dialogs.register(ctx.dp)
     setup_dialogs(ctx.dp)
+    await ctx.mytonprovider.ensure_session()
+    await ctx.toncenter.ensure_session()
 
     with suppress(TelegramRetryAfter):
         await commands.setup(ctx)
@@ -47,6 +51,9 @@ async def on_shutdown(ctx: Context) -> None:
     with suppress(TelegramRetryAfter):
         await commands.delete(ctx)
     await ctx.bot.session.close()
+
+    await ctx.mytonprovider.close()
+    await ctx.toncenter.close()
 
     await ctx.scheduler.shutdown()
     await ctx.db.shutdown()

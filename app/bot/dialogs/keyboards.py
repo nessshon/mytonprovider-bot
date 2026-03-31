@@ -1,9 +1,11 @@
 from aiogram import F
+from aiogram.enums import ButtonStyle
 from aiogram_dialog.widgets import kbd
+from aiogram_dialog.widgets.style import Style
 from aiogram_dialog.widgets.text import Case, Multi, Const, Format
 
 from . import states, on_clicks
-from .consts import PROVIDER_TABS, ALERT_TABS, STEP_LEFT, STEP_RIGHT
+from .consts import PROVIDER_TABS, ALERT_TABS, STEP_LEFT, STEP_RIGHT, BAGS_TABS
 from ..widgets import I18NJinja
 from ...alert.types import AlertTypes
 from ...config import SUPPORTED_LOCALES
@@ -21,32 +23,37 @@ main_menu = kbd.Group(
         state=states.MainMenu.SEARCH_PROVIDER,
     ),
     kbd.SwitchInlineQueryCurrentChat(
+        id="open_list_providers",
+        text=I18NJinja("buttons.main_menu.list_providers"),
+        switch_inline_query_current_chat=Const("list providers"),
+    ),
+    kbd.SwitchInlineQueryCurrentChat(
         id="open_my_providers",
         text=I18NJinja("buttons.main_menu.my_providers"),
         switch_inline_query_current_chat=Const("my providers"),
         when=F["has_subscriptions"],
-    ),
-    kbd.SwitchInlineQueryCurrentChat(
-        id="open_list_providers",
-        text=I18NJinja("buttons.main_menu.list_providers"),
-        switch_inline_query_current_chat=Const("list providers"),
+        style=Style(style=ButtonStyle.PRIMARY),
     ),
     kbd.Start(
         id="to_alert_settings",
         text=I18NJinja("buttons.alert_settings.text"),
         state=states.AlertSettingsMenu.MAIN,
         when=F["user_model"].alert_settings.enabled,
+        style=Style(style=ButtonStyle.SUCCESS),
     ),
     kbd.Button(
-        id="toggle_alerts",
-        text=Case(
-            {
-                True: I18NJinja("buttons.alert_settings.state.enabled"),
-                False: I18NJinja("buttons.alert_settings.state.disabled"),
-            },
-            selector=F["user_model"].alert_settings.enabled,
-        ),
+        id="toggle_alerts_off",
+        text=I18NJinja("buttons.alert_settings.state.enabled"),
         on_click=on_clicks.toggle_alerts,
+        when=F["user_model"].alert_settings.enabled,
+        style=Style(style=ButtonStyle.DANGER),
+    ),
+    kbd.Button(
+        id="toggle_alerts_on",
+        text=I18NJinja("buttons.alert_settings.state.disabled"),
+        on_click=on_clicks.toggle_alerts,
+        when=~F["user_model"].alert_settings.enabled,
+        style=Style(style=ButtonStyle.SUCCESS),
     ),
     kbd.Row(
         kbd.Start(
@@ -77,6 +84,7 @@ provider_menu = kbd.Group(
             item_id_getter=lambda x: x,
             items=PROVIDER_TABS,
             on_click=on_clicks.change_provider_tab,
+            checked_style=Style(style=ButtonStyle.PRIMARY),
         ),
         width=3,
         when=F["access_granted"].is_(True),
@@ -86,6 +94,7 @@ provider_menu = kbd.Group(
         text=I18NJinja("buttons.provider.update_password"),
         state=states.ProviderMenu.ENTER_PASSWORD,
         when=F["password_invalid"].is_(True),
+        style=Style(style=ButtonStyle.SUCCESS),
     ),
     kbd.CopyText(
         text=I18NJinja("buttons.provider.copy_pubkey"),
@@ -95,19 +104,100 @@ provider_menu = kbd.Group(
         text=I18NJinja("buttons.provider.copy_address"),
         copy_text=Format("{provider_address}"),
     ),
+    kbd.SwitchTo(
+        id="open_bags",
+        text=I18NJinja("buttons.provider.bags"),
+        state=states.ProviderMenu.BAGS,
+        when=F["access_granted"].is_(True),
+    ),
     kbd.Button(
         id="unsubscribe",
         text=I18NJinja("buttons.provider.unsubscribe"),
         on_click=on_clicks.unsubscribe,
         when=F["is_subscribed"].is_(True),
+        style=Style(style=ButtonStyle.DANGER),
     ),
     kbd.Next(
         id="subscribe",
         text=I18NJinja("buttons.provider.subscribe"),
         when=F["is_subscribed"].is_(False),
         on_click=on_clicks.subscribe,
+        style=Style(style=ButtonStyle.SUCCESS),
     ),
     to_main,
+)
+
+provider_bags_menu = kbd.Group(
+    kbd.Group(
+        kbd.Radio(
+            checked_text=Const("• ") + I18NJinja("buttons.provider.bags_tab.{item}"),
+            unchecked_text=I18NJinja("buttons.provider.bags_tab.{item}"),
+            id="bags_tab",
+            item_id_getter=lambda x: x,
+            items=BAGS_TABS,
+            on_click=on_clicks.change_bags_tab,
+            checked_style=Style(style=ButtonStyle.PRIMARY),
+        ),
+        width=2,
+    ),
+    kbd.Column(
+        kbd.Select(
+            Format("{item[label]}"),
+            id="select_contract",
+            item_id_getter=lambda item: item["id"],
+            items="contract_items",
+            on_click=on_clicks.open_contract_detail,
+        ),
+    ),
+    kbd.Group(
+        kbd.Select(
+            Format("{item[label]}"),
+            id="select_page",
+            item_id_getter=lambda item: item["id"],
+            items="pagination_items",
+            on_click=on_clicks.change_bags_page,
+        ),
+        width=5,
+    ),
+    kbd.Row(
+        kbd.SwitchTo(
+            id="bags_back",
+            text=I18NJinja("buttons.common.to_main"),
+            state=states.ProviderMenu.MAIN,
+        ),
+        kbd.SwitchTo(
+            id="bags_search",
+            text=I18NJinja("buttons.provider.bags_search"),
+            state=states.ProviderMenu.BAGS_SEARCH,
+        ),
+    ),
+)
+
+provider_bags_detail_menu = kbd.Group(
+    kbd.CopyText(
+        text=I18NJinja("buttons.provider.bags_detail.copy_bag_id"),
+        copy_text=Format("{contract.bag_id}"),
+    ),
+    kbd.Url(
+        id="open_bag",
+        text=I18NJinja("buttons.provider.bags_detail.open_bag"),
+        url=Format("https://mytonstorage.org/api/v1/gateway/{contract.bag_id}"),
+    ),
+    kbd.Url(
+        id="open_contract",
+        text=I18NJinja("buttons.provider.bags_detail.open_contract"),
+        url=Format("https://tonviewer.com/{contract.address}"),
+    ),
+    kbd.Url(
+        id="open_owner",
+        text=I18NJinja("buttons.provider.bags_detail.open_owner"),
+        url=Format("https://tonviewer.com/{contract.owner_address}"),
+    ),
+    kbd.SwitchTo(
+        id="back_to_bags",
+        text=I18NJinja("buttons.common.to_main"),
+        state=states.ProviderMenu.BAGS,
+    ),
 )
 
 alert_settings_menu = kbd.Group(
@@ -119,6 +209,7 @@ alert_settings_menu = kbd.Group(
             item_id_getter=lambda x: x,
             items=ALERT_TABS,
             on_click=on_clicks.change_alert_tab,
+            checked_style=Style(style=ButtonStyle.PRIMARY),
         ),
         width=3,
     ),
@@ -156,11 +247,13 @@ alert_settings_menu = kbd.Group(
                 id="enable_all_alerts",
                 text=I18NJinja("buttons.alert_settings.types.enable_all"),
                 on_click=on_clicks.toggle_alert_type,
+                style=Style(style=ButtonStyle.SUCCESS),
             ),
             kbd.Button(
                 id="disable_all_alerts",
                 text=I18NJinja("buttons.alert_settings.types.disable_all"),
                 on_click=on_clicks.toggle_alert_type,
+                style=Style(style=ButtonStyle.DANGER),
             ),
         ),
         when=F["alert_tab"].contains("types"),
@@ -203,18 +296,21 @@ alert_settings_set_threshold = kbd.Group(
                 id=f"step_{sid}",
                 text=Const(label),
                 on_click=on_clicks.adjust_threshold,
+                style=Style(style=ButtonStyle.DANGER),
             )
             for sid, label in STEP_LEFT
         ],
         kbd.Button(
             id="current_value",
             text=Format("{threshold_value}"),
+            style=Style(style=ButtonStyle.PRIMARY),
         ),
         *[
             kbd.Button(
                 id=f"step_{sid}",
                 text=Const(label),
                 on_click=on_clicks.adjust_threshold,
+                style=Style(style=ButtonStyle.SUCCESS),
             )
             for sid, label in STEP_RIGHT
         ],

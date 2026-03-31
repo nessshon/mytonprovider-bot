@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import logging
 import typing as t
 from collections import defaultdict
@@ -119,13 +120,30 @@ def extract_transaction_metrics(tx: Transaction) -> WalletMetrics:
     return metrics
 
 
+UPDATE_WALLETS_TIMEOUT = 4 * 60
+
+
 async def update_wallets_job(ctx: Context) -> None:
+    try:
+        await asyncio.wait_for(
+            _update_wallets_impl(ctx),
+            timeout=UPDATE_WALLETS_TIMEOUT,
+        )
+    except asyncio.TimeoutError:
+        logger.error(
+            "update_wallets_job timed out after %ss",
+            UPDATE_WALLETS_TIMEOUT,
+        )
+    except Exception:
+        logger.exception("update_wallets_job failed")
+        raise
+
+
+async def _update_wallets_impl(ctx: Context) -> None:
     async with UnitOfWork(ctx.db.session_factory) as uow:
         providers = await uow.provider.all()
 
     for provider in providers:
-        wallet_history_models = []
-
         async with UnitOfWork(ctx.db.session_factory) as uow:
             last_wallet = await uow.wallet.get(provider_pubkey=provider.pubkey)
 
@@ -142,6 +160,8 @@ async def update_wallets_job(ctx: Context) -> None:
             continue
 
         grouped_transactions = group_transactions_by_hour(transactions)
+
+        hourly_data = []
         for tx_datetime_hour, transactions_in_hour in sorted(
             grouped_transactions.items()
         ):
@@ -153,37 +173,41 @@ async def update_wallets_job(ctx: Context) -> None:
             last_wallet_balance += wallet_metrics.balance
             last_wallet_earned += wallet_metrics.earned
 
-            async with UnitOfWork(ctx.db.session_factory) as uow:
+            hourly_data.append((tx_datetime_hour, wallet_metrics,
+                                last_wallet_lt, last_wallet_balance))
+
+        wallet_history_models = []
+        async with UnitOfWork(ctx.db.session_factory) as uow:
+            for tx_datetime_hour, wallet_metrics, lt, balance in hourly_data:
                 last_wallet_history = await uow.wallet_history.get(
                     provider_pubkey=provider.pubkey,
                     archived_at=tx_datetime_hour,
                 )
 
-            if last_wallet_history is not None:
-                last_wallet_history.earned += wallet_metrics.earned
-                last_wallet_history.balance = last_wallet_balance
-                last_wallet_history.last_lt = last_wallet_lt
-                wallet_history_models.append(last_wallet_history)
-            else:
-                wallet_history_models.append(
-                    WalletHistoryModel(
-                        provider_pubkey=provider.pubkey,
-                        earned=wallet_metrics.earned,
-                        archived_at=tx_datetime_hour,
-                        address=provider.address,
-                        balance=last_wallet_balance,
-                        last_lt=last_wallet_lt,
+                if last_wallet_history is not None:
+                    last_wallet_history.earned += wallet_metrics.earned
+                    last_wallet_history.balance = balance
+                    last_wallet_history.last_lt = lt
+                    wallet_history_models.append(last_wallet_history)
+                else:
+                    wallet_history_models.append(
+                        WalletHistoryModel(
+                            provider_pubkey=provider.pubkey,
+                            earned=wallet_metrics.earned,
+                            archived_at=tx_datetime_hour,
+                            address=provider.address,
+                            balance=balance,
+                            last_lt=lt,
+                        )
                     )
-                )
 
-        wallet_model = WalletModel(
-            provider_pubkey=provider.pubkey,
-            address=provider.address,
-            balance=last_wallet_balance,
-            earned=last_wallet_earned,
-            last_lt=last_wallet_lt,
-        )
+            wallet_model = WalletModel(
+                provider_pubkey=provider.pubkey,
+                address=provider.address,
+                balance=last_wallet_balance,
+                earned=last_wallet_earned,
+                last_lt=last_wallet_lt,
+            )
 
-        async with UnitOfWork(ctx.db.session_factory) as uow:
             await uow.wallet.upsert(wallet_model)
             await uow.wallet_history.bulk_upsert(wallet_history_models)

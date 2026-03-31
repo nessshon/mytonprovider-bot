@@ -43,6 +43,7 @@ messages:
       {% for h, c in stats.provider_git_hashes|dictsort(by='value', reverse=True) %}
       • <code>{{ h }}</code> — providers: <code>{{ c }}</code><br>
       {% endfor %}
+      <br>Started: <code>{{ stats.bot_started_at|datetimeformat }}</code> ({{ stats.bot_started_at|ago }})
 
   alert_settings:
     types_menu: |
@@ -194,11 +195,41 @@ messages:
       <b>• Period:</b> <code>{{ provider_last_month_report.start_date }}</code> • <code>{{ provider_last_month_report.end_date }}</code><br><br>
       </blockquote>
 
+    bags: |
+      <br>📦 <b>Storage bags</b>: <code>{{ checked_count }}</code><br>
+      <b>• Available</b>: <code>{{ ok_count }}</code><br>
+      {%- if problematic_count > 0 %}
+      <b>• Problems</b>: <code>{{ problematic_count }}</code><br>
+      {%- endif %}
+      {%- if checked_count == 0 %}<br>
+      <blockquote>No contracts found yet. Data will appear after the next sync.</blockquote>
+      {%- endif %}
+
+    bags_search: |
+      🔎 <b>Search bag</b><br><br>
+      Send the bag identifier in the chat:
+
+    bags_not_found: |
+      ⚠️ <b>Bag not found</b><br><br>
+      Make sure you sent the correct bag identifier.
+
+    bags_detail: |
+      📋 <b>Contract</b><br><br>
+      <b>• Status</b>: <code>{{ reason_text }}</code><br>
+      <b>• Size</b>: <code>{{ contract.size | sizeformat }}</code><br>
+      {%- if contract.reason_timestamp %}
+      <b>• Checked</b>: <code>{{ contract.reason_timestamp | datetimeformat }}</code><br>
+      {%- endif %}<br>
+      <b>• Bag ID</b>: <a href="https://mytonstorage.org/api/v1/gateway/{{ contract.bag_id }}">{{ contract.bag_id[:5] }}...{{ contract.bag_id[-6:] }}</a><br>
+      <b>• Contract</b>: <a href="https://tonviewer.com/{{ contract.address }}">{{ contract.address[:5] }}...{{ contract.address[-6:] }}</a><br>
+      <b>• Owner</b>: <a href="https://tonviewer.com/{{ contract.owner_address }}">{{ contract.owner_address[:5] }}...{{ contract.owner_address[-6:] }}</a><br>
+
 alerts:
   monthly_report:
     info: |
       📊 <b>Monthly Report</b><br><br>
-      <b>Provider:</b> <code>{{ provider.ui.short_pubkey }}</code><br>
+      <b>Provider:</b><br>
+      <code>{{ provider.pubkey }}</code><br>
       <b>Period:</b> <code>{{ report.start_date }}</code> • <code>{{ report.end_date }}</code><br><br>
       
       <b>• Earned:</b> <code>+{{ report.earned_nanoton | toamount }} TON</code><br>
@@ -208,55 +239,114 @@ alerts:
   service_restarted:
     detected: |
       ⚠️️ <b>Service {{ service_name }} has restarted</b><br><br>
-      <b>Provider</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
+      <b>Provider:</b><br>
+      <code>{{ provider.pubkey }}</code><br>
 
   cpu_high:
     detected: |
       ❗️ <b>CPU | High load detected</b><br><br>
-      <b>Provider</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
+      <b>Provider:</b><br>
+      <code>{{ provider.pubkey }}</code><br>
     resolved: |
       🔰 <b>CPU | Load normalized</b><br><br>
-      <b>Provider</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
+      <b>Provider:</b><br>
+      <code>{{ provider.pubkey }}</code><br>
 
   ram_high:
     detected: |
       ❗️ <b>RAM | High load detected</b><br><br>
-      <b>Provider</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
+      <b>Provider:</b><br>
+      <code>{{ provider.pubkey }}</code><br>
     resolved: |
       🔰 <b>RAM | Load normalized</b><br><br>
-      <b>Provider</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
+      <b>Provider:</b><br>
+      <code>{{ provider.pubkey }}</code><br>
 
   disk_load_high:
     detected: |
       ❗️ <b>Disk | High load detected</b><br><br>
-      <b>Provider</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
+      <b>Provider:</b><br>
+      <code>{{ provider.pubkey }}</code><br>
     resolved: |
       🔰 <b>Disk | Load normalized</b><br><br>
-      <b>Provider</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
+      <b>Provider:</b><br>
+      <code>{{ provider.pubkey }}</code><br>
 
   network_high:
     detected: |
       ❗️ <b>Network | High load detected</b><br><br>
-      <b>Provider</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
+      <b>Provider:</b><br>
+      <code>{{ provider.pubkey }}</code><br>
     resolved: |
       🔰 <b>Network | Load normalized</b><br><br>
-      <b>Provider</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
+      <b>Provider:</b><br>
+      <code>{{ provider.pubkey }}</code><br>
 
   disk_space_low:
     detected: |
       ❗️ <b>Disk | Low available space</b><br><br>
-      <b>Provider</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
+      <b>Provider:</b><br>
+      <code>{{ provider.pubkey }}</code><br>
     resolved: |
       🔰 <b>Disk | Available space restored</b><br><br>
-      <b>Provider</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
+      <b>Provider:</b><br>
+      <code>{{ provider.pubkey }}</code><br>
 
   provider_offline:
     detected: |
       ❗️ <b>Provider server is not responding</b><br><br>
-      <b>Provider</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
+      <b>Provider:</b><br>
+      <code>{{ provider.pubkey }}</code><br>
     resolved: |
       🔰 <b>Provider server is back online</b><br><br>
-      <b>Provider</b>: <code>{{ provider.ui.short_pubkey }}</code><br>
+      <b>Provider:</b><br>
+      <code>{{ provider.pubkey }}</code><br>
+
+  bags_changed:
+    detected: |
+      📦 <b>Bags changed</b><br><br>
+      <b>Provider:</b><br>
+      <code>{{ provider.pubkey }}</code><br>
+      {%- if added_count %}
+      <br><b>Added ({{ added_count }}):</b><br>
+      {%- for bag in added_list %}
+      • <a href="https://mytonstorage.org/api/v1/gateway/{{ bag }}">{{ bag[:10] }}...{{ bag[-10:] }}</a><br>
+      {%- endfor %}
+      {%- if added_count > added_list|length %}
+      <i>...and {{ added_count - added_list|length }} more</i><br>
+      {%- endif %}
+      {%- endif %}
+      {%- if removed_count %}
+      <br><b>Removed ({{ removed_count }}):</b><br>
+      {%- for bag in removed_list %}
+      • <a href="https://mytonstorage.org/api/v1/gateway/{{ bag }}">{{ bag[:10] }}...{{ bag[-10:] }}</a><br>
+      {%- endfor %}
+      {%- if removed_count > removed_list|length %}
+      <i>...and {{ removed_count - removed_list|length }} more</i><br>
+      {%- endif %}
+      {%- endif %}
+    info: |
+      📦 <b>Bags changed</b><br><br>
+      <b>Provider:</b><br>
+      <code>{{ provider.pubkey }}</code><br>
+      {%- if failed_count %}
+      <br><b>Issues detected ({{ failed_count }}):</b><br>
+      {%- for bag_id in failed_list %}
+      • <a href="https://mytonstorage.org/api/v1/gateway/{{ bag_id }}">{{ bag_id[:10] }}...{{ bag_id[-10:] }}</a><br>
+      {%- endfor %}
+      {%- if failed_count > failed_list|length %}
+      <i>...and {{ failed_count - failed_list|length }} more</i><br>
+      {%- endif %}
+      {%- endif %}
+      {%- if recovered_count %}
+      <br><b>Available again ({{ recovered_count }}):</b><br>
+      {%- for bag_id in recovered_list %}
+      • <a href="https://mytonstorage.org/api/v1/gateway/{{ bag_id }}">{{ bag_id[:10] }}...{{ bag_id[-10:] }}</a><br>
+      {%- endfor %}
+      {%- if recovered_count > recovered_list|length %}
+      <i>...and {{ recovered_count - recovered_list|length }} more</i><br>
+      {%- endif %}
+      {%- endif %}
 
 inlines:
   list_providers:
@@ -317,6 +407,7 @@ buttons:
         provider_offline: "Server unavailable"
         service_restarted: "Service restarted"
         monthly_report: "Monthly report"
+        bags_changed: "Storage bags changed"
         cpu_high: "High CPU load"
         ram_high: "High RAM load"
         network_high: "High network load"
@@ -338,6 +429,16 @@ buttons:
     update_password: "⟳ Update password"
     subscribe: "+ Subscribe"
     unsubscribe: "× Unsubscribe"
+    bags: "Storage bags [{{ provider_bags_count }}]"
+    bags_tab:
+      all: "All"
+      problematic: "Problems"
+    bags_search: "⌕ Search"
+    bags_detail:
+      open_bag: "Open bag in explorer"
+      copy_bag_id: "Copy bag ID"
+      open_owner: "Open owner in Tonviewer"
+      open_contract: "Open contract in Tonviewer"
     tab:
       storage: "Storage"
       hardware: "Hardware"
