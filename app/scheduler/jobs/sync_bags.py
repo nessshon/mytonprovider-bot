@@ -68,8 +68,6 @@ def _build_notifications(
     diff: ContractDiff,
     old_by_key: dict[ContractKey, ContractModel],
     new_by_key: dict[ContractKey, ContractInfo],
-    reason_failed: set[ContractKey],
-    reason_recovered: set[ContractKey],
 ) -> dict[str, dict[str, list[str]]]:
     added_by_provider: dict[str, list[str]] = defaultdict(list)
     for key in diff.truly_new:
@@ -83,35 +81,20 @@ def _build_notifications(
             old_by_key[key].bag_id
         )
 
-    failed_by_provider: dict[str, list[str]] = defaultdict(list)
-    recovered_by_provider: dict[str, list[str]] = defaultdict(list)
-    for key in reason_failed:
-        src = new_by_key.get(key) or old_by_key.get(key)
-        if src:
-            failed_by_provider[src.provider_pubkey].append(src.bag_id)
-    for key in reason_recovered:
-        src = new_by_key.get(key) or old_by_key.get(key)
-        if src:
-            recovered_by_provider[src.provider_pubkey].append(src.bag_id)
-
     notifications: dict[str, dict[str, list[str]]] = {}
     all_pubkeys = (
         set(added_by_provider.keys())
         | set(removed_by_provider.keys())
-        | set(failed_by_provider.keys())
-        | set(recovered_by_provider.keys())
     )
     for pubkey in all_pubkeys:
         added = sorted(added_by_provider.get(pubkey, []))
         removed = sorted(removed_by_provider.get(pubkey, []))
-        failed = sorted(failed_by_provider.get(pubkey, []))
-        recovered = sorted(recovered_by_provider.get(pubkey, []))
-        if added or removed or failed or recovered:
+        if added or removed:
             notifications[pubkey] = {
                 "added": added,
                 "removed": removed,
-                "failed": failed,
-                "recovered": recovered,
+                "failed": [],
+                "recovered": [],
             }
 
     return notifications
@@ -350,8 +333,6 @@ async def _send_notifications(
             continue
         added = diff["added"]
         removed = diff["removed"]
-        failed = diff["failed"]
-        recovered = diff["recovered"]
         users = users_by_provider.get(pubkey, [])
 
         for user in users:
@@ -374,24 +355,6 @@ async def _send_notifications(
                 except (Exception,):
                     logger.warning(
                         "Failed to send bags alert to user %s",
-                        user.user_id,
-                    )
-
-            if failed or recovered:
-                try:
-                    await alert_manager.send_alert_message(
-                        user=user,
-                        alert_type=AlertTypes.BAGS_CHANGED,
-                        alert_stage=AlertStages.INFO,
-                        provider=provider,
-                        failed_count=len(failed),
-                        failed_list=failed[:MAX_DISPLAY_BAGS],
-                        recovered_count=len(recovered),
-                        recovered_list=recovered[:MAX_DISPLAY_BAGS],
-                    )
-                except (Exception,):
-                    logger.warning(
-                        "Failed to send bags info alert to user %s",
                         user.user_id,
                     )
 
@@ -421,7 +384,7 @@ async def _sync_bags_impl(ctx: Context) -> None:
     now = datetime.now(TIMEZONE)
 
     diff = _compute_diff(old_by_key, new_keys, now)
-    reason_failed, reason_recovered = await _apply_db_changes(
+    await _apply_db_changes(
         ctx,
         diff,
         old_by_key,
@@ -440,8 +403,6 @@ async def _sync_bags_impl(ctx: Context) -> None:
         diff,
         old_by_key,
         new_by_key,
-        reason_failed,
-        reason_recovered,
     )
     if notifications:
         await _send_notifications(ctx, notifications)
