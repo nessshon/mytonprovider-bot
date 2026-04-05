@@ -85,12 +85,13 @@ class AlertRepository:
         self,
         user_id: int,
         provider_pubkey: str,
-    ) -> t.Set[AlertTypes]:
+    ) -> t.Dict[AlertTypes, UserTriggeredAlertModel]:
         result = await self.uow.user_triggered_alert.list(
             user_id=user_id,
             provider_pubkey=provider_pubkey,
+            limit=100,
         )
-        return {AlertTypes(i.alert_type) for i in result}
+        return {AlertTypes(i.alert_type): i for i in result}
 
     async def create_alert_record(
         self,
@@ -113,18 +114,6 @@ class AlertRepository:
         provider_pubkey: str,
     ) -> None:
         await self.uow.user_triggered_alert.delete(
-            user_id=user_id,
-            alert_type=alert_type.value,
-            provider_pubkey=provider_pubkey,
-        )
-
-    async def exists_alert_record(
-        self,
-        user_id: int,
-        alert_type: AlertTypes,
-        provider_pubkey: str,
-    ) -> bool:
-        return await self.uow.user_triggered_alert.exists(
             user_id=user_id,
             alert_type=alert_type.value,
             provider_pubkey=provider_pubkey,

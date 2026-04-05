@@ -76,26 +76,6 @@ class AlertDetector:
 
         return triggered
 
-    @classmethod
-    def diff_alerts(
-        cls,
-        triggered: set[AlertTypes],
-        enabled: set[AlertTypes],
-        active: set[AlertTypes],
-    ) -> tuple[set[AlertTypes], set[AlertTypes]]:
-        """Diff triggered alerts vs active ones.
-
-        Example:
-            triggered = {CPU_HIGH, RAM_HIGH}
-            enabled = {CPU_HIGH, RAM_HIGH}
-            active = {CPU_HIGH}
-            => ({"RAM_HIGH"}, set())  # detected, resolved
-        """
-        triggered_enabled = triggered & enabled
-        detected = triggered_enabled - active
-        resolved = (active & enabled) - triggered
-        return detected, resolved
-
     def is_cpu_high(self) -> bool:
         """High when 5m load exceeds (CPU_HIGH% of cores).
 

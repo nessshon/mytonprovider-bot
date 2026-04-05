@@ -105,6 +105,12 @@ class UserTriggeredAlertModel(BaseModel):
         DateTime(timezone=True),
         nullable=False,
     )
+    confirmed: Mapped[bool] = mapped_column(default=False, nullable=False)
+    resolving_since: Mapped[t.Optional[datetime]] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+        default=None,
+    )
 
     __table_args__ = (
         UniqueConstraint(
