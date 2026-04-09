@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 SYNC_BAGS_TIMEOUT = 4 * 60
 MAX_DISPLAY_BAGS = 20
-MISSING_THRESHOLD = timedelta(hours=24)
+MISSING_THRESHOLD = timedelta(days=3)
 REASON_THRESHOLD = timedelta(hours=24)
 
 ContractKey = tuple[str, str]
