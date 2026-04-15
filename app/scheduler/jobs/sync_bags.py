@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 SYNC_BAGS_TIMEOUT = 4 * 60
 MAX_DISPLAY_BAGS = 20
-MISSING_THRESHOLD = timedelta(days=3)
+MISSING_THRESHOLD = timedelta(days=7)
 REASON_THRESHOLD = timedelta(hours=24)
 
 ContractKey = tuple[str, str]
@@ -82,10 +82,7 @@ def _build_notifications(
         )
 
     notifications: dict[str, dict[str, list[str]]] = {}
-    all_pubkeys = (
-        set(added_by_provider.keys())
-        | set(removed_by_provider.keys())
-    )
+    all_pubkeys = set(added_by_provider.keys()) | set(removed_by_provider.keys())
     for pubkey in all_pubkeys:
         added = sorted(added_by_provider.get(pubkey, []))
         removed = sorted(removed_by_provider.get(pubkey, []))
