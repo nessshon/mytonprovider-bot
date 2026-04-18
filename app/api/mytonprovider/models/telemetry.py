@@ -23,8 +23,8 @@ class ProviderInfo(BaseModel):
     max_bag_size_bytes: int
     pubkey: str
     service_uptime: t.Optional[int] = None
-    total_provider_space: float
-    used_provider_space: float
+    total_provider_space: t.Optional[float] = None
+    used_provider_space: t.Optional[float] = None
 
 
 class StorageInfo(BaseModel):
