@@ -7,7 +7,10 @@ from aiogram_dialog.api.exceptions import (
     UnknownIntent,
     UnknownState,
 )
-from .commands import register_command
+from .commands import (
+    register_command,
+    register_start_deeplink,
+)
 from .common import (
     hide_callback_query,
     my_chat_memeber,
@@ -23,6 +26,7 @@ logger = logging.getLogger(__name__)
 
 
 def register(dp: Dispatcher) -> None:
+    register_start_deeplink(dp)
     register_command(dp, "start", states.MainMenu.MAIN)
     register_command(dp, "help", states.HelpMenu.MAIN)
     register_command(dp, "lang", states.LanguageMenu.MAIN)

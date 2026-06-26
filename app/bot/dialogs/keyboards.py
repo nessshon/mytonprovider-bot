@@ -76,6 +76,11 @@ main_menu = kbd.Group(
 )
 
 provider_menu = kbd.Group(
+    kbd.Url(
+        id="open_tma",
+        text=I18NJinja("buttons.provider.open_tma"),
+        url=Format("{tma_url}"),
+    ),
     kbd.Group(
         kbd.Radio(
             checked_text=Const("• ") + I18NJinja("buttons.provider.tab.{item}"),

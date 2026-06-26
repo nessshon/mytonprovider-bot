@@ -438,6 +438,7 @@ buttons:
       disk_space_low: "Заполненность диска: ≥ {{ thresholds_data.get('disk_space_low') }}%"
 
   provider:
+    open_tma: "↗ Открыть веб-интерфейс"
     copy_pubkey: "Скопировать публичный ключ"
     copy_address: "Скопировать адрес кошелька"
     update_password: "⟳ Обновить пароль"

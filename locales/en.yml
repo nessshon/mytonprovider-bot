@@ -438,6 +438,7 @@ buttons:
       disk_space_low: "Disk usage: ≥ {{ thresholds_data.get('disk_space_low') }}%"
 
   provider:
+    open_tma: "↗ Open web interface"
     copy_pubkey: "Copy public key"
     copy_address: "Copy wallet address"
     update_password: "⟳ Update password"

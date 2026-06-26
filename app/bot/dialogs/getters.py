@@ -11,7 +11,7 @@ from app.database.metrics import (
 from .consts import DEFAULT_PROVIDER_TAB, DEFAULT_ALERT_TAB
 from ..utils.i18n import Localizer
 from ...alert.thresholds import THRESHOLDS
-from ...config import ADMIN_IDS
+from ...config import ADMIN_IDS, TMA_BOT_USERNAME
 from ...database.models import ContractModel, UserModel
 from ...database.models.contract import REASON_DESCRIPTIONS
 from ...database.unitofwork import UnitOfWork
@@ -116,6 +116,7 @@ async def provider_menu(
         "telemetry": provider.telemetry_model,
         "provider_pubkey": pubkey,
         "provider_address": provider.address,
+        "tma_url": f"https://t.me/{TMA_BOT_USERNAME}?startapp={pubkey}",
         "provider_wallet_metrics": provider_wallet_metrics,
         "provider_traffic_metrics": provider_traffic_metrics,
         "provider_storage_metrics": provider_storage_metrics,
@@ -128,6 +129,10 @@ async def provider_enter_password(
     dialog_manager: DialogManager,
     **_,
 ):
+    pubkey = (dialog_manager.start_data or {}).get("provider_pubkey")
+    if pubkey:
+        dialog_manager.dialog_data["provider_pubkey"] = pubkey
+
     incorrect_password = dialog_manager.dialog_data.get("incorrect_password", False)
     return {"incorrect_password": incorrect_password}
 

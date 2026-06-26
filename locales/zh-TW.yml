@@ -438,6 +438,7 @@ buttons:
       disk_space_low: "磁碟使用率: ≥ {{ thresholds_data.get('disk_space_low') }}%"
 
   provider:
+    open_tma: "↗ 開啟網頁介面"
     copy_pubkey: "複製公鑰"
     copy_address: "複製錢包地址"
     update_password: "⟳ 更新密碼"
