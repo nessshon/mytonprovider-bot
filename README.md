@@ -53,6 +53,7 @@ Telegram interface for browsing, subscribing, and receiving alerts.
 | `MYTONPROVIDER_API_KEY` | MyTONProvider API key                     | `abcd1234efgh5678...`                         |
 | `DB_URL`                | Database connection string                | `sqlite+aiosqlite:///./data/database.sqlite3` |
 | `REDIS_URL`             | Redis connection string for state storage | `redis://localhost:6379/0`                    |
+| `ADMIN_PASSWORD`        | Admin password for control panel/access   | `supersecret`                                 |
 
 ### Run
 

@@ -53,6 +53,7 @@ Telegram-бот для мониторинга **TON Storage провайдеро
 | `MYTONPROVIDER_API_KEY` | Ключ доступа к MyTONProvider API         | `abcd1234efgh5678...`                         |
 | `DB_URL`                | Строка подключения к базе данных         | `sqlite+aiosqlite:///./data/database.sqlite3` |
 | `REDIS_URL`             | Адрес Redis для хранения состояния       | `redis://localhost:6379/0`                    |
+| `ADMIN_PASSWORD`        | Пароль администратора для панели/доступа | `supersecret`                                 |
 
 ### Запуск
 
