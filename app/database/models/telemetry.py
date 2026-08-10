@@ -24,7 +24,7 @@ class BaseTelemetryModel(BaseModel):
     net_load: Mapped[t.Optional[list[float]]] = mapped_column(JSON)
     net_recv: Mapped[t.Optional[list[float]]] = mapped_column(JSON)
     net_sent: Mapped[t.Optional[list[float]]] = mapped_column(JSON)
-    pings: Mapped[t.Optional[dict[str, float]]] = mapped_column(JSON)
+    pings: Mapped[t.Optional[dict[str, t.Optional[float]]]] = mapped_column(JSON)
     pps: Mapped[t.Optional[list[float]]] = mapped_column(JSON)
     ram: Mapped[t.Optional[dict]] = mapped_column(JSON)
     storage: Mapped[dict] = mapped_column(JSON, nullable=False)

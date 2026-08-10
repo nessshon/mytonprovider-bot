@@ -55,7 +55,7 @@ class Telemetry(BaseModel):
     net_load: t.Optional[t.List[t.Optional[float]]] = None
     net_recv: t.Optional[t.List[t.Optional[float]]] = None
     net_sent: t.Optional[t.List[t.Optional[float]]] = None
-    pings: t.Optional[t.Dict[str, float]] = None
+    pings: t.Optional[t.Dict[str, t.Optional[float]]] = None
     pps: t.Optional[t.List[t.Optional[float]]] = None
     ram: t.Optional[RamInfo] = None
     storage: StorageInfo
