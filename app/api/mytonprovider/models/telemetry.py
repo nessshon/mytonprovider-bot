@@ -31,7 +31,7 @@ class StorageInfo(BaseModel):
     disk_name: t.Optional[str] = None
     free_disk_space: t.Optional[float] = None
     provider: ProviderInfo
-    pubkey: str
+    pubkey: t.Optional[str] = None
     service_uptime: t.Optional[int] = None
     total_disk_space: t.Optional[float] = None
     used_disk_space: t.Optional[float] = None
